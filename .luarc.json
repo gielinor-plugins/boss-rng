@@ -1,0 +1,7 @@
+{
+    "runtime.version": "Lua 5.4",
+    "diagnostics.globals": [
+        "Event", "Player", "PersistentDB", "Plugin", "PluginPermissions", "GameState",
+        "Inventory", "config", "var", "ui", "id", "Vector4", "prettyui", "PluginShutdown"
+    ]
+}

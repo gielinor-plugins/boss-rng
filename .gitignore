@@ -1,0 +1,13 @@
+# Editor and OS files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Release zips built by tools/package.sh
+dist/
+*.zip
+
+# Local only: dev test bosses and probes, and the old code kept for reference
+dev/
+reference/
