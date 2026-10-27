@@ -18,24 +18,42 @@ local function dryShare(boss, tallies)
     return 1 - missAll
 end
 
--- Stats for one boss from its tallies (see tracker.Tallies), or nil without any:
---   kills      kills since install
---   expected   uniques an average player would have after those kills
---   received   uniques the player received
---   luck       share of players with fewer uniques, from 0 to 1 (nil without kills)
---   dryKills   kills since the last unique (all kills if none yet)
---   dryShare   share of players who would have had a unique within dryKills
---   items      { [itemID] = { expected, received, luck, dryKills } } per unique
+-- Total kills in a { [mode name] = kills } table.
+local function sum(kills)
+    local total = 0
+    for _, n in pairs(kills) do
+        total = total + n
+    end
+    return total
+end
+
+-- Stats for one boss from its tallies (see tracker.Tallies), or nil without any.
+-- Luck uses the game's all-time totals once captured, else the tracked ones.
+-- Dry streaks always come from tracking, since the game doesn't show them.
+--   allTime     true if kills and received are all-time totals
+--   kills       kills
+--   expected    uniques an average player would have after those kills
+--   received    uniques the player received
+--   luck        share of players with fewer uniques, from 0 to 1 (nil without kills)
+--   dryKills    kills since the last unique
+--   dryAtLeast  true if the streak may be longer: no unique tracked yet, and
+--               there may be kills from before tracking
+--   dryShare    share of players who would have had a unique within dryKills
+--   items       { [itemID] = { expected, received, luck, dryKills, dryAtLeast } } per unique
 function stats.ForBoss(boss, tallies)
     if tallies == nil then
         return nil
     end
-    local kills = tracker.Kills(tallies)
-    local result = { kills = kills, expected = 0, received = 0, items = {} }
+    local allTime = tracker.AllTime(tallies)
+    local kills = allTime and allTime.kills or tallies.kills
+    local trackedKills = sum(tallies.kills)
+    -- Only all-time totals can show that every kill was tracked.
+    local allTracked = allTime ~= nil and sum(allTime.kills) <= trackedKills
+    local result = { allTime = allTime ~= nil, kills = sum(kills), expected = 0, received = 0, items = {} }
 
     -- Expected drops add up per mode, since each mode can have its own rates.
     for _, mode in ipairs(boss.modes) do
-        local modeKills = tallies.kills[mode.name] or 0
+        local modeKills = kills[mode.name] or 0
         for itemID, chance in pairs(luck.ItemChances(mode.rolls)) do
             local item = result.items[itemID] or { expected = 0 }
             item.expected = item.expected + modeKills * chance
@@ -44,19 +62,23 @@ function stats.ForBoss(boss, tallies)
     end
 
     for itemID, item in pairs(result.items) do
-        local saved = tallies.items[tostring(itemID)]
-        item.received = saved and saved.count or 0
+        local key = tostring(itemID)
+        local tracked = tallies.items[key]
+        if allTime then
+            item.received = allTime.items[key] or 0
+        else
+            item.received = tracked and tracked.count or 0
+        end
         item.luck = luck.Percentile(item.expected, item.received)
-        item.dryKills = kills - (saved and saved.atKill or 0)
+        item.dryKills = trackedKills - (tracked and tracked.atKill or 0)
+        item.dryAtLeast = tracked == nil and not allTracked
         result.expected = result.expected + item.expected
         result.received = result.received + item.received
     end
 
     result.luck = luck.Percentile(result.expected, result.received)
-    result.dryKills = 0
-    for _, dryKills in pairs(tallies.dry) do
-        result.dryKills = result.dryKills + dryKills
-    end
+    result.dryKills = sum(tallies.dry)
+    result.dryAtLeast = next(tallies.items) == nil and not allTracked
     result.dryShare = dryShare(boss, tallies)
     return result
 end

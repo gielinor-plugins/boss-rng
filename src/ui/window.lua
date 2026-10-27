@@ -30,10 +30,14 @@ local ROW_GAP = 2
 local ROW_STEP = ROW_HEIGHT + ROW_GAP
 local SLOT_SIZE = 30
 local ICON_SIZE = 26
-local ROW_BAR_WIDTH = 60
+local ROW_WIDTH = TABLE_WIDTH - THUMB_WIDTH - 4 -- leaves room for the scroll marker
+local ROW_BAR_WIDTH = 50
 local NAME_X = SLOT_SIZE + 10
-local LUCK_X = 190
-local DRY_X = 330
+local LUCK_X = 180
+-- Dry counts are right aligned in a box ending just inside the row, wide enough
+-- for "12,345+".
+local DRY_X = 300
+local DRY_WIDTH = ROW_WIDTH - 8 - DRY_X
 
 -- The title strip copies the collection log's: gold Cinzel on a dark gradient
 -- that lightens toward the bottom, with a gold line under it.
@@ -178,7 +182,15 @@ local function addSeparator(box, y)
 end
 
 local function addGreyText(parent, content, x, y, width)
-    widgets.AddText(parent, content, x, y, width, widgets.SMALL_FONT).colour = widgets.GREY
+    local text = widgets.AddText(parent, content, x, y, width, widgets.SMALL_FONT)
+    text.colour = widgets.GREY
+    return text
+end
+
+-- A dry count or the DRY heading, right aligned in the dry column. The API's
+-- align modes have no plain "right": BOTTOMRIGHT on the horizontal axis is right.
+local function addDryText(parent, content, x, y)
+    addGreyText(parent, content, x, y, DRY_WIDTH).alignHorizontal = ui.AlignMode.BOTTOMRIGHT
 end
 
 -- One line of luck over every boss with kills. It sits above the dropdown since
@@ -224,11 +236,17 @@ local function addItemRow(view, row, y, width)
     local slotY = y + (ROW_HEIGHT - SLOT_SIZE) // 2
     widgets.AddSprite(view, "RS3_INV_ICON_SLOT", 4, slotY, SLOT_SIZE, SLOT_SIZE)
     local icon = ui.Sprite.new(view)
+    local received = row.item.received
     -- The game only accepts whole numbers here, and saved ids can load back as
-    -- decimals (1.0), so convert.
+    -- decimals (1.0), so convert. With the count as the quantity, the game draws
+    -- its own yellow number on the icon, like the boss log, once one is received.
+    -- (The optional quantity argument of SetAssociatedObject is rejected in game,
+    -- so the quantity is set on its own.)
     icon:SetAssociatedObject(math.tointeger(row.id))
-    icon.associatedObjectQuantityMode = ui.ObjectQuantityDisplayMode.NEVER
-    icon.alpha = row.item.received > 0 and 1.0 or 0.35
+    icon.associatedObjectQuantity = math.tointeger(received)
+    icon.associatedObjectQuantityMode = received > 0 and ui.ObjectQuantityDisplayMode.ALWAYS
+        or ui.ObjectQuantityDisplayMode.NEVER
+    icon.alpha = received > 0 and 1.0 or 0.35
     local inset = (SLOT_SIZE - ICON_SIZE) // 2
     widgets.Place(icon, 4 + inset, slotY + inset, ICON_SIZE, ICON_SIZE)
 
@@ -240,14 +258,14 @@ local function addItemRow(view, row, y, width)
     end
     local labelX = LUCK_X + ROW_BAR_WIDTH + 6
     widgets.AddText(view, format.LuckShort(row.item), labelX, textY, DRY_X - labelX, widgets.SMALL_FONT)
-    addGreyText(view, format.Number(row.item.dryKills), DRY_X, textY, width - DRY_X)
+    addDryText(view, format.DryCount(row.item), DRY_X, textY)
 end
 
 -- The table's column names, lined up with its columns.
 local function addColumnNames(box, y)
-    for _, column in ipairs({ { "ITEM", NAME_X }, { "LUCK", LUCK_X }, { "DRY", DRY_X } }) do
-        addGreyText(box, column[1], PAD + column[2], y, 60)
-    end
+    addGreyText(box, "ITEM", PAD + NAME_X, y, 60)
+    addGreyText(box, "LUCK", PAD + LUCK_X, y, 60)
+    addDryText(box, "DRY", PAD + DRY_X, y)
 end
 
 -- The height of count rows, without a gap after the last.
@@ -278,7 +296,7 @@ function window.Draw(state)
     local viewHeight = rowsHeight(math.min(#rows, MAX_ROWS))
     local view = addScrollView(frame, PAD, y, TABLE_WIDTH, viewHeight, rowsHeight(#rows))
     for i, row in ipairs(rows) do
-        addItemRow(view, row, (i - 1) * ROW_STEP, TABLE_WIDTH - THUMB_WIDTH - 4)
+        addItemRow(view, row, (i - 1) * ROW_STEP, ROW_WIDTH)
     end
     y = y + viewHeight
 

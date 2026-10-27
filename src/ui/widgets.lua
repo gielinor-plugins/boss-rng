@@ -23,6 +23,9 @@ widgets.BAR_HEIGHT = 10
 local SEPARATOR = Vector4.new(1.0, 1.0, 1.0, 0.12)
 local BAR_BACK = Vector4.new(0.0, 0.0, 0.0, 0.6)
 local TICK = Vector4.new(1.0, 1.0, 1.0, 0.9) -- marks average luck on a bar
+-- A solid gold timer bar fill. It stretches to any width without marks that
+-- could be mistaken for values (the adrenaline bar's segment notches could).
+local BAR_FILL = "TIMERBAR_120_S_1"
 local PICKER_HEIGHT = 25
 
 -- Positions and sizes a component, then returns it. Without a width it spans
@@ -45,10 +48,9 @@ function widgets.AddText(parent, content, x, y, width, font)
     return text
 end
 
--- Centers text in its box. AlignTo is only shown in Jagex's tutorial, so if it
--- isn't available the text simply stays left aligned.
+-- Centers text in its box, across and down.
 function widgets.Center(text)
-    pcall(function() text:AlignTo(ui.AlignMode.CENTRE) end)
+    text:AlignTo(ui.AlignMode.CENTRE)
 end
 
 function widgets.AddRect(parent, x, y, width, height, colour)
@@ -77,7 +79,7 @@ function widgets.AddSprite(parent, name, x, y, width, height)
     return sprite
 end
 
--- A luck bar: the HUD's adrenaline fill on a dark back, filled to the luck share,
+-- A luck bar: a gold timer bar fill on a dark back, filled to the luck share,
 -- with a tick at the middle, where an average player would be. The width
 -- defaults to BAR_WIDTH.
 function widgets.AddLuckBar(parent, x, y, share, width)
@@ -86,7 +88,7 @@ function widgets.AddLuckBar(parent, x, y, share, width)
     widgets.AddRect(parent, x, y, width, height, BAR_BACK)
     local filled = math.floor(width * share)
     if filled > 0 then
-        widgets.AddSprite(parent, "FILLBAR_HUD_ADRENALINE", x, y, filled, height)
+        widgets.AddSprite(parent, BAR_FILL, x, y, filled, height)
     end
     widgets.AddRect(parent, x + width // 2, y, 2, height, TICK)
 end

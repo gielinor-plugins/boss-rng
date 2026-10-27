@@ -67,6 +67,45 @@ describe("stats.ForBoss", function()
         assert.is_nil(result.luck)
         assert.are.equal(0, result.dryShare)
     end)
+
+    describe("with all-time totals", function()
+        local function withAllTime(t, kills, items)
+            t.allTime = { kills = kills, items = items }
+            return t
+        end
+
+        it("uses them for luck", function()
+            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }),
+                { Normal = 100, ["Hard mode"] = 20 }, { ["1"] = 2, ["2"] = 1 }))
+            assert.is_true(result.allTime)
+            assert.are.equal(120, result.kills)
+            assert.are.near(4, result.expected, 1e-9)
+            assert.are.equal(3, result.received)
+            assert.are.equal(2, result.items[1].received)
+        end)
+
+        it("keeps dry streaks from tracking, marking ones that may be longer", function()
+            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }, {
+                ["1"] = { count = 1, atKill = 4 },
+            }, { Normal = 6 }), { Normal = 100 }, { ["1"] = 3 }))
+            assert.are.equal(6, result.dryKills)
+            assert.is_false(result.dryAtLeast)
+            assert.are.equal(6, result.items[1].dryKills)
+            assert.is_false(result.items[1].dryAtLeast)
+            assert.are.equal(10, result.items[2].dryKills)
+            assert.is_true(result.items[2].dryAtLeast)
+        end)
+
+        it("know the streak is exact when every kill was tracked", function()
+            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }), { Normal = 10 }, {}))
+            assert.is_false(result.dryAtLeast)
+            assert.is_false(result.items[1].dryAtLeast)
+        end)
+    end)
+
+    it("marks dry streaks as possibly longer without all-time totals", function()
+        assert.is_true(stats.ForBoss(BOSS, tallies({ Normal = 30 })).dryAtLeast)
+    end)
 end)
 
 describe("stats.Overall", function()

@@ -1,5 +1,6 @@
 -- Reads boss kill counts and boss log counts from the game, and reports when they
--- go up. This is the only module that reads game vars. It stores nothing.
+-- go up. It stores nothing. The only other module that reads game vars is
+-- src/capture.lua, which reads totals while the game shows them.
 --
 -- Kill counts and log counts are varbits: slices of a bigger "base" var. At a kill
 -- or drop the game sends the base var's old and new value (VarTransmit), and the
@@ -95,6 +96,12 @@ end
 local function onLogic(event)
     tick = event.logicTick
     flush()
+end
+
+-- True while changes are waiting for the next tick, when a kill count can already
+-- show a kill that hasn't been reported yet.
+function gamevars.HasPending()
+    return #pending.kills > 0 or #pending.drops > 0
 end
 
 -- Starts reporting changes for every boss in bosses (the list from src/bosses.lua),

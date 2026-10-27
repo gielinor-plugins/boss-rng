@@ -41,9 +41,13 @@ describe("format", function()
         assert.are.equal("unique on your last kill", format.Dry({ kills = 5, dryKills = 0, dryShare = 0 }))
     end)
 
-    it("words the dry streak for lists", function()
-        assert.are.equal("1,204 dry", format.DryShort(1204))
-        assert.are.equal("unique last kill", format.DryShort(0))
+    it("marks a dry streak that may be longer", function()
+        assert.are.equal("1+ kills dry · 99% go this long",
+            format.Dry({ kills = 1, dryKills = 1, dryAtLeast = true, dryShare = 0.003 }))
+        assert.are.equal("1,204+", format.DryCount({ dryKills = 1204, dryAtLeast = true }))
+        assert.are.equal("7", format.DryCount({ dryKills = 7 }))
+        assert.are.equal("Dry streak: counted from your next kill",
+            format.Dry({ kills = 300, dryKills = 0, dryAtLeast = true, dryShare = 0 }))
     end)
 
     it("capitalizes a headline", function()
@@ -51,12 +55,13 @@ describe("format", function()
     end)
 
     it("words what an average player would have", function()
-        assert.are.equal("An average player: 2.3 uniques", format.Average({ expected = 2.345 }))
-        assert.are.equal("An average player: 1.0 unique", format.Average({ expected = 1.04 }))
-        assert.are.equal("An average player: under 1 unique", format.Average({ expected = 0.98 }))
+        assert.are.equal("Average player: 2.3 uniques", format.Average({ expected = 2.345 }))
+        assert.are.equal("Average player: 1.0 unique", format.Average({ expected = 1.04 }))
+        assert.are.equal("Average player: under 1 unique", format.Average({ expected = 0.98 }))
     end)
 
     it("words the totals", function()
         assert.are.equal("Tracked: 1,204 kills · 1 unique", format.Totals({ kills = 1204, received = 1 }))
+        assert.are.equal("All-time: 576 kills · 7 uniques", format.Totals({ allTime = true, kills = 576, received = 7 }))
     end)
 end)

@@ -64,42 +64,43 @@ function format.Luck(result)
     return (short == "average" and "about average" or short) .. " luck"
 end
 
--- The dry streak: "12 kills dry · 4% go this long", or "unique on your last kill".
--- The percentage is the share of players who would still be dry after as many kills.
-function format.Dry(bossStats)
-    if bossStats.kills == 0 then
+-- A dry streak's kills: "12", or "12+" when it may be longer (see stats).
+function format.DryCount(result)
+    return format.Number(result.dryKills) .. (result.dryAtLeast and "+" or "")
+end
+
+-- The dry streak: "12 kills dry · 4% go this long", "12+ kills dry · ...", or
+-- "unique on your last kill". The percentage is the share of players who would
+-- still be dry after as many kills.
+function format.Dry(result)
+    if result.kills == 0 then
         return ""
     end
-    if bossStats.dryKills == 0 then
-        return "unique on your last kill"
+    if result.dryKills == 0 then
+        -- With no unique tracked yet, no kills tracked yet either.
+        return result.dryAtLeast and "Dry streak: counted from your next kill" or "unique on your last kill"
     end
-    return count(bossStats.dryKills, "kill") .. " dry · " .. format.Percent(1 - bossStats.dryShare) .. " go this long"
+    local kills = format.DryCount(result) .. ((result.dryKills == 1 and not result.dryAtLeast) and " kill" or " kills")
+    return kills .. " dry · " .. format.Percent(1 - result.dryShare) .. " go this long"
 end
 
--- A dry streak in a few words, for lists: "12 dry", or "unique last kill".
-function format.DryShort(dryKills)
-    if dryKills == 0 then
-        return "unique last kill"
-    end
-    return format.Number(dryKills) .. " dry"
-end
-
--- What the numbers are based on: "Tracked: 576 kills · 7 uniques", the kills
--- and drops Boss RNG has seen itself.
+-- What the numbers are based on: "All-time: 576 kills · 7 uniques" once the
+-- game's totals are captured, else "Tracked: ...", the kills and drops Boss RNG
+-- has seen itself.
 function format.Totals(result)
-    return "Tracked: " .. count(result.kills, "kill") .. " · " .. count(result.received, "unique")
+    return (result.allTime and "All-time: " or "Tracked: ") .. count(result.kills, "kill") .. " · " .. count(result.received, "unique")
 end
 
 -- How many uniques an average player would have after the same kills, to
--- compare with the player's own: "An average player: 2.3 uniques". Shown to one
+-- compare with the player's own: "Average player: 2.3 uniques". Shown to one
 -- decimal place, and below 1 as "under 1 unique". (Not "<1": the game reads "<"
 -- as the start of a formatting tag and hides the rest of the text.)
 function format.Average(result)
     if result.expected < 1 then
-        return "An average player: under 1 unique"
+        return "Average player: under 1 unique"
     end
     local average = string.format("%.1f", result.expected)
-    return "An average player: " .. average .. (average == "1.0" and " unique" or " uniques")
+    return "Average player: " .. average .. (average == "1.0" and " unique" or " uniques")
 end
 
 return format
