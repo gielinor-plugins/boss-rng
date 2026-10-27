@@ -144,7 +144,9 @@ local function addItemRow(view, row, y, width)
     widgets.Place(icon, 4 + inset, slotY + inset, ICON_SIZE, ICON_SIZE)
 
     local textY = y + (ROW_HEIGHT - widgets.TEXT_HEIGHT) // 2
-    widgets.AddText(view, row.name, NAME_X, textY, LUCK_X - NAME_X - 6, widgets.ROW_FONT)
+    local nameWidth = LUCK_X - NAME_X - 6
+    local name = widgets.Fit(row.name, widgets.ROW_FONT, nameWidth)
+    widgets.AddText(view, name, NAME_X, textY, nameWidth, widgets.ROW_FONT)
     if row.item.luck then
         local barY = y + (ROW_HEIGHT - widgets.BAR_HEIGHT) // 2
         widgets.AddLuckBar(view, LUCK_X, barY, row.item.luck, ROW_BAR_WIDTH)

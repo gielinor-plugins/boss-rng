@@ -19,7 +19,9 @@ local selectedKey = nil -- the boss picked in a dropdown
 local lastKillKey = nil -- the last boss killed when we last drew
 local currentState -- defined below, after the actions it refers to
 
--- Bosses with kills, each with its stats, the boss killed most recently first.
+-- Bosses with kills, each with its stats, in alphabetical order. The game's
+-- dropdown lists its entries alphabetically and reports picks by position, so
+-- the list must be in the same order.
 local function bossesWithKills()
     local list = {}
     for _, boss in ipairs(bosses) do
@@ -28,29 +30,31 @@ local function bossesWithKills()
             table.insert(list, { boss = boss, stats = result })
         end
     end
-    local last = tracker.LastBossKey()
     table.sort(list, function(a, b)
-        if (a.boss.key == last) ~= (b.boss.key == last) then
-            return a.boss.key == last
-        end
         return a.boss.name < b.boss.name
     end)
     return list
 end
 
--- The picked boss's index in list. A kill at another boss picks that boss.
+-- The index in list of the boss with this key, or nil.
+local function indexOf(list, key)
+    for i, entry in ipairs(list) do
+        if entry.boss.key == key then
+            return i
+        end
+    end
+    return nil
+end
+
+-- The picked boss's index in list: the boss picked in a dropdown, else the boss
+-- killed most recently, else the first. A kill at another boss picks that boss.
 local function selectedIndex(list)
     local last = tracker.LastBossKey()
     if last ~= lastKillKey then
         lastKillKey = last
         selectedKey = nil
     end
-    for i, entry in ipairs(list) do
-        if entry.boss.key == selectedKey then
-            return i
-        end
-    end
-    return 1
+    return indexOf(list, selectedKey) or indexOf(list, last) or 1
 end
 
 -- Redraws the panel if it's open. If drawing fails, it shows one plain line.

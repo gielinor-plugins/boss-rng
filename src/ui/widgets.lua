@@ -56,6 +56,24 @@ function widgets.AddText(parent, content, x, y, width, font)
     return text
 end
 
+-- content shortened with "..." so it fits in width pixels in font (an id.Font
+-- value), since text draws past the end of its box. If the font can't be
+-- measured, content comes back whole.
+function widgets.Fit(content, font, width)
+    local ok, fitted = pcall(function()
+        local measure = config.Font.FromID(font)
+        if measure:GetStringWidth(content) <= width then
+            return content
+        end
+        local cut = content
+        while #cut > 0 and measure:GetStringWidth(cut .. "...") > width do
+            cut = cut:sub(1, -2)
+        end
+        return (cut:gsub("%s+$", "")) .. "..."
+    end)
+    return ok and fitted or content
+end
+
 -- Centers text in its box, across and down.
 function widgets.Center(text)
     text:AlignTo(ui.AlignMode.CENTRE)
