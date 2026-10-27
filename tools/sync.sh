@@ -24,9 +24,12 @@ fi
 if [ -d "$root/resources" ]; then
     cp -R "$root/resources" "$target/"
 fi
-# Dev-only test bosses and probes. Gitignored and never packaged.
+# Dev-only probes. Gitignored and never packaged. The hook is added to the
+# game copy of main.lua only, so committed code never mentions dev code.
 if [ -d "$root/dev" ]; then
     cp -R "$root/dev" "$target/"
+    printf '\nrequire("dev/hook")\n' >> "$target/main.lua"
+    echo "Added dev probes"
 fi
 
 echo "Copied to $target"

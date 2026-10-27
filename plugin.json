@@ -2,10 +2,10 @@
     "name": "Boss RNG",
     "version": "0.0.1",
     "contactEmailAddress": "gielinorplugins@gmail.com",
-    "requiredDependencies": { "prettyui": 6398181 },
+    "requiredDependencies": {},
     "optionalDependencies": {},
     "requiredPermissions": [],
-    "optionalPermissions": [ "chatAccess" ],
+    "optionalPermissions": [],
     "urls": {},
     "hasRibbonIcon": true,
     "hasSettingsIcon": true
