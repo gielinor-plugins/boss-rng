@@ -1,0 +1,113 @@
+-- Reads boss kill counts and boss log counts from the game, and reports when they
+-- go up. This is the only module that reads game vars. It stores nothing.
+--
+-- Kill counts and log counts are varbits: slices of a bigger "base" var. At a kill
+-- or drop the game sends the base var's old and new value (VarTransmit), and the
+-- change in each slice is what we report. We use only the change, at the moment the
+-- player sees the kill or drop, because a var may only be used once the game has
+-- shown that information to the player.
+
+local gamevars = {}
+
+local REF = "bossrng_gamevars"
+
+-- After entering the game, wait this long before trusting changes, so vars sent at
+-- login aren't mistaken for kills or drops. The client runs 50 logic ticks per second.
+local SETTLE_TICKS = 5 * 50
+
+-- Each KC varbit rises by 1 per kill, and an item's count by a little per drop.
+-- Bigger jumps (like a login sync) and any decrease are ignored.
+local MAX_CHANGE = 3
+
+local watched = {} -- [base var id] = slices to check when that var changes
+local tick = 0
+local readyAtTick = nil -- nil while not in the game
+
+-- Number of zero bits below a mask's lowest set bit, e.g. 0xFFFF0000 gives 16.
+local function lowestBit(mask)
+    local shift = 0
+    while mask ~= 0 and mask & 1 == 0 do
+        mask = mask >> 1
+        shift = shift + 1
+    end
+    return shift
+end
+
+-- Watches a varbit by name. report(change) is called whenever it goes up.
+local function watch(name, report)
+    local varbit = var.VarPlayer[name]
+    if varbit == nil or not varbit.isVarBit then
+        print("[Boss RNG] Unknown varbit " .. name)
+        return
+    end
+    local baseID = varbit.baseVar.id
+    watched[baseID] = watched[baseID] or {}
+    table.insert(watched[baseID], {
+        mask = varbit.varBitMask,
+        shift = lowestBit(varbit.varBitMask),
+        report = report,
+    })
+end
+
+local function onVarTransmit(event)
+    local slices = watched[event.var.id]
+    local old, new = event.oldValue, event.newValue
+    if slices == nil or readyAtTick == nil or tick < readyAtTick then
+        return
+    end
+    if type(old) ~= "number" or type(new) ~= "number" then
+        return
+    end
+    for _, slice in ipairs(slices) do
+        local change = ((new & slice.mask) >> slice.shift) - ((old & slice.mask) >> slice.shift)
+        if change > 0 and change <= MAX_CHANGE then
+            slice.report(change)
+        end
+    end
+end
+
+local function onGameStateChanged(event)
+    if event.newState == GameState.GAME then
+        readyAtTick = tick + SETTLE_TICKS
+    else
+        readyAtTick = nil
+    end
+end
+
+local function onLogic(event)
+    tick = event.logicTick
+end
+
+-- Starts reporting changes for every boss in bosses (the list from src/bosses.lua):
+--   onKills(boss, mode, count)   a KC varbit of that mode went up
+--   onDrops(boss, itemID, count) the log count of a unique item went up
+function gamevars.Start(bosses, onKills, onDrops)
+    for _, boss in ipairs(bosses) do
+        for _, mode in ipairs(boss.modes) do
+            watch(mode.kc, function(count) onKills(boss, mode, count) end)
+        end
+        for itemID, item in pairs(boss.items) do
+            if item.kind == "unique" then -- only items that count toward luck
+                watch(item.log, function(count) onDrops(boss, itemID, count) end)
+            end
+        end
+    end
+
+    -- No state change arrives if the plugin starts while already in the game, and
+    -- the login vars have already been sent, so changes can be trusted straight away.
+    readyAtTick = Player.IsAvailable() and 0 or nil
+
+    Event.Logic.Subscribe(REF, onLogic)
+    Event.GameStateChanged.Subscribe(REF, onGameStateChanged)
+    Event.VarTransmit.Subscribe(REF, onVarTransmit)
+end
+
+function gamevars.Stop()
+    Event.Logic.Unsubscribe(REF)
+    Event.GameStateChanged.Unsubscribe(REF)
+    Event.VarTransmit.Unsubscribe(REF)
+    watched = {}
+    readyAtTick = nil
+end
+
+return gamevars
