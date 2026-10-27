@@ -18,6 +18,7 @@ return {
     name = "Kree'arra",
     logPage = "COLLECTION_BOSS_KREEARRA", -- the boss log page's database row
 
+    -- Mode names are saved with the player's data: never change them.
     modes = {
         { name = "Normal", kc = "BSLAY_KILLS_GWD_KREEARRA", rolls = ROLLS },
         { name = "Hard mode", kc = "BSLAY_KILLS_GWD_KREEARRA_HARDMODE", rolls = ROLLS },

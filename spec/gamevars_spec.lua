@@ -20,11 +20,22 @@ local BOSS = {
 local KC_VAR, LOG_VAR = 1, 2
 
 describe("gamevars", function()
-    local gamevars, kills, drops
+    local gamevars, reports, tick
+
+    local function advance(ticks)
+        tick = tick + ticks
+        mock.Fire("Logic", { logicTick = tick })
+    end
 
     -- Fires a VarTransmit for a base var going from old to new.
-    local function change(id, old, new)
+    local function send(id, old, new)
         mock.Fire("VarTransmit", { var = { id = id }, oldValue = old, newValue = new })
+    end
+
+    -- Sends a change, then lets a tick pass so it is reported.
+    local function change(id, old, new)
+        send(id, old, new)
+        advance(1)
     end
 
     before_each(function()
@@ -39,57 +50,63 @@ describe("gamevars", function()
 
         package.loaded["src/gamevars"] = nil
         gamevars = require("src/gamevars")
-        kills, drops = {}, {}
+        reports, tick = {}, 1000
         mock.inGame = true
         gamevars.Start({ BOSS }, function(_, mode, count)
-            table.insert(kills, mode.name .. " +" .. count)
+            table.insert(reports, "kill " .. mode.name .. " +" .. count)
         end, function(_, itemID, count)
-            table.insert(drops, itemID .. " +" .. count)
+            table.insert(reports, "drop " .. itemID .. " +" .. count)
         end)
     end)
 
     it("reports a kill for the slice that went up", function()
         change(KC_VAR, 25 * 65536 + 575, 25 * 65536 + 576)
-        assert.are.same({ "Normal +1" }, kills)
+        assert.are.same({ "kill Normal +1" }, reports)
         change(KC_VAR, 25 * 65536 + 576, 26 * 65536 + 576)
-        assert.are.same({ "Normal +1", "Hard mode +1" }, kills)
+        assert.are.same({ "kill Normal +1", "kill Hard mode +1" }, reports)
     end)
 
     it("reports each unique item that went up in one change", function()
         change(LOG_VAR, 0x020101, 0x030202) -- weapon, armor and shared all +1
-        table.sort(drops)
-        assert.are.same({ "101 +1", "102 +1" }, drops)
+        table.sort(reports)
+        assert.are.same({ "drop 101 +1", "drop 102 +1" }, reports)
+    end)
+
+    it("reports a tick's kills before its drops", function()
+        send(LOG_VAR, 0x01, 0x02) -- the drop arrives first, as seen in game
+        send(KC_VAR, 575, 576)
+        assert.are.same({}, reports) -- nothing until the next tick
+        advance(1)
+        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
     end)
 
     it("ignores big jumps and decreases", function()
         change(KC_VAR, 0, 554) -- like a login sync
         change(KC_VAR, 554, 553)
-        assert.are.same({}, kills)
+        assert.are.same({}, reports)
     end)
 
     it("ignores vars it doesn't watch", function()
         change(99, 1, 2)
-        assert.are.same({}, kills)
-        assert.are.same({}, drops)
+        assert.are.same({}, reports)
     end)
 
     it("waits a few seconds after entering the game", function()
-        mock.Fire("Logic", { logicTick = 1000 })
         mock.Fire("GameStateChanged", { newState = GameState.LOGINSCREEN })
         change(KC_VAR, 1, 2)
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
         change(KC_VAR, 2, 3)
-        mock.Fire("Logic", { logicTick = 1000 + 5 * 50 })
+        advance(5 * 50)
         change(KC_VAR, 3, 4)
-        assert.are.same({ "Normal +1" }, kills)
+        assert.are.same({ "kill Normal +1" }, reports)
     end)
 
     it("waits for the game if it starts on the login screen", function()
         gamevars.Stop()
         mock.inGame = false
-        gamevars.Start({ BOSS }, function() table.insert(kills, "kill") end, function() end)
+        gamevars.Start({ BOSS }, function() table.insert(reports, "kill") end, function() end)
         change(KC_VAR, 1, 2)
-        assert.are.same({}, kills)
+        assert.are.same({}, reports)
     end)
 
     it("unsubscribes everything when stopped", function()

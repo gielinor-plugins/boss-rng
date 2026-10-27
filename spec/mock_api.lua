@@ -5,10 +5,29 @@ local mock = {}
 
 local subscribers = {} -- [event name] = { [ref] = handler }
 local vars = {}        -- [var name] = VarType-like table
+local saved = {}       -- PersistentDB entries
 
-function mock.Reset()
+-- Copies a table, so saved data can't be changed by accident (like the real thing,
+-- which serializes it).
+local function copy(value)
+    if type(value) ~= "table" then
+        return value
+    end
+    local result = {}
+    for key, inner in pairs(value) do
+        result[key] = copy(inner)
+    end
+    return result
+end
+
+-- Clears everything. Pass keepSaved = true to keep saved data, like a plugin reload.
+function mock.Reset(keepSaved)
     subscribers, vars = {}, {}
+    if not keepSaved then
+        saved = {}
+    end
     mock.inGame = false
+    mock.characterName = "Tester"
 
     Event = setmetatable({}, {
         __index = function(_, name)
@@ -27,7 +46,22 @@ function mock.Reset()
     })
     var = { VarPlayer = vars }
     GameState = { LOGINSCREEN = 10, GAME = 30 }
-    Player = { IsAvailable = function() return mock.inGame end }
+    Player = {
+        IsAvailable = function() return mock.inGame end,
+        GetEntity = function() return { displayName = mock.characterName } end,
+    }
+    PersistentDB = {
+        GetStructuredData = function(_, key) return copy(saved[key]) end,
+        SetStructuredData = function(_, key, value)
+            saved[key] = copy(value)
+            return true
+        end,
+    }
+end
+
+-- A saved entry, for checking what was written.
+function mock.Saved(key)
+    return saved[key]
 end
 
 -- Sends an event to every subscriber.
