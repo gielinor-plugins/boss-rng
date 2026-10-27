@@ -1,6 +1,8 @@
 -- Keeps each character's boss tallies and saves them on this computer.
 -- Tallies start when Boss RNG is installed: gamevars reports each kill and drop.
 
+local safe = require("src/safe")
+
 local tracker = {}
 
 local VERSION = 2
@@ -46,7 +48,7 @@ local function save()
         print("[Boss RNG] Could not save data for " .. loadedName)
     end
     for _, listener in ipairs(listeners) do
-        listener()
+        safe.Call("updating after a change", listener)
     end
 end
 
@@ -81,6 +83,7 @@ function tracker.AddKills(boss, mode, count)
     local tallies = talliesFor(boss)
     tallies.kills[mode.name] = (tallies.kills[mode.name] or 0) + count
     tallies.dry[mode.name] = (tallies.dry[mode.name] or 0) + count
+    record.lastBoss = boss.key
     save()
 end
 
@@ -107,6 +110,14 @@ function tracker.Tallies(boss)
         return nil
     end
     return record.bosses[boss.key]
+end
+
+-- The key of the boss the logged in character killed most recently, or nil.
+function tracker.LastBossKey()
+    if not load() then
+        return nil
+    end
+    return record.lastBoss
 end
 
 -- Calls listener() after every change.

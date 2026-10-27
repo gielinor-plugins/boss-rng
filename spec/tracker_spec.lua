@@ -46,6 +46,12 @@ describe("tracker", function()
         assert.are.same({ ["Hard mode"] = 1 }, tracker.Tallies(BOSS).dry)
     end)
 
+    it("remembers the last boss killed", function()
+        assert.is_nil(tracker.LastBossKey())
+        tracker.AddKills(BOSS, NORMAL, 1)
+        assert.are.equal("testboss", tracker.LastBossKey())
+    end)
+
     it("keeps its data after a reload", function()
         tracker.AddKills(BOSS, NORMAL, 1)
         mock.Reset(true)
@@ -67,6 +73,15 @@ describe("tracker", function()
         mock.inGame = false
         tracker.AddKills(BOSS, NORMAL, 1)
         assert.is_nil(mock.Saved("char:Tester"))
+    end)
+
+    it("keeps saving and telling other listeners when one fails", function()
+        local calls = 0
+        tracker.OnChange(function() error("broken listener") end)
+        tracker.OnChange(function() calls = calls + 1 end)
+        tracker.AddKills(BOSS, NORMAL, 1)
+        assert.are.equal(1, calls)
+        assert.are.equal(1, mock.Saved("char:Tester").bosses.testboss.kills.Normal)
     end)
 
     it("tells listeners about each change", function()
