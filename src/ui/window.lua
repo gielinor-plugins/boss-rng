@@ -1,8 +1,8 @@
 -- The Details window, from widest to narrowest: luck over all bosses, then the
 -- boss dropdown and a headline for the picked boss (its luck as a sentence and a
--- wide bar, its dry streak and totals), then a table with one row per unique
--- (item, luck, dry). It fits its contents, showing at most MAX_ROWS rows; the
--- rest scroll with the mouse wheel.
+-- wide bar, its dry streak, its totals and an average player's), then a table
+-- with one row per unique (item, luck, dry). It fits its contents, showing at
+-- most MAX_ROWS rows; the rest scroll with the mouse wheel.
 
 local format = require("src/format")
 local stats = require("src/stats")
@@ -97,7 +97,8 @@ local function addOverall(parent, state, y)
 end
 
 -- The headline for the picked boss, below room left for the dropdown: its luck
--- as a sentence and a full width bar, then its dry streak and totals. Returns
+-- as a sentence and a full width bar, then its dry streak, its totals and what
+-- an average player would have. Returns
 -- the y below it.
 local function addHeadline(parent, state, y)
     local result = state.list[state.selected].stats
@@ -113,6 +114,8 @@ local function addHeadline(parent, state, y)
     addGreyText(parent, format.Dry(result), PAD + 8, y, TABLE_WIDTH - 8)
     y = y + LINE_HEIGHT
     addGreyText(parent, format.Totals(result), PAD + 8, y, TABLE_WIDTH - 8)
+    y = y + LINE_HEIGHT
+    addGreyText(parent, format.Average(result), PAD + 8, y, TABLE_WIDTH - 8)
     y = y + LINE_HEIGHT
     widgets.AddRect(parent, PAD, headlineY, 2, y - headlineY, ACCENT)
     return y + 8

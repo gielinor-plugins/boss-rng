@@ -8,7 +8,7 @@ local godwars = require("src/bosses/godwars")
 local HELMET, CHESTPLATE, CHAINSKIRT = 11718, 11720, 11722
 local GLOVES, BOOTS, BUCKLER, HILT = 25016, 25010, 25013, 11702
 
-local ROLLS = godwars.Rolls({ HELMET, CHESTPLATE, CHAINSKIRT, GLOVES, BOOTS, BUCKLER }, HILT)
+local ROLLS = godwars.Rolls(godwars.Even({ HELMET, CHESTPLATE, CHAINSKIRT, GLOVES, BOOTS, BUCKLER }), HILT)
 
 return {
     key = "kreearra", -- saved data key: never change it
@@ -25,6 +25,7 @@ return {
     --   unique  counted in luck
     --   shared  its log count includes drops from other monsters, so not counted
     --   lore, pet  not counted (no log count varbit found for these)
+    --   excluded  on the page but not counted, e.g. no published drop rate
     items = {
         [HELMET] = { log = "ITEMLOG_ITEM_GWD_ARMADYL_HEAD", kind = "unique" },
         [CHESTPLATE] = { log = "ITEMLOG_ITEM_GWD_ARMADYL_BODY", kind = "unique" },

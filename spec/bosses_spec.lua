@@ -48,30 +48,40 @@ describe("boss data", function()
     end
 end)
 
--- The God Wars generals: 18 boss log items each, and the wiki rates (an armor
--- roll, and the hilt only when it misses).
-for _, case in ipairs({
-    { file = "kreearra", helmet = 11718, hilt = 11702 },
-    { file = "graardor", helmet = 25022, hilt = 11704 },
-}) do
+-- Each boss's boss log item count, and its wiki rates per kill for a few items.
+local HILT = 63 / 64 / 512 -- a general's hilt: only rolled when the unique table misses
+local NEX = 1 / 384
+local CASES = {
+    { file = "graardor", items = 18, rates = { [25022] = 1 / 384, [11704] = HILT } },
+    { file = "kreearra", items = 18, rates = { [11718] = 1 / 384, [11702] = HILT } },
+    { file = "zilyana", items = 19, rates = { [11730] = 1 / 320, [25037] = 1 / 640, [25034] = 1 / 320, [11706] = HILT } },
+    { file = "kril", items = 20, rates = { [24992] = 1 / 512, [11716] = 1 / 512, [11708] = HILT } },
+    { file = "nex", items = 21, rates = { [20135] = NEX, [25664] = NEX, [20171] = NEX } },
+}
+
+for _, case in ipairs(CASES) do
     describe(case.file, function()
         local boss = require("src/bosses/" .. case.file)
 
-        it("lists all 18 boss log items", function()
+        it("lists all " .. case.items .. " boss log items", function()
             local count = 0
             for _ in pairs(boss.items) do
                 count = count + 1
             end
-            assert.are.equal(18, count)
+            assert.are.equal(case.items, count)
         end)
 
         it("has the wiki rates", function()
-            local rolls = boss.modes[1].rolls
-            local chances = luck.ItemChances(rolls)
-            assert.are.near(1 / 384, chances[case.helmet], 1e-12)
-            assert.are.near(63 / 64 / 512, chances[case.hilt], 1e-12)
-            -- At most one unique per kill, so the chances simply add up.
-            assert.are.near(1 / 64 + 63 / 64 / 512, luck.ChanceOfAny(rolls), 1e-12)
+            local chances = luck.ItemChances(boss.modes[1].rolls)
+            for itemID, rate in pairs(case.rates) do
+                assert.are.near(rate, chances[itemID], 1e-12)
+            end
         end)
     end)
 end
+
+-- The generals' uniques can't drop together, so their chances simply add up.
+it("gives a general at most one unique per kill", function()
+    local rolls = require("src/bosses/zilyana").modes[1].rolls
+    assert.are.near(1 / 64 + HILT, luck.ChanceOfAny(rolls), 1e-12)
+end)

@@ -5,7 +5,7 @@ local godwars = require("src/bosses/godwars")
 local HELMET, CHESTPLATE, TASSETS = 25022, 11724, 11726
 local GLOVES, BOOTS, WARSHIELD, HILT = 25025, 11728, 25019, 11704
 
-local ROLLS = godwars.Rolls({ HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }, HILT)
+local ROLLS = godwars.Rolls(godwars.Even({ HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }), HILT)
 
 return {
     key = "graardor", -- saved data key: never change it
