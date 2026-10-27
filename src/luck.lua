@@ -1,4 +1,4 @@
--- Luck maths for Boss RNG. Plain Lua with no game API, so it can be tested offline.
+-- Luck math for Boss RNG. Plain Lua with no game API, so it can be tested offline.
 --
 -- Terms used here:
 --   chance    the chance of something on one kill, from 0 to 1

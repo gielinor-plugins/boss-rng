@@ -2,7 +2,7 @@
 
 local luck = require("src/luck")
 
--- Rasial: a weapon roll (1/320, 2 items) and an armour roll (1/128, 5 items).
+-- Rasial: a weapon roll (1/320, 2 items) and an armor roll (1/128, 5 items).
 local RASIAL = {
     { chance = 1 / 320, items = { w1 = 1, w2 = 1 } },
     { chance = 1 / 128, items = { a1 = 1, a2 = 1, a3 = 1, a4 = 1, a5 = 1 } },
