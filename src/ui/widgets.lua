@@ -28,6 +28,14 @@ local TICK = Vector4.new(1.0, 1.0, 1.0, 0.9) -- marks average luck on a bar
 local BAR_FILL = "TIMERBAR_120_S_1"
 local PICKER_HEIGHT = 25
 
+-- Destroys a component and everything in it, if there is one. It may already be
+-- gone (the game clears a panel layer when it's resized), so failures are ignored.
+function widgets.Destroy(component)
+    if component then
+        pcall(function() component:Destroy() end)
+    end
+end
+
 -- Positions and sizes a component, then returns it. Without a width it spans
 -- its parent.
 function widgets.Place(component, x, y, width, height)

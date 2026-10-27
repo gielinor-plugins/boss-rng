@@ -146,11 +146,11 @@ function tracker.AllTime(tallies)
     return nil
 end
 
--- Total kills since install across a boss's modes.
-function tracker.Kills(tallies)
+-- The sum of a count table, such as a boss's kills per mode.
+function tracker.Total(counts)
     local total = 0
-    for _, kills in pairs(tallies.kills) do
-        total = total + kills
+    for _, n in pairs(counts) do
+        total = total + n
     end
     return total
 end
@@ -181,7 +181,7 @@ function tracker.AddDrops(boss, itemID, count)
     local key = tostring(itemID)
     local item = tallies.items[key] or { count = 0 }
     item.count = item.count + count
-    item.atKill = tracker.Kills(tallies)
+    item.atKill = tracker.Total(tallies.kills)
     tallies.items[key] = item
     tallies.dry = {}
     if tallies.allTime.items then

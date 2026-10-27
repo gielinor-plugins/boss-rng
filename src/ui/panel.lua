@@ -28,9 +28,7 @@ end
 
 -- Swaps the content for a new, empty layer to draw into.
 local function newContent()
-    if content then
-        pcall(function() content:Destroy() end)
-    end
+    widgets.Destroy(content)
     content = ui.Layer.new(layer)
     content:SetSize(0, 0, 1.0, 1.0) -- the whole panel
     -- Let clicks pass through the layer itself to what's drawn in it, so it
@@ -80,9 +78,7 @@ function panel.ShowError()
 end
 
 function panel.Detach()
-    if content then
-        pcall(function() content:Destroy() end)
-    end
+    widgets.Destroy(content)
     content = nil
     layer = nil
 end

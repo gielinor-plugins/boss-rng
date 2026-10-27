@@ -26,7 +26,7 @@ describe("tracker", function()
         tracker.AddKills(BOSS, HARD, 1)
         local tallies = mock.Saved("char:Tester").bosses.testboss
         assert.are.same({ Normal = 2, ["Hard mode"] = 1 }, tallies.kills)
-        assert.are.equal(3, tracker.Kills(tallies))
+        assert.are.equal(3, tracker.Total(tallies.kills))
     end)
 
     it("records each drop at the current kill count", function()
@@ -57,7 +57,7 @@ describe("tracker", function()
         mock.Reset(true)
         mock.inGame = true
         reload()
-        assert.are.equal(1, tracker.Kills(tracker.Tallies(BOSS)))
+        assert.are.equal(1, tracker.Total(tracker.Tallies(BOSS).kills))
     end)
 
     it("keeps characters separate", function()
@@ -66,7 +66,7 @@ describe("tracker", function()
         assert.is_nil(tracker.Tallies(BOSS))
         tracker.AddKills(BOSS, NORMAL, 5)
         mock.characterName = "Tester"
-        assert.are.equal(1, tracker.Kills(tracker.Tallies(BOSS)))
+        assert.are.equal(1, tracker.Total(tracker.Tallies(BOSS).kills))
     end)
 
     it("ignores reports while nobody is logged in", function()
