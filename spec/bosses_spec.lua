@@ -48,20 +48,30 @@ describe("boss data", function()
     end
 end)
 
-describe("Kree'arra", function()
-    local kreearra = require("src/bosses/kreearra")
+-- The God Wars generals: 18 boss log items each, and the wiki rates (an armor
+-- roll, and the hilt only when it misses).
+for _, case in ipairs({
+    { file = "kreearra", helmet = 11718, hilt = 11702 },
+    { file = "graardor", helmet = 25022, hilt = 11704 },
+}) do
+    describe(case.file, function()
+        local boss = require("src/bosses/" .. case.file)
 
-    it("lists all 18 boss log items", function()
-        local count = 0
-        for _ in pairs(kreearra.items) do
-            count = count + 1
-        end
-        assert.are.equal(18, count)
-    end)
+        it("lists all 18 boss log items", function()
+            local count = 0
+            for _ in pairs(boss.items) do
+                count = count + 1
+            end
+            assert.are.equal(18, count)
+        end)
 
-    it("has the wiki rates", function()
-        local chances = luck.ItemChances(kreearra.modes[1].rolls)
-        assert.are.near(1 / 384, chances[11718], 1e-12) -- Armadyl helmet
-        assert.are.near(1 / 512, chances[11702], 1e-12) -- Armadyl hilt
+        it("has the wiki rates", function()
+            local rolls = boss.modes[1].rolls
+            local chances = luck.ItemChances(rolls)
+            assert.are.near(1 / 384, chances[case.helmet], 1e-12)
+            assert.are.near(63 / 64 / 512, chances[case.hilt], 1e-12)
+            -- At most one unique per kill, so the chances simply add up.
+            assert.are.near(1 / 64 + 63 / 64 / 512, luck.ChanceOfAny(rolls), 1e-12)
+        end)
     end)
-end)
+end

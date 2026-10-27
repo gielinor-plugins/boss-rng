@@ -1,17 +1,14 @@
--- Kree'arra, God Wars Dungeon.
--- Rates from the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-27.
--- Hard mode has the same rates for these uniques. The wiki doesn't say whether the
--- hilt shares a roll with the armor, so it is its own roll here.
+-- Kree'arra, God Wars Dungeon. Rates: see src/bosses/godwars.lua. The wiki's
+-- Kree'arra page doesn't say how its hilt is rolled; Graardor's and Zilyana's
+-- pages say the hilt is only rolled when the armor roll misses, and the generals
+-- share one drop system, so Kree'arra is assumed to work the same way.
+
+local godwars = require("src/bosses/godwars")
 
 local HELMET, CHESTPLATE, CHAINSKIRT = 11718, 11720, 11722
 local GLOVES, BOOTS, BUCKLER, HILT = 25016, 25010, 25013, 11702
 
-local ROLLS = {
-    -- 1/64 to reach the unique table, then 1/6 per item: 1/384 each.
-    { chance = 1 / 64, items = { [HELMET] = 1, [CHESTPLATE] = 1, [CHAINSKIRT] = 1,
-                                 [GLOVES] = 1, [BOOTS] = 1, [BUCKLER] = 1 } },
-    { chance = 1 / 512, items = { [HILT] = 1 } },
-}
+local ROLLS = godwars.Rolls({ HELMET, CHESTPLATE, CHAINSKIRT, GLOVES, BOOTS, BUCKLER }, HILT)
 
 return {
     key = "kreearra", -- saved data key: never change it
