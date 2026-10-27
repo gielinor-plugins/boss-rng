@@ -80,6 +80,17 @@ describe("gamevars", function()
         assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
     end)
 
+    it("keeps reporting when one report fails", function()
+        gamevars.Stop()
+        gamevars.Start({ BOSS }, function() error("broken kill report") end, function(_, itemID)
+            table.insert(reports, "drop " .. itemID)
+        end)
+        send(KC_VAR, 1, 2)
+        send(LOG_VAR, 0x01, 0x02)
+        advance(1)
+        assert.are.same({ "drop 101" }, reports)
+    end)
+
     it("ignores big jumps and decreases", function()
         change(KC_VAR, 0, 554) -- like a login sync
         change(KC_VAR, 554, 553)

@@ -8,6 +8,8 @@
 -- shown that information to the player. Bosses whose chest hides which unique
 -- dropped until it's opened would break this, so they aren't supported yet.
 
+local safe = require("src/safe")
+
 local gamevars = {}
 
 local REF = "bossrng_gamevars"
@@ -84,7 +86,7 @@ end
 local function flush()
     for _, group in ipairs({ "kills", "drops" }) do
         for _, item in ipairs(pending[group]) do
-            item.report(item.change)
+            safe.Call("recording " .. group, item.report, item.change)
         end
         pending[group] = {}
     end
