@@ -15,8 +15,8 @@ local function count(n, word)
     return format.Number(n) .. " " .. word .. (n == 1 and "" or "s")
 end
 
--- A share from 0 to 1 as a whole percentage, rounded down so the sentence it's in
--- stays true ("luckier than 48%"). Below 1% shows as "under 1%".
+-- A share from 0 to 1 as a whole percentage, rounded down ("4% go this long").
+-- Below 1% shows as "under 1%".
 function format.Percent(share)
     if share < 0.01 then
         return "under 1%"
@@ -24,12 +24,39 @@ function format.Percent(share)
     return math.floor(share * 100) .. "%"
 end
 
--- The headline: "luckier than 48%", or "no kills yet".
-function format.Luck(bossStats)
-    if bossStats.luck == nil then
+-- Luck between these shares reads as average.
+local AVERAGE_LOW, AVERAGE_HIGH = 0.4, 0.6
+
+-- A share as a whole percentage rounded up, at least 1%, so the player is never
+-- placed in a smaller group than they're really in. The tiny offset keeps
+-- float noise (0.12 * 100 = 12.000000000000002) from rounding up a whole step.
+local function groupPercent(share)
+    return math.max(1, math.ceil(share * 100 - 1e-9)) .. "%"
+end
+
+-- Luck in a few words, for a column headed "luck": "top 3%", "average",
+-- "bottom 12%", or "no kills". Luck is the share of players with fewer uniques,
+-- so the top group is everyone luckier than that share and the bottom group is
+-- that share.
+function format.LuckShort(result)
+    if result.luck == nil then
+        return "no kills"
+    elseif result.luck > AVERAGE_HIGH then
+        return "top " .. groupPercent(1 - result.luck)
+    elseif result.luck < AVERAGE_LOW then
+        return "bottom " .. groupPercent(result.luck)
+    end
+    return "average"
+end
+
+-- Luck as a sentence: "top 3% luck", "about average luck", "bottom 12% luck", or
+-- "no kills yet".
+function format.Luck(result)
+    if result.luck == nil then
         return "no kills yet"
     end
-    return "luckier than " .. format.Percent(bossStats.luck)
+    local short = format.LuckShort(result)
+    return (short == "average" and "about average" or short) .. " luck"
 end
 
 -- The dry streak: "12 kills dry · 4% go this long", or "unique on your last kill".
@@ -44,9 +71,18 @@ function format.Dry(bossStats)
     return count(bossStats.dryKills, "kill") .. " dry · " .. format.Percent(1 - bossStats.dryShare) .. " go this long"
 end
 
--- "576 kills · 7 uniques since install".
-function format.Totals(bossStats)
-    return count(bossStats.kills, "kill") .. " · " .. count(bossStats.received, "unique") .. " since install"
+-- A dry streak in a few words, for lists: "12 dry", or "unique last kill".
+function format.DryShort(dryKills)
+    if dryKills == 0 then
+        return "unique last kill"
+    end
+    return format.Number(dryKills) .. " dry"
+end
+
+-- What the numbers are based on: "Tracked: 576 kills · 7 uniques", the kills
+-- and drops Boss RNG has seen itself.
+function format.Totals(result)
+    return "Tracked: " .. count(result.kills, "kill") .. " · " .. count(result.received, "unique")
 end
 
 return format

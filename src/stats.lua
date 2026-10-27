@@ -61,15 +61,16 @@ function stats.ForBoss(boss, tallies)
     return result
 end
 
--- Luck across several bosses' stats (nil entries are skipped): expected and
--- received add up, and the same percentile applies to the totals.
+-- Luck across several bosses' stats (nil entries are skipped): kills, expected
+-- and received add up, and the same percentile applies to the totals.
 function stats.Overall(bossStats)
-    local expected, received = 0, 0
+    local kills, expected, received = 0, 0, 0
     for _, result in pairs(bossStats) do
+        kills = kills + result.kills
         expected = expected + result.expected
         received = received + result.received
     end
-    return { expected = expected, received = received, luck = luck.Percentile(expected, received) }
+    return { kills = kills, expected = expected, received = received, luck = luck.Percentile(expected, received) }
 end
 
 return stats

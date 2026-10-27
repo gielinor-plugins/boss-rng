@@ -1,23 +1,23 @@
--- Boss RNG's ribbon panel: pick a boss and see its luck and dry streak.
--- All UI code lives in this file, using Jagex's native components only.
+-- Boss RNG's UI: the ribbon panel (src/ui/panel.lua) and the Details window
+-- (src/ui/window.lua). This module decides which boss both views show and
+-- redraws them when that or the player's tallies change.
+-- All UI code lives in src/ui.lua and src/ui/, using Jagex's native components.
 
 local bosses = require("src/bosses")
-local format = require("src/format")
 local safe = require("src/safe")
 local stats = require("src/stats")
 local tracker = require("src/tracker")
+local panel = require("src/ui/panel")
+local window = require("src/ui/window")
 
 local bossUi = {}
 
 local REF = "bossrng_ui"
-local FONT = id.Font.MUSEO_SANS_15PT_REGULAR
-local MARGIN = 5
-local LINE_HEIGHT = 25
+local REDRAW_REF = "bossrng_ui_redraw"
 
-local layer = nil -- the ribbon panel, once the player has opened it
-local drawn = {} -- components we created, removed before each redraw
-local selectedKey = nil -- the boss picked in the dropdown
-local lastKillKey = nil -- the last boss killed when the panel was drawn
+local selectedKey = nil -- the boss picked in a dropdown
+local lastKillKey = nil -- the last boss killed when we last drew
+local currentState -- defined below, after the actions it refers to
 
 -- Bosses with kills, each with its stats, the boss killed most recently first.
 local function bossesWithKills()
@@ -38,102 +38,82 @@ local function bossesWithKills()
     return list
 end
 
-local function addText(content, y)
-    local text = ui.Text.new(layer)
-    text.font = FONT
-    text.content = content
-    text:SetPos(MARGIN, y)
-    text:SetSize(0, 20, 1.0, 0.0) -- full width
-    table.insert(drawn, text)
-    return text
-end
-
-local function clear()
-    for _, component in ipairs(drawn) do
-        pcall(function() component:Destroy() end)
-    end
-    drawn = {}
-end
-
-local function draw()
-    clear()
-    -- A kill at another boss switches the panel to that boss.
+-- The picked boss's index in list. A kill at another boss picks that boss.
+local function selectedIndex(list)
     local last = tracker.LastBossKey()
     if last ~= lastKillKey then
         lastKillKey = last
         selectedKey = nil
     end
-    local list = bossesWithKills()
-    if #list == 0 then
-        addText("No boss kills yet.", MARGIN)
-        addText("Kill a supported boss to start.", MARGIN + LINE_HEIGHT)
-        return
-    end
-
-    local selected = 1
     for i, entry in ipairs(list) do
         if entry.boss.key == selectedKey then
-            selected = i
+            return i
         end
     end
-
-    -- Below the dropdown: the selected boss's dry streak and totals.
-    local dry = addText(format.Dry(list[selected].stats), MARGIN + 35)
-    local totals = addText(format.Totals(list[selected].stats), MARGIN + 35 + LINE_HEIGHT)
-
-    -- Each entry carries its boss's luck, so bosses can be compared at a glance.
-    local combo = ui.ComboField.new(layer)
-    combo.stylesheetID = id.StyleSheet.COMBO_DEFAULT
-    combo:SetPos(MARGIN, MARGIN)
-    combo:SetSize(0, 25, 1.0, 0.0) -- full width
-    for i, entry in ipairs(list) do
-        combo:Add(entry.boss.name .. " · " .. format.Luck(entry.stats), i)
-    end
-    combo:Select(selected)
-    -- A change fires twice: the old entry with 0, then the new one with 1.
-    combo:Subscribe(ui.Hook.ONSELECTIONCHANGED, function(_, entryID, status)
-        local entry = list[entryID]
-        if status == 1 and entry then
-            safe.Call("showing a boss", function()
-                selectedKey = entry.boss.key
-                dry.content = format.Dry(entry.stats)
-                totals.content = format.Totals(entry.stats)
-            end)
-        end
-    end)
-    table.insert(drawn, combo)
+    return 1
 end
 
--- Draws the panel if it has been opened. If drawing fails, shows one plain line
--- instead of half a panel.
-local function redraw()
-    if layer == nil then
-        return
+-- Redraws the panel if it's open. If drawing fails, it shows one plain line.
+local function redrawPanel()
+    if panel.IsOpen() and not safe.Call("drawing the panel", panel.Draw, currentState()) then
+        safe.Call("drawing the panel error", panel.ShowError)
     end
-    if not safe.Call("drawing the panel", draw) then
-        clear()
-        safe.Call("drawing the panel error", function()
-            addText("Boss RNG couldn't draw this panel.", MARGIN)
-        end)
+end
+
+-- Opens or redraws the window. If drawing fails, it closes rather than staying
+-- half drawn.
+local function showWindow()
+    if not safe.Call("drawing the window", window.Draw, currentState()) then
+        window.Close()
     end
+end
+
+local function redrawAll()
+    redrawPanel()
+    if window.IsOpen() then
+        showWindow()
+    end
+end
+
+-- Shows the picked boss in both views. The redraw waits for the next tick, so a
+-- dropdown isn't destroyed while its own event is still running.
+local function pick(key)
+    selectedKey = key
+    Event.Logic.Subscribe(REDRAW_REF, function()
+        Event.Logic.Unsubscribe(REDRAW_REF)
+        redrawAll()
+    end)
+end
+
+-- What both views draw: the bosses with kills (list), the index of the picked
+-- one (selected, nil without kills), and what to do when the player picks a
+-- boss (onPick) or asks for details (onDetails).
+function currentState()
+    local list = bossesWithKills()
+    return {
+        list = list,
+        selected = #list > 0 and selectedIndex(list) or nil,
+        onPick = pick,
+        onDetails = showWindow,
+    }
 end
 
 -- The game clears the panel and fires this each time it opens or is resized.
 local function onContentLayerReady(event)
-    layer = event.component
-    drawn = {}
-    redraw()
+    panel.Attach(event.component)
+    redrawPanel()
 end
 
 function bossUi.Start()
-    tracker.OnChange(redraw)
+    tracker.OnChange(redrawAll)
     Event.ContentLayerReady.Subscribe(REF, onContentLayerReady)
 end
 
 function bossUi.Stop()
     Event.ContentLayerReady.Unsubscribe(REF)
-    clear()
-    layer = nil
+    Event.Logic.Unsubscribe(REDRAW_REF)
+    panel.Detach()
+    window.Close()
 end
 
 return bossUi

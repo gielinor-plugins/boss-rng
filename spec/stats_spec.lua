@@ -71,7 +71,11 @@ end)
 
 describe("stats.Overall", function()
     it("adds up bosses and applies the same percentile", function()
-        local overall = stats.Overall({ { expected = 1.5, received = 1 }, { expected = 2.5, received = 5 } })
+        local overall = stats.Overall({
+            { kills = 10, expected = 1.5, received = 1 },
+            { kills = 30, expected = 2.5, received = 5 },
+        })
+        assert.are.equal(40, overall.kills)
         assert.are.equal(4, overall.expected)
         assert.are.equal(6, overall.received)
         assert.are.near(luck.Percentile(4, 6), overall.luck, 1e-12)
