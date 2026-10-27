@@ -3,7 +3,7 @@
 
 local tracker = {}
 
-local VERSION = 1
+local VERSION = 2
 -- Saved data is shared by every character on this computer, so each character
 -- gets its own entry. A display name change starts a new entry.
 local PREFIX = "char:"
@@ -53,11 +53,13 @@ end
 -- A boss's tallies, created if needed. Keys are text, the only kind Jagex's saved
 -- data examples use.
 --   kills  { [mode name] = kills since install }
+--   dry    { [mode name] = kills since the last unique }, so the dry streak can use
+--          each mode's own rates
 --   items  { [item id] = { count = drops since install, atKill = boss kills at the last one } }
 local function talliesFor(boss)
     local tallies = record.bosses[boss.key]
     if tallies == nil then
-        tallies = { kills = {}, items = {} }
+        tallies = { kills = {}, dry = {}, items = {} }
         record.bosses[boss.key] = tallies
     end
     return tallies
@@ -78,6 +80,7 @@ function tracker.AddKills(boss, mode, count)
     end
     local tallies = talliesFor(boss)
     tallies.kills[mode.name] = (tallies.kills[mode.name] or 0) + count
+    tallies.dry[mode.name] = (tallies.dry[mode.name] or 0) + count
     save()
 end
 
@@ -94,6 +97,7 @@ function tracker.AddDrops(boss, itemID, count)
     item.count = item.count + count
     item.atKill = tracker.Kills(tallies)
     tallies.items[key] = item
+    tallies.dry = {}
     save()
 end
 

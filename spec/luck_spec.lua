@@ -54,6 +54,11 @@ describe("luck.Percentile", function()
         assert.are.near(0.7849, luck.Percentile(576 / 500, 2), 1e-4)
     end)
 
+    it("matches very lucky and very unlucky results", function()
+        assert.are.near(0.9503, luck.Percentile(1, 3), 1e-4) -- 3 drops when 1 was expected
+        assert.are.near(2.27e-5, luck.Percentile(10, 0), 1e-7) -- none when 10 were expected
+    end)
+
     it("has no data without kills", function()
         assert.is_nil(luck.Percentile(0, 0))
     end)
