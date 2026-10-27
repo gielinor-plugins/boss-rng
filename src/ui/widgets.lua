@@ -14,11 +14,13 @@ widgets.TITLE_FONT = id.Font.CINZEL_13PT_BOLD
 widgets.CARD_FONT = id.Font.NOTOSANS_SEMIBOLD_14 -- labels and headlines
 widgets.ROW_FONT = id.Font.NOTOSANS_SEMIBOLD_12 -- names in table rows
 widgets.YELLOW = Vector4.new(1.0, 0.85, 0.2, 1.0)
+widgets.GOLD = Vector4.new(0.94, 0.75, 0.47, 1.0) -- the log's title and headings
 widgets.GREY = Vector4.new(0.75, 0.75, 0.75, 1.0) -- secondary text
 widgets.TEXT_HEIGHT = 20
 widgets.BAR_WIDTH = 110
 widgets.BAR_HEIGHT = 10
 
+local SEPARATOR = Vector4.new(1.0, 1.0, 1.0, 0.12)
 local BAR_BACK = Vector4.new(0.0, 0.0, 0.0, 0.6)
 local TICK = Vector4.new(1.0, 1.0, 1.0, 0.9) -- marks average luck on a bar
 local PICKER_HEIGHT = 25
@@ -54,6 +56,18 @@ function widgets.AddRect(parent, x, y, width, height, colour)
     rect.colour = colour
     rect.fill = true
     return rect
+end
+
+-- A faint horizontal line between sections.
+function widgets.AddSeparator(parent, x, y, width)
+    return widgets.AddRect(parent, x, y, width, 1, SEPARATOR)
+end
+
+-- A boss's luck as a headline: "Bottom 12% luck", in the log's gold.
+function widgets.AddLuckHeadline(parent, x, y, width, result)
+    local headline = widgets.AddText(parent, format.Capitalize(format.Luck(result)), x, y, width, widgets.CARD_FONT)
+    headline.colour = widgets.GOLD
+    return headline
 end
 
 -- One of the game's sprites, by its name in id.Sprite.

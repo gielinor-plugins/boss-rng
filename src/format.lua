@@ -15,6 +15,11 @@ local function count(n, word)
     return format.Number(n) .. " " .. word .. (n == 1 and "" or "s")
 end
 
+-- "bottom 12% luck" becomes "Bottom 12% luck", for a headline.
+function format.Capitalize(text)
+    return text:sub(1, 1):upper() .. text:sub(2)
+end
+
 -- A share from 0 to 1 as a whole percentage, rounded down ("4% go this long").
 -- Below 1% shows as "under 1%".
 function format.Percent(share)
@@ -83,6 +88,18 @@ end
 -- and drops Boss RNG has seen itself.
 function format.Totals(result)
     return "Tracked: " .. count(result.kills, "kill") .. " · " .. count(result.received, "unique")
+end
+
+-- How many uniques an average player would have after the same kills, to
+-- compare with the player's own: "An average player: 2.3 uniques". Shown to one
+-- decimal place, and below 1 as "under 1 unique". (Not "<1": the game reads "<"
+-- as the start of a formatting tag and hides the rest of the text.)
+function format.Average(result)
+    if result.expected < 1 then
+        return "An average player: under 1 unique"
+    end
+    local average = string.format("%.1f", result.expected)
+    return "An average player: " .. average .. (average == "1.0" and " unique" or " uniques")
 end
 
 return format

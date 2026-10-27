@@ -46,6 +46,16 @@ describe("format", function()
         assert.are.equal("unique last kill", format.DryShort(0))
     end)
 
+    it("capitalizes a headline", function()
+        assert.are.equal("Bottom 12% luck", format.Capitalize("bottom 12% luck"))
+    end)
+
+    it("words what an average player would have", function()
+        assert.are.equal("An average player: 2.3 uniques", format.Average({ expected = 2.345 }))
+        assert.are.equal("An average player: 1.0 unique", format.Average({ expected = 1.04 }))
+        assert.are.equal("An average player: under 1 unique", format.Average({ expected = 0.98 }))
+    end)
+
     it("words the totals", function()
         assert.are.equal("Tracked: 1,204 kills · 1 unique", format.Totals({ kills = 1204, received = 1 }))
     end)

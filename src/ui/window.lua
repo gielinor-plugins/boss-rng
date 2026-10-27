@@ -37,13 +37,11 @@ local DRY_X = 330
 
 -- The title strip copies the collection log's: gold Cinzel on a dark gradient
 -- that lightens toward the bottom, with a gold line under it.
-local TITLE_TEXT = Vector4.new(0.94, 0.75, 0.47, 1.0)
 local TITLE_TOP = { 0.11, 0.10, 0.09 } -- red, green, blue
 local TITLE_BOTTOM = { 0.20, 0.18, 0.15 }
 local TITLE_LINE = Vector4.new(0.30, 0.24, 0.15, 1.0)
 local GRADIENT_BAND = 3 -- pixels per band of the gradient
 local ROW = Vector4.new(1.0, 1.0, 1.0, 0.06)
-local SEPARATOR = Vector4.new(1.0, 1.0, 1.0, 0.12)
 local ACCENT = Vector4.new(0.85, 0.7, 0.35, 0.8) -- the line beside the headline
 local THUMB = Vector4.new(1.0, 1.0, 1.0, 0.35)
 
@@ -110,7 +108,7 @@ local function addTitleBar(box)
     addGradient(box, 0, 0, INNER_WIDTH, stripHeight, TITLE_TOP, TITLE_BOTTOM)
     widgets.AddRect(box, 0, stripHeight, INNER_WIDTH, 2, TITLE_LINE)
     local title = widgets.AddText(box, "BOSS RNG", 0, 3, INNER_WIDTH, widgets.TITLE_FONT)
-    title.colour = TITLE_TEXT
+    title.colour = widgets.GOLD
     widgets.Center(title)
     local close = widgets.AddSprite(box, "AIF_CLOSE_1_0", INNER_WIDTH - 24, 2, 20, 20)
     close.clickthrough = false
@@ -176,16 +174,11 @@ local function sortedItems(result)
 end
 
 local function addSeparator(box, y)
-    widgets.AddRect(box, PAD, y, TABLE_WIDTH, 1, SEPARATOR)
+    widgets.AddSeparator(box, PAD, y, TABLE_WIDTH)
 end
 
 local function addGreyText(parent, content, x, y, width)
     widgets.AddText(parent, content, x, y, width, widgets.SMALL_FONT).colour = widgets.GREY
-end
-
--- "about average luck" becomes "About average luck", for a headline.
-local function capitalize(text)
-    return text:sub(1, 1):upper() .. text:sub(2)
 end
 
 -- One line of luck over every boss with kills. It sits above the dropdown since
@@ -201,15 +194,15 @@ local function addOverall(box, state, y)
     return y + LINE_HEIGHT + 8
 end
 
--- The headline for the picked boss: the dropdown, its luck as a sentence and a
--- full width bar, then its dry streak and totals. Returns the y below it.
+-- The headline for the picked boss, below room left for the dropdown: its luck
+-- as a sentence and a full width bar, then its dry streak and totals. Returns
+-- the y below it.
 local function addHeadline(box, state, y)
     local result = state.list[state.selected].stats
-    widgets.AddBossPicker(box, state, PAD, y, TABLE_WIDTH)
     y = y + 34
 
     local headlineY = y
-    widgets.AddText(box, capitalize(format.Luck(result)), PAD + 8, y, TABLE_WIDTH - 8, widgets.CARD_FONT)
+    widgets.AddLuckHeadline(box, PAD + 8, y, TABLE_WIDTH - 8, result)
     y = y + 24
     if result.luck then
         widgets.AddLuckBar(box, PAD + 8, y, result.luck, TABLE_WIDTH - 8)
@@ -274,7 +267,8 @@ function window.Draw(state)
 
     local y = addOverall(frame, state, TITLE_HEIGHT + 8)
     addSeparator(frame, y - 4)
-    y = addHeadline(frame, state, y + 4)
+    local pickerY = y + 4
+    y = addHeadline(frame, state, pickerY)
     addSeparator(frame, y)
     addColumnNames(frame, y + 6)
     y = y + 6 + LINE_HEIGHT
@@ -290,6 +284,10 @@ function window.Draw(state)
 
     -- Below the rows: the box's insets, plus a small gap.
     frame:SetSize(WIDTH, y + 4 + 2 * INSET)
+
+    -- The dropdown is added last: components added later are drawn on top and
+    -- take clicks first, so its open list must come after everything it covers.
+    widgets.AddBossPicker(frame, state, PAD, pickerY, TABLE_WIDTH)
 end
 
 return window

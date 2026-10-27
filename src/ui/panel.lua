@@ -1,5 +1,6 @@
 -- The ribbon panel. It can be very small, so it shows only the essentials for
--- one boss: its luck, its dry streak and how many kills that's based on, plus a
+-- one boss, as plain lines rather than bars: its luck, its tracked kills and
+-- uniques next to what an average player would have, its dry streak, and a
 -- button that opens the Details window.
 
 local format = require("src/format")
@@ -32,6 +33,9 @@ local function newContent()
     end
     content = ui.Layer.new(layer)
     content:SetSize(0, 0, 1.0, 1.0) -- the whole panel
+    -- Let clicks pass through the layer itself to what's drawn in it, so it
+    -- doesn't catch clicks meant for the dropdown.
+    content.clickthrough = true
     return content
 end
 
@@ -45,20 +49,29 @@ function panel.Draw(state)
     end
     local result = state.list[state.selected].stats
 
-    widgets.AddBossPicker(parent, state, PAD, PAD)
     local y = PAD + 32
-    widgets.AddLuckLine(parent, PAD, y, nil, result)
-    widgets.AddText(parent, format.Dry(result), PAD, y + LINE_HEIGHT, nil, widgets.SMALL_FONT)
-    local totals = widgets.AddText(parent, format.Totals(result), PAD, y + 2 * LINE_HEIGHT, nil, widgets.SMALL_FONT)
-    totals.colour = widgets.GREY
+    widgets.AddLuckHeadline(parent, PAD, y, nil, result)
+    y = y + LINE_HEIGHT + 2
+    -- A rectangle doesn't stretch to its parent like text does, so it gets the
+    -- panel's width.
+    widgets.AddSeparator(parent, PAD, y, layer.width - 2 * PAD)
+    y = y + 6
+    for _, line in ipairs({ format.Totals(result), format.Average(result), format.Dry(result) }) do
+        widgets.AddText(parent, line, PAD, y, nil, widgets.SMALL_FONT)
+        y = y + LINE_HEIGHT
+    end
 
     local details = ui.Button.new(parent)
-    details.stylesheetID = id.StyleSheet.BUTTON_DEFAULT
+    details.stylesheetID = id.StyleSheet.BUTTON_ACTION_POSITIVE -- the game's yellow block button
     details.label = "Details"
-    widgets.Place(details, PAD, y + 3 * LINE_HEIGHT + 6, 100, 30)
+    widgets.Place(details, PAD, y + 6, 100, 30)
     details:Subscribe(ui.Hook.ONBUTTONPRESSED, function()
         safe.Call("opening the window", state.onDetails)
     end)
+
+    -- The dropdown is added last: components added later are drawn on top and
+    -- take clicks first, so its open list must come after everything it covers.
+    widgets.AddBossPicker(parent, state, PAD, PAD)
 end
 
 -- One plain line, shown instead of half a panel when drawing fails.
