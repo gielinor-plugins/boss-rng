@@ -17,29 +17,15 @@ local SYMBOL, GEM, SHAFT = 51776, 51779, 51782
 local WRAPS, CODEX, SCRIPTURE = 51767, 51843, 51812
 local STAFF = { name = "Staff pieces" }
 
--- Each team option's average loot piles per kill. Mixes are even splits.
-local PILES = { solo = 3, duo = 1.5, trio = 1, soloDuo = 2.25, duoTrio = 1.25, mixed = 11 / 6 }
-local TEAM_OPTIONS = {
-    { value = "solo", label = "Solo" },
-    { value = "duo", label = "Duo" },
-    { value = "trio", label = "Trio" },
-    { value = "soloDuo", label = "Solo/duo", note = "Half solo, half duo" },
-    { value = "duoTrio", label = "Duo/trio", note = "Half duo, half trio" },
-    { value = "mixed", label = "Mixed", note = "A third each of solo, duo and trio" },
-}
-local SOLO_OR_TRIO = { solo = true, trio = true } -- the picks without duo kills
-
--- A choice of team for one mode's kills.
-local function team(key, label)
-    return { key = key, label = label, default = "solo", options = TEAM_OPTIONS }
-end
+local TEAMS = { "solo", "duo", "trio", "soloDuo", "duoTrio", "mixed" }
 
 -- A kill's rolls: a pile's rolls for each of the three piles, scaled to the
--- share of them a player averages for their team.
+-- share of them a player averages for their team (3 solo, 1.5 duo, 1 trio).
 local function piles(pick, pile)
+    local share = common.TeamMix(pick, 3, 1.5, 1) / 3
     local rolls = {}
     for _, roll in ipairs(pile) do
-        common.Repeat(rolls, 3, { chance = roll.chance * PILES[pick] / 3, items = roll.items })
+        common.Repeat(rolls, 3, { chance = roll.chance * share, items = roll.items })
     end
     return rolls
 end
@@ -54,14 +40,14 @@ return {
     logPage = "COLLECTION_BOSS_EGWD_JAS_BOSS", -- the boss log page's database row
     -- In a duo the top damager gets the extra pile, which the even split assumes.
     assumptions = function(picks)
-        if SOLO_OR_TRIO[picks.normalTeam] and SOLO_OR_TRIO[picks.hardTeam] then
-            return {}
+        if common.HasDuo(picks.normalTeam) or common.HasDuo(picks.hardTeam) then
+            return { "Top damage on half of duo kills" }
         end
-        return { "Top damage on half of duo kills" }
+        return {}
     end,
     choices = {
-        team("normalTeam", "Normal mode kills done"), -- saved data keys: never change them
-        team("hardTeam", "Hard mode kills done"),
+        common.Team("normalTeam", "Normal mode kills done", TEAMS), -- saved data keys: never change them
+        common.Team("hardTeam", "Hard mode kills done", TEAMS),
     },
 
     -- Mode names are saved with the player's data: never change them.

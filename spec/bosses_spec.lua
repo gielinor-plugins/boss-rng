@@ -110,6 +110,8 @@ local CASES = {
     { file = "barrows", items = 39,
         rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5 } },
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
+    -- Astellarn solo, then in a group, by default duo.
+    { file = "dragonkin", items = 7, rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
     { file = "solak", items = 7,
         rates = { [42785] = 1 / 200, [42770] = 1 / 400, [42774] = 1 / 400, [42767] = 1 / 500, [42782] = 1 / 500 } },
     -- Full contribution: 12 rolls at 1/5,400 each.
@@ -189,6 +191,13 @@ describe("TzKal-Zuk's checkpoints", function()
         assert.are.equal(0, notes(50, 0, 100)) -- hard mode only
         assert.are.equal(1, notes(60, 8, 99))
     end)
+end)
+
+it("mixes the Dragonkin Laboratory's group rates by the player's pick", function()
+    local boss = require("src/bosses/dragonkin")
+    local chances = luck.ItemChances(stats.Rolls(boss.modes[6], { group = "duoTrio" }))
+    assert.are.near(1 / 166 / 2 + 1 / 250 / 2, chances[43393], 1e-12)
+    assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", boss.modes[6].kc)
 end)
 
 it("mixes Barrows chests by the player's shares", function()
