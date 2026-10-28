@@ -2,6 +2,7 @@
 -- unique table has five entries at 1/5 each: the sword, an Armadyl crossbow (the
 -- main hand and off-hand split that entry evenly), and three of her amulets.
 
+local common = require("src/bosses/common")
 local godwars = require("src/bosses/godwars")
 
 local SWORD, CROSSBOW, OFFHAND_CROSSBOW = 11730, 25037, 34855
@@ -20,7 +21,7 @@ return {
     key = "zilyana", -- saved data key: never change it
     name = "Commander Zilyana",
     logPage = "COLLECTION_BOSS_ZILYANA", -- the boss log page's database row
-    assumptions = { godwars.SOLO_KILLS },
+    assumptions = { common.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

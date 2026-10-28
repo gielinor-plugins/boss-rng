@@ -5,7 +5,7 @@
 -- 6/128 split evenly over 18 gives exactly that, so the table is taken to pick
 -- one item at random (inferred from the rates; the wiki doesn't say so).
 
-local godwars = require("src/bosses/godwars")
+local common = require("src/bosses/common")
 
 local TORVA_HELM, TORVA_BODY, TORVA_LEGS, TORVA_GLOVES, TORVA_BOOTS = 20135, 20139, 20143, 25060, 25064
 local PERNIX_COWL, PERNIX_BODY, PERNIX_CHAPS, PERNIX_GLOVES, PERNIX_BOOTS = 20147, 20151, 20155, 25058, 25068
@@ -15,7 +15,7 @@ local VIRTUS_BOOK, VIRTUS_WAND, ZARYTE_BOW = 25664, 25654, 20171
 local ROLLS = {
     {
         chance = 6 / 128,
-        items = godwars.Even({
+        items = common.Even({
             TORVA_HELM, TORVA_BODY, TORVA_LEGS, TORVA_GLOVES, TORVA_BOOTS,
             PERNIX_COWL, PERNIX_BODY, PERNIX_CHAPS, PERNIX_GLOVES, PERNIX_BOOTS,
             VIRTUS_MASK, VIRTUS_TOP, VIRTUS_LEGS, VIRTUS_GLOVES, VIRTUS_BOOTS,
@@ -28,7 +28,7 @@ return {
     key = "nex", -- saved data key: never change it
     name = "Nex",
     logPage = "COLLECTION_BOSS_NEX", -- the boss log page's database row
-    assumptions = { godwars.SOLO_KILLS },
+    assumptions = { common.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

@@ -4,18 +4,19 @@
 -- hilt is rolled, so like Kree'arra's it's assumed to work as the other
 -- generals' do.
 
+local common = require("src/bosses/common")
 local godwars = require("src/bosses/godwars")
 
 local HOOD, GARB, GOWN, GLOVES, BOOTS, WARD = 24992, 24995, 24998, 25007, 25004, 25001
 local SPEAR, STAFF, HILT = 11716, 11736, 11708
 
-local ROLLS = godwars.Rolls(godwars.Even({ HOOD, GARB, GOWN, GLOVES, BOOTS, WARD, SPEAR, STAFF }), HILT)
+local ROLLS = godwars.Rolls(common.Even({ HOOD, GARB, GOWN, GLOVES, BOOTS, WARD, SPEAR, STAFF }), HILT)
 
 return {
     key = "kril", -- saved data key: never change it
     name = "K'ril Tsutsaroth",
     logPage = "COLLECTION_BOSS_KRIL", -- the boss log page's database row
-    assumptions = { godwars.SOLO_KILLS },
+    assumptions = { common.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

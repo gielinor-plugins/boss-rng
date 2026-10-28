@@ -65,6 +65,14 @@ local CASES = {
     { file = "zilyana", items = 19, rates = { [11730] = 1 / 320, [25037] = 1 / 640, [25034] = 1 / 320, [11706] = HILT } },
     { file = "kril", items = 20, rates = { [24992] = 1 / 512, [11716] = 1 / 512, [11708] = HILT } },
     { file = "nex", items = 21, rates = { [20135] = NEX, [25664] = NEX, [20171] = NEX } },
+    { file = "helwyr", items = 8,
+        rates = { [37027] = 1 / 256, [40600] = 1 / 256, [37033] = (1 - 6 / 256) / 64 },
+        hard = { [37085] = 1 / 179, [37033] = (1 - 6 / 179) / 44 } },
+    { file = "vindicta", items = 8,
+        rates = { [37018] = 1 / 255, [37070] = 1 / 255, [37030] = (1 - 5 / 255) / 64 },
+        hard = { [37070] = 1 / 179, [37030] = (1 - 5 / 179) / 44 } },
+    { file = "furies", items = 9, rates = { [37090] = 1 / 256, [37095] = 1 / 256 }, hard = { [37024] = 1 / 179 } },
+    { file = "gregorovic", items = 8, rates = { [37075] = 1 / 256, [37080] = 1 / 256 }, hard = { [37021] = 1 / 179 } },
 }
 
 for _, case in ipairs(CASES) do
@@ -80,9 +88,11 @@ for _, case in ipairs(CASES) do
         end)
 
         it("has the wiki rates", function()
-            local chances = luck.ItemChances(boss.modes[1].rolls)
-            for itemID, rate in pairs(case.rates) do
-                assert.are.near(rate, chances[itemID], 1e-12)
+            for modeIndex, rates in ipairs({ case.rates, case.hard }) do
+                local chances = luck.ItemChances(boss.modes[modeIndex].rolls)
+                for itemID, rate in pairs(rates) do
+                    assert.are.near(rate, chances[itemID], 1e-12)
+                end
             end
         end)
     end)

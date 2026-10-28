@@ -28,17 +28,4 @@ function godwars.Rolls(uniques, hilt)
     return { { chance = UNIQUE_TABLE + HILT, items = items } }
 end
 
--- Group kills share loot, but kill counts don't say who was in the group, so
--- the God Wars bosses' numbers assume solo kills.
-godwars.SOLO_KILLS = "Solo kills"
-
--- Weights for a unique table split evenly between ids.
-function godwars.Even(ids)
-    local weights = {}
-    for _, itemID in ipairs(ids) do
-        weights[itemID] = 1
-    end
-    return weights
-end
-
 return godwars

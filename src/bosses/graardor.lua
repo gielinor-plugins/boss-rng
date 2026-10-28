@@ -1,17 +1,18 @@
 -- General Graardor, God Wars Dungeon. Rates: see src/bosses/godwars.lua.
 
+local common = require("src/bosses/common")
 local godwars = require("src/bosses/godwars")
 
 local HELMET, CHESTPLATE, TASSETS = 25022, 11724, 11726
 local GLOVES, BOOTS, WARSHIELD, HILT = 25025, 11728, 25019, 11704
 
-local ROLLS = godwars.Rolls(godwars.Even({ HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }), HILT)
+local ROLLS = godwars.Rolls(common.Even({ HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }), HILT)
 
 return {
     key = "graardor", -- saved data key: never change it
     name = "General Graardor",
     logPage = "COLLECTION_BOSS_GRAARDOR", -- the boss log page's database row
-    assumptions = { godwars.SOLO_KILLS },
+    assumptions = { common.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

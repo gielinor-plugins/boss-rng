@@ -3,18 +3,19 @@
 -- pages say the hilt is only rolled when the armor roll misses, and the generals
 -- share one drop system, so Kree'arra is assumed to work the same way.
 
+local common = require("src/bosses/common")
 local godwars = require("src/bosses/godwars")
 
 local HELMET, CHESTPLATE, CHAINSKIRT = 11718, 11720, 11722
 local GLOVES, BOOTS, BUCKLER, HILT = 25016, 25010, 25013, 11702
 
-local ROLLS = godwars.Rolls(godwars.Even({ HELMET, CHESTPLATE, CHAINSKIRT, GLOVES, BOOTS, BUCKLER }), HILT)
+local ROLLS = godwars.Rolls(common.Even({ HELMET, CHESTPLATE, CHAINSKIRT, GLOVES, BOOTS, BUCKLER }), HILT)
 
 return {
     key = "kreearra", -- saved data key: never change it
     name = "Kree'arra",
     logPage = "COLLECTION_BOSS_KREEARRA", -- the boss log page's database row
-    assumptions = { godwars.SOLO_KILLS },
+    assumptions = { common.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
