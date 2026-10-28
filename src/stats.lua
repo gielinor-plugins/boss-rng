@@ -142,8 +142,8 @@ end
 -- streaks come from tracking, since the game doesn't show them, except for
 -- uniques the all-time counts say were never received: every kill that could
 -- drop them is dry there. A pooled unique uses tracked numbers until every boss
--- listing it has all-time totals; then its share of the one log count, if known,
--- else it's left out of the boss's numbers (see stats.Combine).
+-- listing it has all-time totals; then its share of the one log count, once
+-- known, else it's left out, table row and all, until the player splits it.
 --   allTime     true if kills and received are all-time totals
 --   kills       kills
 --   expected    uniques an average player would have after those kills
@@ -169,15 +169,15 @@ function stats.ForBoss(boss, tallies, picks, pools)
     local counted, anyTracked = {}, false -- the uniques in the boss's numbers
     for itemID, expected in pairs(expectedFrom(boss, chances, kills)) do
         local pool = boss.items[itemID].pooledBy and pools and pools[itemID]
-        local item
-        if not allTime or (pool and pool.untracked == nil) then
-            item = itemNumbers(boss, chances, itemID, trackedExpected[itemID], trackedCount(tallies, itemID), tallies)
-        else
-            local received = pool and pool.received and pool.received[boss.key] or allTime.items[tostring(itemID)]
-            item = itemNumbers(boss, chances, itemID, expected, received, tallies, kills, allTracked)
-        end
-        result.items[itemID] = item
         if not (pool and pool.untracked and not pool.received) then
+            local item
+            if not allTime or (pool and pool.untracked == nil) then
+                item = itemNumbers(boss, chances, itemID, trackedExpected[itemID], trackedCount(tallies, itemID), tallies)
+            else
+                local received = pool and pool.received and pool.received[boss.key] or allTime.items[tostring(itemID)]
+                item = itemNumbers(boss, chances, itemID, expected, received, tallies, kills, allTracked)
+            end
+            result.items[itemID] = item
             counted[itemID] = true
             anyTracked = anyTracked or tallies.items[tostring(itemID)] ~= nil
             result.expected = result.expected + item.expected
@@ -238,7 +238,7 @@ local function resolve(itemID, sharers, entries, split)
         untracked[couldDrop[1].key] = pool.untracked
     elseif pool.untracked > 0 then
         if not (pool.ask and validSplit(split, sharers, pool.untracked)) then
-            return pool -- not split: see stats.Combine
+            return pool -- not split: left out until the player splits it
         end
         untracked = split
         pool.split = split
@@ -278,45 +278,14 @@ function stats.Pools(entries, splits)
     return pools
 end
 
--- Pooled uniques whose untracked drops aren't split (see stats.Pools) get one set
--- of numbers from every boss listing them, shown in place of each boss's own:
--- all their kills against the one log count. entries hold a { boss, stats } per
--- boss. Returns those uniques, { [itemID] = numbers }, for stats.Overall.
-function stats.Combine(entries, pools)
-    local combined = {}
-    for itemID, pool in pairs(pools) do
-        if pool.untracked and not pool.received then
-            local item = { expected = 0, received = 0, dryKills = 0, dryAtLeast = false }
-            for _, entry in ipairs(entries) do
-                local own = entry.boss.items[itemID] and entry.stats.items[itemID]
-                if own then
-                    item.expected = item.expected + own.expected
-                    item.received = math.max(item.received, own.received)
-                    item.dryKills = item.dryKills + own.dryKills
-                    item.dryAtLeast = item.dryAtLeast or own.dryAtLeast
-                    entry.stats.items[itemID] = item
-                end
-            end
-            item.luck = luck.Percentile(item.expected, item.received)
-            combined[itemID] = item
-        end
-    end
-    return combined
-end
-
--- Luck across several bosses' stats and combined pooled uniques (see
--- stats.Combine, optional), each counted once: kills, expected and received add
--- up, and the same percentile applies to the totals.
-function stats.Overall(bossStats, combined)
+-- Luck across several bosses' stats: kills, expected and received add up, and
+-- the same percentile applies to the totals.
+function stats.Overall(bossStats)
     local kills, expected, received = 0, 0, 0
     for _, result in pairs(bossStats) do
         kills = kills + result.kills
         expected = expected + result.expected
         received = received + result.received
-    end
-    for _, item in pairs(combined or {}) do
-        expected = expected + item.expected
-        received = received + item.received
     end
     return { kills = kills, expected = expected, received = received, luck = luck.Percentile(expected, received) }
 end

@@ -120,21 +120,10 @@ local function splitLabel(itemID, item)
     return "Untracked " .. (item.plural or itemName(itemID)) .. " from this boss"
 end
 
--- The other bosses listing a pooled unique, by name: "Sanctum of Rebirth".
-local function otherSharers(pool, boss)
-    local names = {}
-    for _, sharer in ipairs(pool.sharers) do
-        if sharer ~= boss then
-            table.insert(names, sharer.name)
-        end
-    end
-    return table.concat(names, " and ")
-end
-
 -- The picked boss's assumptions: its own, the player's pick for each of its
 -- choices ("Enrage of untracked kills: 500%"), and for each pooled unique
 -- (see stats.Pools) the player's split of untracked drops, or, if not split,
--- the other bosses whose kills its luck includes.
+-- that it's left out until it is.
 local function assumptions(state, entry)
     local notes = {}
     for _, note in ipairs(entry.boss.assumptions) do
@@ -149,7 +138,7 @@ local function assumptions(state, entry)
             local share = pool.split[entry.boss.key]
             table.insert(notes, splitLabel(itemID, item) .. ": " .. share .. " of " .. pool.untracked)
         elseif pool and pool.untracked and not pool.received then
-            table.insert(notes, itemName(itemID) .. " luck includes " .. otherSharers(pool, entry.boss) .. " kills")
+            table.insert(notes, (item.plural or itemName(itemID)) .. " left out until untracked ones are split")
         end
     end
     return notes

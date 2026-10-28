@@ -176,15 +176,14 @@ describe("stats.Pools", function()
     A.items = { [1] = { kind = "unique" }, [9] = POOLED }
     B.items = { [9] = POOLED }
 
-    -- Entries with stats, as src/ui.lua builds them; returns the entries, pools
-    -- and combined uniques.
+    -- Entries with stats, as src/ui.lua builds them; returns the entries and pools.
     local function build(tallyA, tallyB, splits)
         local entries = { { boss = A, tallies = tallyA, picks = {} }, { boss = B, tallies = tallyB, picks = {} } }
         local pools = stats.Pools(entries, splits or {})
         for _, entry in ipairs(entries) do
             entry.stats = stats.ForBoss(entry.boss, entry.tallies, entry.picks, pools)
         end
-        return entries, pools, stats.Combine(entries, pools)
+        return entries, pools
     end
 
     -- All-time tallies: 100 kills at A (20 tracked, with 1 drop of item 9) and
@@ -205,26 +204,40 @@ describe("stats.Pools", function()
         assert.are.equal(0, entries[2].stats.items[9].received)
     end)
 
-    it("combines bosses whose untracked drops aren't split, counting them once", function()
-        local entries, pools, combined = build(allTimeA(), allTimeB())
+    it("leaves a pooled unique out of every boss until untracked drops are split", function()
+        local entries, pools = build(allTimeA(), allTimeB())
         assert.are.equal(7, pools[9].untracked)
         assert.is_true(pools[9].ask)
-        assert.are.near(100 / 10 + 40 / 20, combined[9].expected, 1e-9)
-        assert.are.equal(8, combined[9].received)
-        assert.are.equal(combined[9], entries[2].stats.items[9])
+        assert.is_nil(entries[1].stats.items[9])
+        assert.is_nil(entries[2].stats.items[9])
         assert.are.near(2, entries[1].stats.expected, 1e-9) -- item 1 only
-        local overall = stats.Overall({ entries[1].stats, entries[2].stats }, combined)
-        assert.are.near(2 + 12, overall.expected, 1e-9)
-        assert.are.equal(8, overall.received)
+        assert.are.equal(0, entries[2].stats.received)
     end)
 
     it("gives each boss its own count once the player splits untracked drops", function()
-        local entries, pools, combined = build(allTimeA(), allTimeB(), { ["9"] = { a = 5, b = 2 } })
+        local entries, pools = build(allTimeA(), allTimeB(), { ["9"] = { a = 5, b = 2 } })
         assert.are.same({ a = 6, b = 2 }, pools[9].received)
-        assert.is_nil(next(combined))
         assert.are.equal(6, entries[1].stats.items[9].received)
         assert.are.near(2 + 10, entries[1].stats.expected, 1e-9)
         assert.are.equal(2, entries[2].stats.received)
+    end)
+
+    it("keeps the player's split when a tracked drop lands, counting it for that boss only", function()
+        local splits = { ["9"] = { a = 5, b = 2 } }
+        -- Before: A has 1 tracked drop, and the log count is 8 (7 untracked).
+        local _, before = build(allTimeA(), allTimeB(), splits)
+        -- A tracked drop at A: its tracked count and the shared log count both go up.
+        local a = allTimeA()
+        a.items["9"] = { count = 2, atKills = { Normal = 20 } }
+        a.allTime.items["9"] = 9
+        local b = allTimeB()
+        b.allTime.items["9"] = 9
+        local entries, after = build(a, b, splits)
+        assert.are.equal(before[9].untracked, after[9].untracked)
+        assert.are.same(splits["9"], after[9].split)
+        assert.are.same({ a = 7, b = 2 }, after[9].received)
+        assert.are.equal(7, entries[1].stats.items[9].received)
+        assert.are.equal(2, entries[2].stats.items[9].received)
     end)
 
     it("ignores a split that no longer adds up", function()

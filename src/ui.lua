@@ -35,7 +35,6 @@ local function bossesWithKills()
     for _, entry in ipairs(entries) do
         entry.stats = stats.ForBoss(entry.boss, entry.tallies, entry.picks, pools)
     end
-    local combined = stats.Combine(entries, pools)
 
     local list, allStats = {}, {}
     for _, entry in ipairs(entries) do
@@ -47,7 +46,7 @@ local function bossesWithKills()
     table.sort(list, function(a, b)
         return a.boss.name < b.boss.name
     end)
-    return list, stats.Overall(allStats, combined), pools
+    return list, stats.Overall(allStats), pools
 end
 
 -- The index in list of the boss with this key, or nil.
