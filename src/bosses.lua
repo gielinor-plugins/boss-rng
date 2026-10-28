@@ -24,7 +24,7 @@ local BOSS_FILES = {
     "graardor", "kreearra", "kril", "nex", "zilyana", -- God Wars
     "furies", "gregorovic", "helwyr", "vindicta", -- God Wars 2
     "amascut", "sanctum", -- Amascut and Sanctum of Rebirth
-    "araxxi",
+    "araxxi", "barrows",
 }
 
 local bosses = {}

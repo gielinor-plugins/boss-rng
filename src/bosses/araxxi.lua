@@ -18,11 +18,7 @@ local DUO = {
     key = "duo", -- saved data key: never change it
     label = "Kills done as a duo",
     default = 0,
-    options = {
-        { value = 0, label = "0%" }, { value = 5, label = "5%" }, { value = 10, label = "10%" },
-        { value = 25, label = "25%" }, { value = 50, label = "50%" }, { value = 75, label = "75%" },
-        { value = 100, label = "100%" },
-    },
+    options = common.Percentages({ 0, 5, 10, 25, 50, 75, 100 }),
 }
 
 -- A kill's chance of a roll, from its solo and duo denominators and the share

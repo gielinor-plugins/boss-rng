@@ -106,6 +106,10 @@ local CASES = {
     { file = "sanctum", items = 9, rates = { [57156] = 1 / 250, [57124] = 1 / 250 }, hard = { [57156] = 1 / 200 } },
     -- Solo, the default: a leg and an add-on, each group split evenly.
     { file = "araxxi", items = 15, rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 } },
+    -- The defaults: every chest with all seven brothers (7 rolls at 1/73) and
+    -- Linza (1/96 over her five items). Dharok has 4 items, Ahrim 6.
+    { file = "barrows", items = 39,
+        rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5 } },
 }
 
 for _, case in ipairs(CASES) do
@@ -136,6 +140,15 @@ it("mixes Araxxi's solo and duo rates by the share of duo kills", function()
     local chances = luck.ItemChances(stats.Rolls(mode, { duo = 25 }))
     assert.are.near((0.75 / 40 + 0.25 / 70) / 3, chances[31718], 1e-12)
     assert.are.near((0.75 / 120 + 0.25 / 200) / 3, chances[31722], 1e-12)
+end)
+
+it("mixes Barrows chests by the player's shares", function()
+    local mode = require("src/bosses/barrows").modes[1]
+    local chances = luck.ItemChances(stats.Rolls(mode, { akrisae = 0, linza = 0, partial = 50 }))
+    -- Six brothers: 7 rolls at 1/102; half a partial chest more: 4 rolls at 1/276.
+    assert.are.near((7 / 102 + 0.5 * 4 / 276) / 6 / 4, chances[4716], 1e-12)
+    assert.is_nil(chances[21744]) -- no Akrisae
+    assert.is_nil(chances[37449]) -- no Linza
 end)
 
 -- Nakatra's rolls, normal then hard mode.
