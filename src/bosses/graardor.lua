@@ -11,6 +11,7 @@ return {
     key = "graardor", -- saved data key: never change it
     name = "General Graardor",
     logPage = "COLLECTION_BOSS_GRAARDOR", -- the boss log page's database row
+    assumptions = { godwars.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

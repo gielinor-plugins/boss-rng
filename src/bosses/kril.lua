@@ -15,6 +15,7 @@ return {
     key = "kril", -- saved data key: never change it
     name = "K'ril Tsutsaroth",
     logPage = "COLLECTION_BOSS_KRIL", -- the boss log page's database row
+    assumptions = { godwars.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

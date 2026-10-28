@@ -20,6 +20,7 @@ return {
     key = "zilyana", -- saved data key: never change it
     name = "Commander Zilyana",
     logPage = "COLLECTION_BOSS_ZILYANA", -- the boss log page's database row
+    assumptions = { godwars.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

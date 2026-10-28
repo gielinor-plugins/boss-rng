@@ -14,6 +14,7 @@ return {
     key = "kreearra", -- saved data key: never change it
     name = "Kree'arra",
     logPage = "COLLECTION_BOSS_KREEARRA", -- the boss log page's database row
+    assumptions = { godwars.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
