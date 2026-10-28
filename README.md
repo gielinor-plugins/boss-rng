@@ -12,7 +12,7 @@ Supported bosses:
 - **Amascut, the Devourer** and the **Sanctum of Rebirth** (Vermyx, Kezalam and
   Nakatra, as one entry).
 - **Araxxi**, the **Barrows brothers** and **Barrows: Rise of the Six.**
-- **Elder God Wars Dungeon:** Croesus.
+- **Elder God Wars Dungeon:** Croesus, Kerapac and TzKal-Zuk.
 
 ## What Boss RNG reads
 

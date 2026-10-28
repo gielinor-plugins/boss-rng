@@ -110,11 +110,17 @@ describe("gamevars", function()
         assert.are.same({ "High", "Low" }, reports)
     end)
 
+    it("reads the vars a boss reads for its rolls", function()
+        var.VarPlayer.LOG_SHARED.value = 9
+        local reader = { modes = {}, items = {}, reads = { shared = "LOG_SHARED" } }
+        assert.are.same({ shared = 9 }, gamevars.AllTime(reader).values)
+    end)
+
     it("reads all-time totals once vars can be trusted", function()
         for name, value in pairs({ KC_NORMAL = 40, KC_HARD = 2, LOG_WEAPON = 3, LOG_ARMOR = 1 }) do
             var.VarPlayer[name].value = value
         end
-        assert.are.same({ kills = { KC_NORMAL = 40, KC_HARD = 2 }, items = { ["101"] = 3, ["102"] = 1 } },
+        assert.are.same({ kills = { KC_NORMAL = 40, KC_HARD = 2 }, items = { ["101"] = 3, ["102"] = 1 }, values = {} },
             gamevars.AllTime(BOSS))
         mock.Fire("GameStateChanged", { newState = GameState.LOGINSCREEN })
         assert.is_nil(gamevars.AllTime(BOSS))

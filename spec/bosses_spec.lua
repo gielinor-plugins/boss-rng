@@ -115,6 +115,9 @@ local CASES = {
     -- Solo, the default: three loot piles.
     { file = "kerapac", items = 7, rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
         hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 } },
+    -- Hard mode before the stones are read: 1/27 for any sword piece.
+    { file = "zuk", items = 7, rates = { [52530] = 1 / 100, [52492] = 1 / 100 },
+        hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 } },
 }
 
 for _, case in ipairs(CASES) do
@@ -160,6 +163,30 @@ it("only assumes Kerapac's duo damage when a pick has duo kills", function()
         choices.Assumptions(boss, { normalTeam = "solo", hardTeam = "trio" }))
     assert.are.same({ "Top damage on half of duo kills", "Normal mode kills done: Half solo, half duo",
         "Hard mode kills done: Solo" }, choices.Assumptions(boss, { normalTeam = "soloDuo", hardTeam = "solo" }))
+end)
+
+describe("TzKal-Zuk's checkpoints", function()
+    local boss = require("src/bosses/zuk")
+    local function pieceChance(stones, normalKills, hardKills)
+        local picks = { stones = stones, normalKills = normalKills, hardKills = hardKills }
+        return luck.ItemChances(stats.Rolls(boss.modes[2], picks))[52505] * 3
+    end
+
+    it("takes the share of runs without checkpoints from the Igneous stones", function()
+        assert.are.near(1 / 27, pieceChance(107, 8, 99), 1e-12)
+        assert.are.near(1 / 30, pieceChance(0, 8, 99), 1e-12)
+        assert.are.near(0.5 / 27 + 0.5 / 30, pieceChance(50, 0, 100), 1e-12)
+    end)
+
+    it("only assumes how checkpoints split between modes when the stones can't tell", function()
+        local function notes(stones, normalKills, hardKills)
+            return #choices.Assumptions(boss, { stones = stones, normalKills = normalKills, hardKills = hardKills })
+        end
+        assert.are.equal(0, notes(107, 8, 99)) -- every run without checkpoints
+        assert.are.equal(0, notes(0, 8, 99)) -- every run with them
+        assert.are.equal(0, notes(50, 0, 100)) -- hard mode only
+        assert.are.equal(1, notes(60, 8, 99))
+    end)
 end)
 
 it("mixes Barrows chests by the player's shares", function()

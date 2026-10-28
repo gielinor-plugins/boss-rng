@@ -126,13 +126,13 @@ local function value(name)
 end
 
 -- A boss's all-time totals, read from the game: { kills = { [kill count var] = n },
--- items = { [item id text] = n } } for its uniques. Nil until vars can be trusted,
--- or if any can't be read.
+-- items = { [item id text] = n } for its uniques, values = { [key] = n } for its
+-- reads (see src/bosses.lua) }. Nil until vars can be trusted, or if any can't be read.
 function gamevars.AllTime(boss)
     if not isReady() then
         return nil
     end
-    local allTime = { kills = {}, items = {} }
+    local allTime = { kills = {}, items = {}, values = {} }
     for _, mode in ipairs(boss.modes) do
         allTime.kills[mode.kc] = value(mode.kc)
         if allTime.kills[mode.kc] == nil then
@@ -146,6 +146,12 @@ function gamevars.AllTime(boss)
             if allTime.items[key] == nil then
                 return nil
             end
+        end
+    end
+    for key, name in pairs(boss.reads or {}) do
+        allTime.values[key] = value(name)
+        if allTime.values[key] == nil then
+            return nil
         end
     end
     return allTime

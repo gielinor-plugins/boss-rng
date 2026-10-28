@@ -21,6 +21,16 @@ local selectedKey = nil -- the boss picked in a dropdown
 local lastKillKey = nil -- the last boss killed when we last drew
 local currentState -- defined below, after the actions it refers to
 
+-- A boss's picks for its choices, with the values it reads from the game once
+-- they're read (see src/bosses.lua).
+local function picksFor(boss, allTime)
+    local picks = choices.For(boss)
+    for key, value in pairs(allTime and allTime.values or {}) do
+        picks[key] = value
+    end
+    return picks
+end
+
 -- Bosses with kills, in alphabetical order, each with the player's picks for
 -- its choices and its stats; luck over all of them; and the pooled uniques (see
 -- stats.Pools).
@@ -29,8 +39,8 @@ local function bossesWithKills()
     for _, boss in ipairs(bosses) do
         local tallies = tracker.Tallies(boss)
         if tallies then
-            table.insert(entries, { boss = boss, tallies = tallies, picks = choices.For(boss),
-                allTime = gamevars.AllTime(boss) })
+            local allTime = gamevars.AllTime(boss)
+            table.insert(entries, { boss = boss, tallies = tallies, picks = picksFor(boss, allTime), allTime = allTime })
         end
     end
     local pools = stats.Pools(entries, choices.Splits())
