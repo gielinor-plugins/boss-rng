@@ -31,7 +31,7 @@ local BOSS_FILES = {
     "graardor", "kreearra", "kril", "nex", "zilyana", -- God Wars
     "furies", "gregorovic", "helwyr", "vindicta", -- God Wars 2
     "amascut", "sanctum", -- Amascut and Sanctum of Rebirth
-    "araxxi", "barrows", "rots",
+    "araxxi", "barrows", "rots", "solak",
     "croesus", "kerapac", "zuk", -- Elder God Wars Dungeon
 }
 

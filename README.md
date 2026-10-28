@@ -11,7 +11,7 @@ Supported bosses:
 - **God Wars Dungeon 2:** Helwyr, Vindicta & Gorvek, the Twin Furies and Gregorovic.
 - **Amascut, the Devourer** and the **Sanctum of Rebirth** (Vermyx, Kezalam and
   Nakatra, as one entry).
-- **Araxxi**, the **Barrows brothers** and **Barrows: Rise of the Six.**
+- **Araxxi**, the **Barrows brothers**, **Barrows: Rise of the Six** and **Solak.**
 - **Elder God Wars Dungeon:** Croesus, Kerapac and TzKal-Zuk.
 
 ## What Boss RNG reads
