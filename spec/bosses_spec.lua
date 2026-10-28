@@ -111,6 +111,8 @@ local CASES = {
     { file = "barrows", items = 39,
         rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5 } },
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
+    -- Full contribution: 12 rolls at 1/5,400 each.
+    { file = "croesus", items = 10, rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 } },
 }
 
 for _, case in ipairs(CASES) do

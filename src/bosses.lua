@@ -25,6 +25,7 @@ local BOSS_FILES = {
     "furies", "gregorovic", "helwyr", "vindicta", -- God Wars 2
     "amascut", "sanctum", -- Amascut and Sanctum of Rebirth
     "araxxi", "barrows", "rots",
+    "croesus", -- Elder God Wars Dungeon
 }
 
 local bosses = {}
