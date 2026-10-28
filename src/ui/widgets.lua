@@ -155,37 +155,79 @@ function widgets.AddLuckLine(parent, x, y, width, result)
     return widgets.AddText(parent, format.LuckShort(result), x, y, width, widgets.SMALL_FONT)
 end
 
--- The game's dropdown, listing labels and showing labels[selected]. Picking
--- another calls onPick with its index. labels must be in alphabetical order: the
--- game lists them that way and reports picks by position. Add a dropdown after
--- anything its open list covers, so it's drawn on top and takes clicks first.
-function widgets.AddDropdown(parent, x, y, width, labels, selected, onPick)
-    local combo = ui.ComboField.new(parent)
-    combo.stylesheetID = id.StyleSheet.COMBO_DEFAULT
-    widgets.Place(combo, x, y, width, widgets.DROPDOWN_HEIGHT)
-    for i, label in ipairs(labels) do
-        combo:Add(label, i)
-    end
-    combo:Select(selected)
-    -- A change fires twice: the old entry with 0, then the new one with 1.
-    combo:Subscribe(ui.Hook.ONSELECTIONCHANGED, function(_, index, status)
-        if status == 1 and labels[index] then
-            safe.Call("picking from a dropdown", onPick, index)
+-- The most entries an open dropdown shows before it scrolls.
+local DROPDOWN_MAX_VISIBLE = 6
+
+-- Calls onPick with the option a change selected, unless it's already current.
+-- Both dropdowns report a change twice, the old entry with 0 and the new one
+-- with 1, each by its id: here its index in options.
+local function onChange(dropdown, options, current, onPick)
+    dropdown:Subscribe(ui.Hook.ONSELECTIONCHANGED, function(_, index, selected)
+        local option = options[index]
+        if selected == 1 and option and option.value ~= current then
+            safe.Call("picking from a dropdown", onPick, option.value)
         end
     end)
+end
+
+-- The game's combo box of options ({ value, label } each), showing the one
+-- whose value is current. It lists them alphabetically, whatever their order.
+-- Picking another calls onPick with its value. Add a dropdown after anything its
+-- open list covers, so it's drawn on top and takes clicks first.
+function widgets.AddDropdown(parent, x, y, width, options, current, onPick)
+    local combo = ui.ComboField.new(parent)
+    combo.stylesheetID = id.StyleSheet.COMBO_DEFAULT
+    combo.dropdownMaxVisibleEntries = math.min(#options, DROPDOWN_MAX_VISIBLE)
+    widgets.Place(combo, x, y, width, widgets.DROPDOWN_HEIGHT)
+    -- The combo box reports picks by their place in its list, so it's given its
+    -- options in that order.
+    local sorted = {}
+    for i, option in ipairs(options) do
+        sorted[i] = option
+    end
+    table.sort(sorted, function(a, b) return a.label < b.label end)
+    local selected = 1
+    for i, option in ipairs(sorted) do
+        combo:Add(option.label, i)
+        if option.value == current then
+            selected = i
+        end
+    end
+    combo:Select(selected)
+    onChange(combo, sorted, current, onPick)
     return combo
 end
 
--- A dropdown of the bosses in state.list (alphabetical, see src/ui.lua), showing
--- state.selected. Picking one calls state.onPick with that boss's key.
-function widgets.AddBossPicker(parent, state, x, y, width)
-    local names = {}
-    for i, entry in ipairs(state.list) do
-        names[i] = entry.boss.name
+-- The game's dropdown list of options ({ value, label } each), listed in their
+-- order with the current one moved to the top: the list can't be told which
+-- entry to show, so it always shows its first. Its header is one entry tall, as
+-- the list expects when telling which entry was clicked; it's centered in a row
+-- as tall as DROPDOWN_HEIGHT at y. Picking another calls onPick with its value.
+-- Add it after anything its open list covers, like AddDropdown.
+function widgets.AddOrderedDropdown(parent, x, y, width, options, current, onPick)
+    local list = ui.List.new(parent)
+    list.stylesheetID = id.StyleSheet.DROPDOWN_DEFAULT
+    list.dropdownMaxVisibleEntries = math.min(#options, DROPDOWN_MAX_VISIBLE)
+    widgets.Place(list, x, y + (widgets.DROPDOWN_HEIGHT - list.entryHeight) // 2, width, list.entryHeight)
+    local ordered = {}
+    for _, option in ipairs(options) do
+        table.insert(ordered, option.value == current and 1 or #ordered + 1, option)
     end
-    return widgets.AddDropdown(parent, x, y, width, names, state.selected, function(index)
-        state.onPick(state.list[index].boss.key)
-    end)
+    for i, option in ipairs(ordered) do
+        list:Add(option.label, i)
+    end
+    onChange(list, ordered, current, onPick)
+    return list
+end
+
+-- A dropdown of the bosses in state.list, showing state.selected. Picking one
+-- calls state.onPick with that boss's key.
+function widgets.AddBossPicker(parent, state, x, y, width)
+    local options = {}
+    for i, entry in ipairs(state.list) do
+        options[i] = { value = entry.boss.key, label = entry.boss.name }
+    end
+    return widgets.AddDropdown(parent, x, y, width, options, state.list[state.selected].boss.key, state.onPick)
 end
 
 return widgets

@@ -1,11 +1,12 @@
 -- The Details window, from widest to narrowest: luck over all bosses, then the
 -- boss dropdown and a headline for the picked boss (its luck as a sentence and a
--- wide bar, its dry streak, its totals and an average player's), then a table
+-- wide bar, its dry streak, its totals, an average player's and a dropdown for
+-- each of its choices), then a table
 -- with one row per unique (item, luck, dry). It fits its contents, showing at
 -- most MAX_ROWS rows; the rest scroll with the mouse wheel.
 
+local choices = require("src/choices")
 local format = require("src/format")
-local stats = require("src/stats")
 local frame = require("src/ui/frame")
 local info = require("src/ui/info")
 local widgets = require("src/ui/widgets")
@@ -42,12 +43,12 @@ local ACCENT = Vector4.new(0.85, 0.7, 0.35, 0.8) -- the line beside the headline
 
 local box = nil -- the window while it's open; destroying it removes its contents
 local position = { x = 200, y = 120 } -- kept while the plugin runs, so it reopens in place
-local luckColumn = "luck" -- what the luck column shows: "luck" or "counts"; kept too
+local luckColumn = "luck" -- what the luck column shows: "luck" or "totals"; kept too
 
--- The luck column's two views, picked in its heading. Alphabetical, as the
--- game's dropdown lists them.
-local COLUMNS = { { key = "counts", label = "Counts" }, { key = "luck", label = "Luck" } }
+-- The luck column's two views, picked in its heading.
+local COLUMNS = { { value = "luck", label = "Luck" }, { value = "totals", label = "Totals" } }
 local COLUMN_PICKER_WIDTH = 100
+local PICKER_WIDTH = 110
 
 function window.IsOpen()
     return box ~= nil
@@ -91,36 +92,134 @@ end
 -- A dry count or the Dry heading, right aligned in the dry column. The API's
 -- align modes have no plain "right": BOTTOMRIGHT on the horizontal axis is right.
 local function addDryText(parent, content, x, y)
-    widgets.AddText(parent, content, x, y, DRY_WIDTH, widgets.SMALL_FONT).alignHorizontal = ui.AlignMode.BOTTOMRIGHT
+    local text = widgets.AddText(parent, content, x, y, DRY_WIDTH, widgets.SMALL_FONT)
+    text.alignHorizontal = ui.AlignMode.BOTTOMRIGHT
+    return text
+end
+
+-- Makes text, at the top of a row as tall as a dropdown, as tall as the row and
+-- centered down it, in line with the dropdown's own text.
+local function centerInDropdownRow(text, width)
+    text:SetSize(width, widgets.DROPDOWN_HEIGHT)
+    text.alignVertical = ui.AlignMode.CENTRE
 end
 
 -- One line of luck over every boss with kills. It sits above the dropdown since
 -- the dropdown doesn't change it. Returns the y below it.
 local function addOverall(parent, state, y)
-    local allStats = {}
-    for _, entry in ipairs(state.list) do
-        table.insert(allStats, entry.stats)
-    end
     -- Uniques and an average player's are added up over every boss, so bosses
     -- with more kills count for more.
     widgets.AddText(parent, "All bosses combined", PAD, y, 132, widgets.ROW_FONT).colour = widgets.YELLOW
     local luckX = PAD + 136
-    widgets.AddLuckLine(parent, luckX, y, TABLE_WIDTH - luckX, stats.Overall(allStats))
+    widgets.AddLuckLine(parent, luckX, y, TABLE_WIDTH - luckX, state.overall)
     return y + LINE_HEIGHT + 8
 end
 
--- The headline for the picked boss, below room left for the dropdown: its luck
--- as a sentence with an "i" for its assumptions, a full width bar, then its dry
--- streak, its totals and what an average player would have. Returns the y
--- below it.
-local function addHeadline(parent, state, y)
+-- A pooled unique's label: "Untracked Shards from this boss".
+local function splitLabel(itemID, item)
+    return "Untracked " .. (item.plural or itemName(itemID)) .. " from this boss"
+end
+
+-- The other bosses listing a pooled unique, by name: "Sanctum of Rebirth".
+local function otherSharers(pool, boss)
+    local names = {}
+    for _, sharer in ipairs(pool.sharers) do
+        if sharer ~= boss then
+            table.insert(names, sharer.name)
+        end
+    end
+    return table.concat(names, " and ")
+end
+
+-- The picked boss's assumptions: its own, the player's pick for each of its
+-- choices ("Enrage of untracked kills: 500%"), and for each pooled unique
+-- (see stats.Pools) the player's split of untracked drops, or, if not split,
+-- the other bosses whose kills its luck includes.
+local function assumptions(state, entry)
+    local notes = {}
+    for _, note in ipairs(entry.boss.assumptions) do
+        table.insert(notes, note)
+    end
+    for _, choice in ipairs(entry.boss.choices or {}) do
+        table.insert(notes, choice.label .. ": " .. choices.Option(choice, entry.picks[choice.key]).label)
+    end
+    for itemID, item in pairs(entry.boss.items) do
+        local pool = state.pools[itemID]
+        if pool and pool.split then
+            local share = pool.split[entry.boss.key]
+            table.insert(notes, splitLabel(itemID, item) .. ": " .. share .. " of " .. pool.untracked)
+        elseif pool and pool.untracked and not pool.received then
+            table.insert(notes, itemName(itemID) .. " luck includes " .. otherSharers(pool, entry.boss) .. " kills")
+        end
+    end
+    return notes
+end
+
+-- The picked boss's dropdowns, each { label, options, current, onPick }: one per
+-- choice, then one per pooled unique whose untracked drops the player can split
+-- (see stats.Pools), listing "Not set" and each count from 0.
+local function pickers(state, entry)
+    local list = {}
+    for _, choice in ipairs(entry.boss.choices or {}) do
+        table.insert(list, { label = choice.label, options = choice.options, current = entry.picks[choice.key],
+            onPick = function(value) state.onChoose(entry.boss, choice, value) end })
+    end
+    for itemID, item in pairs(entry.boss.items) do
+        local pool = state.pools[itemID]
+        if pool and pool.ask then
+            local options = {}
+            for count = 0, pool.untracked do
+                table.insert(options, { value = count, label = tostring(count) })
+            end
+            table.insert(options, { value = false, label = "Not set" })
+            local label = splitLabel(itemID, item) .. " (of " .. pool.untracked .. ")"
+            table.insert(list, { label = label, options = options,
+                current = pool.split and pool.split[entry.boss.key] or false,
+                onPick = function(value) state.onSplit(pool, itemID, entry.boss, value or nil) end })
+        end
+    end
+    return list
+end
+
+-- A line per dropdown of the picked boss (see pickers): its label, and the
+-- dropdown, queued in dropdowns (see window.Draw). A divider sets them apart from
+-- the lines of text above. Returns the y below them.
+local function addPickers(parent, state, y, dropdowns)
+    local list = pickers(state, state.list[state.selected])
+    if #list == 0 then
+        return y
+    end
+    widgets.AddSeparator(parent, PAD + 8, y + 3, TABLE_WIDTH - 8)
+    y = y + 8
+    local dropdownX = PAD + TABLE_WIDTH - PICKER_WIDTH
+    for _, picker in ipairs(list) do
+        local labelWidth = dropdownX - PAD - 12
+        centerInDropdownRow(addGreyText(parent, picker.label, PAD + 8, y, labelWidth), labelWidth)
+        local dropdownY = y
+        table.insert(dropdowns, function()
+            widgets.AddOrderedDropdown(parent, dropdownX, dropdownY, PICKER_WIDTH, picker.options, picker.current,
+                picker.onPick)
+        end)
+        y = y + widgets.DROPDOWN_HEIGHT + 2
+    end
+    return y
+end
+
+-- The headline for the picked boss, below room left for the boss dropdown: its
+-- luck as a sentence with an "i" for its assumptions, a full width bar, then its
+-- dry streak, its totals, what an average player would have and its dropdowns.
+-- Returns the y below it.
+local function addHeadline(parent, state, y, dropdowns)
     local entry = state.list[state.selected]
     local result = entry.stats
     y = y + 34
 
     local headlineY = y
     widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 30, result)
-    info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", entry.boss.assumptions)
+    local notes = assumptions(state, entry)
+    if #notes > 0 then
+        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes)
+    end
     y = y + 24
     if result.luck then
         widgets.AddLuckBar(parent, PAD + 8, y, result.luck, TABLE_WIDTH - 8)
@@ -131,7 +230,7 @@ local function addHeadline(parent, state, y)
     addGreyText(parent, format.Totals(result), PAD + 8, y, TABLE_WIDTH - 8)
     y = y + LINE_HEIGHT
     addGreyText(parent, format.Average(result), PAD + 8, y, TABLE_WIDTH - 8)
-    y = y + LINE_HEIGHT
+    y = addPickers(parent, state, y + LINE_HEIGHT, dropdowns)
     widgets.AddRect(parent, PAD, headlineY, 2, y - headlineY, ACCENT)
     return y + 8
 end
@@ -162,7 +261,7 @@ local function addItemRow(view, row, y, width)
     local nameWidth = LUCK_X - NAME_X - 6
     local name = widgets.Fit(row.name, widgets.ROW_FONT, nameWidth)
     widgets.AddText(view, name, NAME_X, textY, nameWidth, widgets.ROW_FONT)
-    if luckColumn == "counts" then
+    if luckColumn == "totals" then
         widgets.AddText(view, format.CountShort(row.item), LUCK_X, textY, DRY_X - LUCK_X, widgets.SMALL_FONT)
     else
         if row.item.luck then
@@ -176,26 +275,20 @@ local function addItemRow(view, row, y, width)
 end
 
 -- The table's column names on a dark band as tall as a dropdown, with a line
--- under it, each at its column's edge. The luck column's heading is a dropdown
--- switching it between luck and counts; picking calls onSwitch. The other names
--- match the dropdown's text, so the row reads as one.
-local function addColumnNames(parent, y, onSwitch)
+-- under it, each at its column's edge. The luck column's heading is a dropdown,
+-- queued in dropdowns, switching it between luck and totals; picking calls
+-- onSwitch. The other names match the dropdown's text, so the row reads as one.
+local function addColumnNames(parent, y, onSwitch, dropdowns)
     widgets.AddRect(parent, PAD, y, TABLE_WIDTH, widgets.DROPDOWN_HEIGHT, HEADER)
     widgets.AddSeparator(parent, PAD, y + widgets.DROPDOWN_HEIGHT - 1, TABLE_WIDTH)
-    local textY = y + (widgets.DROPDOWN_HEIGHT - widgets.TEXT_HEIGHT) // 2
-    widgets.AddText(parent, "Item", PAD + SLOT_X, textY, 60, widgets.SMALL_FONT)
-    addDryText(parent, "Dry", PAD + DRY_X, textY)
+    centerInDropdownRow(widgets.AddText(parent, "Item", PAD + SLOT_X, y, 60, widgets.SMALL_FONT), 60)
+    centerInDropdownRow(addDryText(parent, "Dry", PAD + DRY_X, y), DRY_WIDTH)
 
-    local labels, selected = {}, 1
-    for i, column in ipairs(COLUMNS) do
-        labels[i] = column.label
-        if column.key == luckColumn then
-            selected = i
-        end
-    end
-    widgets.AddDropdown(parent, PAD + LUCK_X, y, COLUMN_PICKER_WIDTH, labels, selected, function(index)
-        luckColumn = COLUMNS[index].key
-        onSwitch()
+    table.insert(dropdowns, function()
+        widgets.AddDropdown(parent, PAD + LUCK_X, y, COLUMN_PICKER_WIDTH, COLUMNS, luckColumn, function(value)
+            luckColumn = value
+            onSwitch()
+        end)
     end)
 end
 
@@ -214,12 +307,19 @@ function window.Draw(state)
         return
     end
 
+    -- Dropdowns are queued from the top down and added last, bottom one first:
+    -- components added later are drawn on top and take clicks first, so each
+    -- open list comes after everything it covers.
+    local dropdowns = {}
+
     local y = addOverall(box, state, TITLE_HEIGHT + 8)
     widgets.AddSeparator(box, PAD, y - 4, TABLE_WIDTH)
     local pickerY = y + 4
-    y = addHeadline(box, state, pickerY)
+    table.insert(dropdowns, function() widgets.AddBossPicker(box, state, PAD, pickerY, TABLE_WIDTH) end)
+    y = addHeadline(box, state, pickerY, dropdowns)
     widgets.AddSeparator(box, PAD, y, TABLE_WIDTH)
     local headerY = y + 4
+    addColumnNames(box, headerY, state.onRedraw, dropdowns)
     y = headerY + widgets.DROPDOWN_HEIGHT + 3
 
     -- The uniques, in a scrolling view.
@@ -234,11 +334,9 @@ function window.Draw(state)
     -- Below the rows: the box's insets, plus a small gap.
     box:SetSize(WIDTH, y + 4 + 2 * frame.INSET)
 
-    -- The dropdowns are added last: components added later are drawn on top and
-    -- take clicks first, so each open list comes after everything it covers. The
-    -- column heading's list opens over the rows; the boss picker's over the rest.
-    addColumnNames(box, headerY, state.onRedraw)
-    widgets.AddBossPicker(box, state, PAD, pickerY, TABLE_WIDTH)
+    for i = #dropdowns, 1, -1 do
+        dropdowns[i]()
+    end
 end
 
 return window

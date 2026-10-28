@@ -11,7 +11,7 @@ local BADGE_BACK = Vector4.new(0.0, 0.0, 0.0, 0.6)
 
 -- The box copies the game's own hover boxes: a near-black fill with a thin
 -- warm-grey border, an orange title over a line, and white text.
-local BOX_WIDTH = 240
+local BOX_WIDTH = 270
 local PAD = 6
 local LINE_HEIGHT = 16
 local BULLET_WIDTH = 10
