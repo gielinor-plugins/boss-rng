@@ -66,11 +66,13 @@ local function itemName(itemID)
     return ok and name or ("Item " .. tostring(itemID))
 end
 
--- The uniques in card order: unluckiest first, then by name.
+-- The uniques in card order: unluckiest first, then by name. A group of uniques
+-- (see src/bosses.lua) shows its own name, and its first item's icon.
 local function sortedItems(result)
     local rows = {}
     for itemID, item in pairs(result.items) do
-        table.insert(rows, { id = itemID, item = item, name = itemName(itemID) })
+        local name = item.group and item.group.name or itemName(itemID)
+        table.insert(rows, { id = itemID, item = item, name = name })
     end
     table.sort(rows, function(a, b)
         local luckA, luckB = a.item.luck or 1, b.item.luck or 1

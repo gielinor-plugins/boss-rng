@@ -8,6 +8,14 @@
 -- kill counts for the mode whose tier the choice's var is in; untracked kills,
 -- for the mode of the player's pick.
 --
+-- Uniques can share a group, { name = "Leg pieces" }: one table row adding up
+-- their counts and chances, shown with its lowest item's icon. For items whose
+-- split depends on something the player chose (Araxxi's path) or that varies
+-- (Araxxor's style): the group's total chance doesn't, so its luck is exact.
+--
+-- A mode's rolls can be a function of the player's picks for the boss's choices
+-- (see src/choices.lua), for rates set by one, such as Araxxi's share of duo kills.
+--
 -- A unique listed by more than one boss has one boss log count for all of them,
 -- so its drops can't be told apart. Such a unique is pooled: it gets pooledBy,
 -- the bosses that list it, and its count is split between them (see stats.Pools).
@@ -16,6 +24,7 @@ local BOSS_FILES = {
     "graardor", "kreearra", "kril", "nex", "zilyana", -- God Wars
     "furies", "gregorovic", "helwyr", "vindicta", -- God Wars 2
     "amascut", "sanctum", -- Amascut and Sanctum of Rebirth
+    "araxxi",
 }
 
 local bosses = {}

@@ -140,6 +140,31 @@ describe("stats.ForBoss", function()
         assert.is_true(forBoss(BOSS, tallies({ Normal = 30 })).dryAtLeast)
     end)
 
+    it("uses rolls that depend on the player's picks", function()
+        local boss = { items = { [1] = { kind = "unique" } }, modes = { { name = "Normal", kc = "KC",
+            rolls = function(picks) return { { chance = 1 / picks.rate, items = { [1] = 1 } } } end } } }
+        assert.are.near(2, forBoss(boss, tallies({ Normal = 100 }), nil, { rate = 50 }).expected, 1e-9)
+    end)
+
+    it("shows a group of uniques as one row", function()
+        local group = { name = "Pieces" }
+        local boss = {
+            items = { [1] = { kind = "unique", group = group }, [2] = { kind = "unique", group = group } },
+            modes = { { name = "Normal", kc = "KC", rolls = { { chance = 1 / 10, items = { [1] = 1, [2] = 1 } } } } },
+        }
+        local result = forBoss(boss, tallies({ Normal = 100 }, {
+            ["1"] = { count = 2, atKills = { Normal = 60 } },
+            ["2"] = { count = 1, atKills = { Normal = 90 } },
+        }, { Normal = 10 }))
+        assert.is_nil(result.items[2])
+        local row = result.items[1]
+        assert.are.equal(group, row.group)
+        assert.are.near(10, row.expected, 1e-9)
+        assert.are.equal(3, row.received)
+        assert.are.equal(10, row.dryKills) -- since the latest of either
+        assert.are.equal(3, result.received)
+    end)
+
     describe("with modes that are tiers of a choice", function()
         -- Two tiers sharing one kill count: item 1 at 1/10 in tier 1, 1/5 in tier 2.
         local TIERED = {

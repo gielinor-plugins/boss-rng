@@ -2,6 +2,16 @@
 
 local bosses = require("src/bosses")
 local choices = require("src/choices")
+local stats = require("src/stats")
+
+-- Each of a boss's choices at its default: { [choice key] = value }.
+local function defaults(boss)
+    local picks = {}
+    for _, choice in ipairs(boss.choices or {}) do
+        picks[choice.key] = choice.default
+    end
+    return picks
+end
 local luck = require("src/luck")
 
 local KINDS = { unique = true, shared = true, lore = true, pet = true, excluded = true }
@@ -62,7 +72,7 @@ describe("boss data", function()
 
             it("only rolls unique items", function()
                 for _, mode in ipairs(boss.modes) do
-                    for itemID in pairs(luck.ItemChances(mode.rolls)) do
+                    for itemID in pairs(luck.ItemChances(stats.Rolls(mode, defaults(boss)))) do
                         assert.are.equal("unique", boss.items[itemID].kind)
                     end
                 end
@@ -94,6 +104,8 @@ local CASES = {
         hard = { [59336] = 3 / 4 / 5 / 70, [59354] = 1 / 4 / 2 / 70, [59358] = 1 / 280, [57128] = 1 / 280 } },
     -- Vermyx, then Vermyx in hard mode.
     { file = "sanctum", items = 9, rates = { [57156] = 1 / 250, [57124] = 1 / 250 }, hard = { [57156] = 1 / 200 } },
+    -- Solo, the default: a leg and an add-on, each group split evenly.
+    { file = "araxxi", items = 15, rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 } },
 }
 
 for _, case in ipairs(CASES) do
@@ -110,7 +122,7 @@ for _, case in ipairs(CASES) do
 
         it("has the wiki rates", function()
             for modeIndex, rates in ipairs({ case.rates, case.hard }) do
-                local chances = luck.ItemChances(boss.modes[modeIndex].rolls)
+                local chances = luck.ItemChances(stats.Rolls(boss.modes[modeIndex], defaults(boss)))
                 for itemID, rate in pairs(rates) do
                     assert.are.near(rate, chances[itemID], 1e-12)
                 end
@@ -118,6 +130,13 @@ for _, case in ipairs(CASES) do
         end)
     end)
 end
+
+it("mixes Araxxi's solo and duo rates by the share of duo kills", function()
+    local mode = require("src/bosses/araxxi").modes[1]
+    local chances = luck.ItemChances(stats.Rolls(mode, { duo = 25 }))
+    assert.are.near((0.75 / 40 + 0.25 / 70) / 3, chances[31718], 1e-12)
+    assert.are.near((0.75 / 120 + 0.25 / 200) / 3, chances[31722], 1e-12)
+end)
 
 -- Nakatra's rolls, normal then hard mode.
 describe("sanctum's Nakatra", function()

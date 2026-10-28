@@ -6,11 +6,20 @@ local tracker = require("src/tracker")
 
 local stats = {}
 
+-- A mode's rolls: a table, or a function of the player's picks for the boss's
+-- choices ({ [choice key] = value }, see src/choices.lua).
+function stats.Rolls(mode, picks)
+    if type(mode.rolls) == "function" then
+        return mode.rolls(picks)
+    end
+    return mode.rolls
+end
+
 -- Each mode's chance per kill of each unique: { [mode name] = { [item id] = chance } }.
-local function chancesPerMode(boss)
+local function chancesPerMode(boss, picks)
     local chances = {}
     for _, mode in ipairs(boss.modes) do
-        chances[mode.name] = luck.ItemChances(mode.rolls)
+        chances[mode.name] = luck.ItemChances(stats.Rolls(mode, picks))
     end
     return chances
 end
@@ -30,11 +39,11 @@ end
 -- kills per mode ({ [mode name] = kills }). Each mode's dry kills use that
 -- mode's own rates: the chance of missing every time is the product of each
 -- mode's chance of missing. counted is the set of uniques the streak counts.
-local function dryShare(boss, dry, counted)
+local function dryShare(boss, picks, dry, counted)
     local missAll = 1
     for _, mode in ipairs(boss.modes) do
         local dryKills = dry[mode.name] or 0
-        missAll = missAll * (1 - luck.DryPercentile(luck.ChanceOfAny(mode.rolls, counted), dryKills))
+        missAll = missAll * (1 - luck.DryPercentile(luck.ChanceOfAny(stats.Rolls(mode, picks), counted), dryKills))
     end
     return 1 - missAll
 end
@@ -99,8 +108,8 @@ end
 
 -- True if a boss has kills Boss RNG didn't track that could drop an item: an
 -- all-time kill count above its modes' tracked kills, for modes that can drop it.
-local function hasUntrackedKillsThatCanDrop(boss, tallies, allTime, itemID)
-    local chances = chancesPerMode(boss)
+local function hasUntrackedKillsThatCanDrop(boss, picks, tallies, allTime, itemID)
+    local chances = chancesPerMode(boss, picks)
     for kc, modes in pairs(modesByVar(boss)) do
         local tracked, canDrop = 0, false
         for _, mode in ipairs(modes) do
@@ -135,6 +144,36 @@ local function itemNumbers(boss, chances, itemID, expected, received, tallies, a
     return item
 end
 
+-- Uniques sharing a group (see src/bosses.lua) become one row, under the group's
+-- lowest item id, with the group: expected and received add up, and the dry
+-- streak is the shortest of its items' (a drop of any of them ends it).
+local function grouped(boss, items)
+    local members = {} -- [group] = item ids
+    for itemID in pairs(items) do
+        local group = boss.items[itemID].group
+        if group then
+            members[group] = members[group] or {}
+            table.insert(members[group], itemID)
+        end
+    end
+    for group, ids in pairs(members) do
+        table.sort(ids)
+        local row = { group = group, expected = 0, received = 0 }
+        for _, itemID in ipairs(ids) do
+            local item = items[itemID]
+            row.expected = row.expected + item.expected
+            row.received = row.received + item.received
+            if row.dryKills == nil or item.dryKills < row.dryKills
+                or (item.dryKills == row.dryKills and not item.dryAtLeast) then
+                row.dryKills, row.dryAtLeast = item.dryKills, item.dryAtLeast
+            end
+            items[itemID] = nil
+        end
+        row.luck = luck.Percentile(row.expected, row.received)
+        items[ids[1]] = row
+    end
+end
+
 -- Stats for one boss from its entry, { boss, tallies, picks, allTime }: its
 -- tallies (see tracker.Tallies), the player's picks for its choices (see
 -- choices.For) and the game's all-time totals (see gamevars.AllTime, nil until
@@ -154,16 +193,18 @@ end
 --   dryAtLeast  true if the streak may be longer: no unique tracked yet, and
 --               there may be kills from before tracking
 --   dryShare    share of players who would have had a unique within dryKills
---   items       { [itemID] = { expected, received, luck, dryKills, dryAtLeast } } per unique
+--   items       { [itemID] = { expected, received, luck, dryKills, dryAtLeast } } per
+--               unique, or per group of uniques (with its group)
 function stats.ForBoss(entry, pools)
     local boss, tallies, allTime = entry.boss, entry.tallies, entry.allTime
     if tallies == nil then
         return nil
     end
-    local kills = killsPerMode(boss, tallies, allTime, entry.picks or {})
+    local picks = entry.picks or {}
+    local kills = killsPerMode(boss, tallies, allTime, picks)
     -- Only all-time totals can show that every kill was tracked.
     local allTracked = allTime ~= nil and tracker.Total(allTime.kills) <= tracker.Total(tallies.kills)
-    local chances = chancesPerMode(boss)
+    local chances = chancesPerMode(boss, picks)
     local trackedExpected = expectedFrom(boss, chances, tallies.kills)
 
     local result = { allTime = allTime ~= nil, kills = tracker.Total(kills), expected = 0, received = 0, items = {} }
@@ -194,7 +235,8 @@ function stats.ForBoss(entry, pools)
         result.dryAtLeast = not anyTracked and not allTracked
     end
     result.dryKills = tracker.Total(dry)
-    result.dryShare = dryShare(boss, dry, counted)
+    result.dryShare = dryShare(boss, picks, dry, counted)
+    grouped(boss, result.items)
     return result
 end
 
@@ -227,7 +269,7 @@ local function resolve(itemID, sharers, entries, split)
         end
         shared = math.max(shared, allTime.items[tostring(itemID)])
         tracked = tracked + trackedCount(entry.tallies, itemID)
-        if hasUntrackedKillsThatCanDrop(boss, entry.tallies, allTime, itemID) then
+        if hasUntrackedKillsThatCanDrop(boss, entry.picks or {}, entry.tallies, allTime, itemID) then
             table.insert(couldDrop, boss)
         end
     end
