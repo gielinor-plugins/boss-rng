@@ -122,18 +122,11 @@ local function splitLabel(itemID, item)
     return "Untracked " .. (item.plural or itemName(itemID)) .. " from this boss"
 end
 
--- The picked boss's assumptions: its own, the player's pick for each of its
--- choices ("Enrage of untracked kills: 500%"), and for each pooled unique
--- (see stats.Pools) the player's split of untracked drops, or, if not split,
--- that it's left out until it is.
+-- The picked boss's assumptions: its own and its picks (see choices.Assumptions),
+-- and for each pooled unique (see stats.Pools) the player's split of untracked
+-- drops, or, if not split, that it's left out until it is.
 local function assumptions(state, entry)
-    local notes = {}
-    for _, note in ipairs(entry.boss.assumptions) do
-        table.insert(notes, note)
-    end
-    for _, choice in ipairs(entry.boss.choices or {}) do
-        table.insert(notes, choice.label .. ": " .. choices.Option(choice, entry.picks[choice.key]).label)
-    end
+    local notes = choices.Assumptions(entry.boss, entry.picks)
     for itemID, item in pairs(entry.boss.items) do
         local pool = state.pools[itemID]
         if pool and pool.split then

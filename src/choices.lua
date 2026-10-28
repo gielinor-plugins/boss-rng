@@ -7,7 +7,9 @@
 --   key      saved data key: never change it
 --   label    shown before its dropdown, and with the pick in the assumptions
 --   default  the value until the player picks one
---   options  { { value = 100, label = "100%" }, ... }, in the order to list them
+--   options  { { value = 100, label = "100%" }, ... }, in the order to list them;
+--            an option can add a note, saying it in full in the assumptions when
+--            its label is shortened to fit its dropdown
 --   var      optional: the game var holding the value at each tracked kill, for
 --            a choice whose options are numbers, lowest first
 
@@ -62,6 +64,21 @@ function choices.For(boss)
         values[choice.key] = choices.Option(choice, picked) and picked or choice.default
     end
     return values
+end
+
+-- A boss's assumptions for these picks: its own (a list, or a function of the
+-- picks), then each choice's pick ("Enrage of untracked kills: 500%").
+function choices.Assumptions(boss, picks)
+    local notes = {}
+    local own = boss.assumptions
+    for _, note in ipairs(type(own) == "function" and own(picks) or own) do
+        table.insert(notes, note)
+    end
+    for _, choice in ipairs(boss.choices or {}) do
+        local option = choices.Option(choice, picks[choice.key])
+        table.insert(notes, choice.label .. ": " .. (option.note or option.label))
+    end
+    return notes
 end
 
 -- Saves the logged in character's pick for one of a boss's choices.

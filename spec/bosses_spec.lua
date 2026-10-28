@@ -49,8 +49,7 @@ describe("boss data", function()
             end)
 
             it("states its assumptions, if any, in plain words", function()
-                assert.are.equal("table", type(boss.assumptions))
-                for _, note in ipairs(boss.assumptions) do
+                for _, note in ipairs(choices.Assumptions(boss, defaults(boss))) do
                     assert.are.equal("string", type(note))
                     assert.is_nil(note:find("<", 1, true)) -- the game would read it as a tag
                 end
@@ -113,6 +112,9 @@ local CASES = {
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
     -- Full contribution: 12 rolls at 1/5,400 each.
     { file = "croesus", items = 10, rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 } },
+    -- Solo, the default: three loot piles.
+    { file = "kerapac", items = 7, rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
+        hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 } },
 }
 
 for _, case in ipairs(CASES) do
@@ -143,6 +145,21 @@ it("mixes Araxxi's solo and duo rates by the share of duo kills", function()
     local chances = luck.ItemChances(stats.Rolls(mode, { duo = 25 }))
     assert.are.near((0.75 / 40 + 0.25 / 70) / 3, chances[31718], 1e-12)
     assert.are.near((0.75 / 120 + 0.25 / 200) / 3, chances[31722], 1e-12)
+end)
+
+it("scales Kerapac's loot piles by the player's team", function()
+    local modes = require("src/bosses/kerapac").modes
+    local picks = { normalTeam = "duo", hardTeam = "trio" }
+    assert.are.near(1.5 / 256 / 3, luck.ItemChances(stats.Rolls(modes[1], picks))[51767], 1e-12)
+    assert.are.near(1 / 400 / 3, luck.ItemChances(stats.Rolls(modes[2], picks))[51782], 1e-12)
+end)
+
+it("only assumes Kerapac's duo damage when a pick has duo kills", function()
+    local boss = require("src/bosses/kerapac")
+    assert.are.same({ "Normal mode kills done: Solo", "Hard mode kills done: Trio" },
+        choices.Assumptions(boss, { normalTeam = "solo", hardTeam = "trio" }))
+    assert.are.same({ "Top damage on half of duo kills", "Normal mode kills done: Half solo, half duo",
+        "Hard mode kills done: Solo" }, choices.Assumptions(boss, { normalTeam = "soloDuo", hardTeam = "solo" }))
 end)
 
 it("mixes Barrows chests by the player's shares", function()

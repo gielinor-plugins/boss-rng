@@ -13,6 +13,9 @@
 -- split depends on something the player chose (Araxxi's path) or that varies
 -- (Araxxor's style): the group's total chance doesn't, so its luck is exact.
 --
+-- A boss's assumptions can be a function of the player's picks too, for ones
+-- that only hold for some picks (Kerapac's duo kills).
+--
 -- A mode's rolls can be a function of the player's picks for the boss's choices
 -- (see src/choices.lua), for rates set by one, such as Araxxi's share of duo kills.
 --
@@ -25,7 +28,7 @@ local BOSS_FILES = {
     "furies", "gregorovic", "helwyr", "vindicta", -- God Wars 2
     "amascut", "sanctum", -- Amascut and Sanctum of Rebirth
     "araxxi", "barrows", "rots",
-    "croesus", -- Elder God Wars Dungeon
+    "croesus", "kerapac", -- Elder God Wars Dungeon
 }
 
 local bosses = {}
