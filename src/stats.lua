@@ -135,10 +135,11 @@ local function itemNumbers(boss, chances, itemID, expected, received, tallies, a
     return item
 end
 
--- Stats for one boss from its tallies (see tracker.Tallies), the player's picks
--- for its choices (see choices.For) and pooled uniques (see stats.Pools), or nil
--- without tallies.
--- Luck uses the game's all-time totals once captured, else the tracked ones. Dry
+-- Stats for one boss from its entry, { boss, tallies, picks, allTime }: its
+-- tallies (see tracker.Tallies), the player's picks for its choices (see
+-- choices.For) and the game's all-time totals (see gamevars.AllTime, nil until
+-- they can be read); and the pooled uniques (see stats.Pools). Nil without tallies.
+-- Luck uses the all-time totals once they can be read, else the tracked ones. Dry
 -- streaks come from tracking, since the game doesn't show them, except for
 -- uniques the all-time counts say were never received: every kill that could
 -- drop them is dry there. A pooled unique uses tracked numbers until every boss
@@ -154,12 +155,12 @@ end
 --               there may be kills from before tracking
 --   dryShare    share of players who would have had a unique within dryKills
 --   items       { [itemID] = { expected, received, luck, dryKills, dryAtLeast } } per unique
-function stats.ForBoss(boss, tallies, picks, pools)
+function stats.ForBoss(entry, pools)
+    local boss, tallies, allTime = entry.boss, entry.tallies, entry.allTime
     if tallies == nil then
         return nil
     end
-    local allTime = tracker.AllTime(boss, tallies)
-    local kills = killsPerMode(boss, tallies, allTime, picks or {})
+    local kills = killsPerMode(boss, tallies, allTime, entry.picks or {})
     -- Only all-time totals can show that every kill was tracked.
     local allTracked = allTime ~= nil and tracker.Total(allTime.kills) <= tracker.Total(tallies.kills)
     local chances = chancesPerMode(boss)
@@ -220,7 +221,7 @@ local function resolve(itemID, sharers, entries, split)
     local shared, tracked, couldDrop = 0, 0, {}
     for _, boss in ipairs(sharers) do
         local entry = entries[boss.key]
-        local allTime = entry and tracker.AllTime(boss, entry.tallies)
+        local allTime = entry and entry.allTime
         if not allTime then
             return pool -- untracked drops unknown: each boss counts what it tracked
         end
@@ -250,7 +251,7 @@ local function resolve(itemID, sharers, entries, split)
     return pool
 end
 
--- The pooled uniques (see src/bosses.lua) among entries ({ boss, tallies } each),
+-- The pooled uniques (see src/bosses.lua) among entries (see stats.ForBoss),
 -- and how each one's log count splits between the bosses listing it, using the
 -- player's saved splits ({ [item id text] = { [boss key] = count } }):
 --   sharers    the bosses listing it

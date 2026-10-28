@@ -15,22 +15,26 @@ local BOSS = {
 
 -- Tallies with these kills, dry kills and items (dry defaults to all kills).
 local function tallies(kills, items, dry)
-    return { kills = kills, dry = dry or kills, items = items or {}, allTime = { kills = {}, items = {} } }
+    return { kills = kills, dry = dry or kills, items = items or {} }
 end
 
--- Adds all-time totals to tallies: kills per kill count var, log counts per item.
-local function withAllTime(t, kills, items)
-    t.allTime = { kills = kills, items = items }
-    return t
+-- All-time totals as the game gives them: kills per kill count var, log counts per item.
+local function totals(kills, items)
+    return { kills = kills, items = items }
+end
+
+-- Stats for boss from tallies, all-time totals (optional) and picks (optional).
+local function forBoss(boss, t, allTime, picks)
+    return stats.ForBoss({ boss = boss, tallies = t, allTime = allTime, picks = picks })
 end
 
 describe("stats.ForBoss", function()
     it("has nothing without tallies", function()
-        assert.is_nil(stats.ForBoss(BOSS, nil))
+        assert.is_nil(forBoss(BOSS, nil))
     end)
 
     it("adds up expected drops per mode", function()
-        local result = stats.ForBoss(BOSS, tallies({ Normal = 100, ["Hard mode"] = 20 }))
+        local result = forBoss(BOSS, tallies({ Normal = 100, ["Hard mode"] = 20 }))
         assert.are.equal(120, result.kills)
         assert.are.near(1 + 1, result.items[1].expected, 1e-9) -- 100/100 + 20/20
         assert.are.near(2, result.items[2].expected, 1e-9) -- 100/50
@@ -38,7 +42,7 @@ describe("stats.ForBoss", function()
     end)
 
     it("compares received drops with expected", function()
-        local result = stats.ForBoss(BOSS, tallies({ Normal = 100 }, {
+        local result = forBoss(BOSS, tallies({ Normal = 100 }, {
             ["1"] = { count = 1, atKills = { Normal = 40 } },
             ["2"] = { count = 2, atKills = { Normal = 90 } },
         }, { Normal = 10 }))
@@ -48,7 +52,7 @@ describe("stats.ForBoss", function()
     end)
 
     it("counts the dry streak from the latest unique", function()
-        local result = stats.ForBoss(BOSS, tallies({ Normal = 100 }, {
+        local result = forBoss(BOSS, tallies({ Normal = 100 }, {
             ["1"] = { count = 1, atKills = { Normal = 40 } },
             ["2"] = { count = 2, atKills = { Normal = 90 } },
         }, { Normal = 10 }))
@@ -58,7 +62,7 @@ describe("stats.ForBoss", function()
     end)
 
     it("counts an item's dry streak only over kills that can drop it", function()
-        local result = stats.ForBoss(BOSS, tallies({ Normal = 50, ["Hard mode"] = 30 }, {
+        local result = forBoss(BOSS, tallies({ Normal = 50, ["Hard mode"] = 30 }, {
             ["2"] = { count = 1, atKills = { Normal = 40, ["Hard mode"] = 5 } },
         }))
         assert.are.equal(10, result.items[2].dryKills) -- hard mode can't drop item 2
@@ -66,27 +70,27 @@ describe("stats.ForBoss", function()
     end)
 
     it("counts every kill as dry before the first unique", function()
-        local result = stats.ForBoss(BOSS, tallies({ Normal = 30 }))
+        local result = forBoss(BOSS, tallies({ Normal = 30 }))
         assert.are.equal(30, result.dryKills)
         assert.are.equal(0, result.received)
     end)
 
     it("uses each mode's own rates for the dry streak", function()
-        local result = stats.ForBoss(BOSS, tallies({ Normal = 50, ["Hard mode"] = 50 }))
+        local result = forBoss(BOSS, tallies({ Normal = 50, ["Hard mode"] = 50 }))
         local missAll = (1 - 3 / 100) ^ 50 * (1 - 1 / 20) ^ 50
         assert.are.near(1 - missAll, result.dryShare, 1e-12)
     end)
 
     it("has no luck without kills", function()
-        local result = stats.ForBoss(BOSS, tallies({}))
+        local result = forBoss(BOSS, tallies({}))
         assert.is_nil(result.luck)
         assert.are.equal(0, result.dryShare)
     end)
 
     describe("with all-time totals", function()
         it("uses them for luck", function()
-            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }),
-                { KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 2, ["2"] = 1 }))
+            local result = forBoss(BOSS, tallies({ Normal = 10 }),
+                totals({ KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 2, ["2"] = 1 }))
             assert.is_true(result.allTime)
             assert.are.equal(120, result.kills)
             assert.are.near(4, result.expected, 1e-9)
@@ -94,17 +98,10 @@ describe("stats.ForBoss", function()
             assert.are.equal(2, result.items[1].received)
         end)
 
-        it("waits until every kill count and log count is known", function()
-            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }),
-                { KC_NORMAL = 100 }, { ["1"] = 2, ["2"] = 1 }))
-            assert.is_false(result.allTime)
-            assert.are.equal(10, result.kills)
-        end)
-
         it("keeps dry streaks from tracking, marking ones that may be longer", function()
-            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }, {
+            local result = forBoss(BOSS, tallies({ Normal = 10 }, {
                 ["1"] = { count = 1, atKills = { Normal = 4 } },
-            }, { Normal = 6 }), { KC_NORMAL = 100, KC_HARD = 0 }, { ["1"] = 3, ["2"] = 1 }))
+            }, { Normal = 6 }), totals({ KC_NORMAL = 100, KC_HARD = 0 }, { ["1"] = 3, ["2"] = 1 }))
             assert.are.equal(6, result.dryKills)
             assert.is_false(result.dryAtLeast)
             assert.are.equal(6, result.items[1].dryKills)
@@ -114,8 +111,8 @@ describe("stats.ForBoss", function()
         end)
 
         it("counts every kill that could drop it as dry for uniques never received", function()
-            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }),
-                { KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 2, ["2"] = 0 }))
+            local result = forBoss(BOSS, tallies({ Normal = 10 }),
+                totals({ KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 2, ["2"] = 0 }))
             assert.are.equal(100, result.items[2].dryKills)
             assert.is_false(result.items[2].dryAtLeast)
             assert.are.equal(10, result.items[1].dryKills) -- received, so from tracking
@@ -123,8 +120,8 @@ describe("stats.ForBoss", function()
         end)
 
         it("counts every kill as dry for the boss with no uniques at all", function()
-            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }),
-                { KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 0, ["2"] = 0 }))
+            local result = forBoss(BOSS, tallies({ Normal = 10 }),
+                totals({ KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 0, ["2"] = 0 }))
             assert.are.equal(120, result.dryKills)
             assert.is_false(result.dryAtLeast)
             local missAll = (1 - 3 / 100) ^ 100 * (1 - 1 / 20) ^ 20
@@ -132,15 +129,15 @@ describe("stats.ForBoss", function()
         end)
 
         it("knows the streak is exact when every kill was tracked", function()
-            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }),
-                { KC_NORMAL = 10, KC_HARD = 0 }, { ["1"] = 1, ["2"] = 0 }))
+            local result = forBoss(BOSS, tallies({ Normal = 10 }),
+                totals({ KC_NORMAL = 10, KC_HARD = 0 }, { ["1"] = 1, ["2"] = 0 }))
             assert.is_false(result.dryAtLeast)
             assert.is_false(result.items[1].dryAtLeast)
         end)
     end)
 
     it("marks dry streaks as possibly longer without all-time totals", function()
-        assert.is_true(stats.ForBoss(BOSS, tallies({ Normal = 30 })).dryAtLeast)
+        assert.is_true(forBoss(BOSS, tallies({ Normal = 30 })).dryAtLeast)
     end)
 
     describe("with modes that are tiers of a choice", function()
@@ -156,10 +153,10 @@ describe("stats.ForBoss", function()
         }
 
         it("gives kills from before tracking to the picked tier", function()
-            local t = withAllTime(tallies({ Low = 10, High = 5 }), { KC = 100 }, { ["1"] = 0 })
-            local low = stats.ForBoss(TIERED, t, { level = 1 })
+            local t, allTime = tallies({ Low = 10, High = 5 }), totals({ KC = 100 }, { ["1"] = 0 })
+            local low = forBoss(TIERED, t, allTime, { level = 1 })
             assert.are.near((10 + 85) / 10 + 5 / 5, low.expected, 1e-9)
-            local high = stats.ForBoss(TIERED, t, { level = 2 })
+            local high = forBoss(TIERED, t, allTime, { level = 2 })
             assert.are.near(10 / 10 + (5 + 85) / 5, high.expected, 1e-9)
             assert.are.equal(100, high.kills)
         end)
@@ -176,28 +173,32 @@ describe("stats.Pools", function()
     A.items = { [1] = { kind = "unique" }, [9] = POOLED }
     B.items = { [9] = POOLED }
 
-    -- Entries with stats, as src/ui.lua builds them; returns the entries and pools.
-    local function build(tallyA, tallyB, splits)
-        local entries = { { boss = A, tallies = tallyA, picks = {} }, { boss = B, tallies = tallyB, picks = {} } }
+    -- Entries with stats, as src/ui.lua builds them, from each boss's
+    -- { tallies, allTime }; returns the entries and pools.
+    local function build(a, b, splits)
+        local entries = {
+            { boss = A, tallies = a.tallies, allTime = a.allTime, picks = {} },
+            { boss = B, tallies = b.tallies, allTime = b.allTime, picks = {} },
+        }
         local pools = stats.Pools(entries, splits or {})
         for _, entry in ipairs(entries) do
-            entry.stats = stats.ForBoss(entry.boss, entry.tallies, entry.picks, pools)
+            entry.stats = stats.ForBoss(entry, pools)
         end
         return entries, pools
     end
 
-    -- All-time tallies: 100 kills at A (20 tracked, with 1 drop of item 9) and
-    -- 40 at B (10 tracked, none); 8 of item 9 in the shared log count.
+    -- 100 kills at A (20 tracked, with 1 drop of item 9) and 40 at B (10
+    -- tracked, none); 8 of item 9 in the shared log count.
     local function allTimeA()
-        return withAllTime(tallies({ Normal = 20 }, { ["9"] = { count = 1, atKills = { Normal = 15 } } }),
-            { KC_A = 100 }, { ["1"] = 0, ["9"] = 8 })
+        return { tallies = tallies({ Normal = 20 }, { ["9"] = { count = 1, atKills = { Normal = 15 } } }),
+            allTime = totals({ KC_A = 100 }, { ["1"] = 0, ["9"] = 8 }) }
     end
     local function allTimeB()
-        return withAllTime(tallies({ Normal = 10 }), { KC_B = 40 }, { ["9"] = 8 })
+        return { tallies = tallies({ Normal = 10 }), allTime = totals({ KC_B = 40 }, { ["9"] = 8 }) }
     end
 
-    it("counts tracked drops at each boss until every boss has all-time totals", function()
-        local entries, pools = build(allTimeA(), tallies({ Normal = 10 }))
+    it("counts tracked drops at each boss until every boss's all-time totals can be read", function()
+        local entries, pools = build(allTimeA(), { tallies = tallies({ Normal = 10 }) })
         assert.is_nil(pools[9].untracked)
         assert.are.near(20 / 10, entries[1].stats.items[9].expected, 1e-9) -- tracked kills only
         assert.are.equal(1, entries[1].stats.items[9].received)
@@ -228,7 +229,7 @@ describe("stats.Pools", function()
         local _, before = build(allTimeA(), allTimeB(), splits)
         -- A tracked drop at A: its tracked count and the shared log count both go up.
         local a = allTimeA()
-        a.items["9"] = { count = 2, atKills = { Normal = 20 } }
+        a.tallies.items["9"] = { count = 2, atKills = { Normal = 20 } }
         a.allTime.items["9"] = 9
         local b = allTimeB()
         b.allTime.items["9"] = 9
@@ -247,7 +248,7 @@ describe("stats.Pools", function()
     end)
 
     it("gives untracked drops to the only boss with untracked kills", function()
-        local b = withAllTime(tallies({ Normal = 40 }), { KC_B = 40 }, { ["9"] = 8 })
+        local b = { tallies = tallies({ Normal = 40 }), allTime = totals({ KC_B = 40 }, { ["9"] = 8 }) }
         local _, pools = build(allTimeA(), b)
         assert.is_false(pools[9].ask)
         assert.are.same({ a = 8, b = 0 }, pools[9].received)

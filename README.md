@@ -16,19 +16,17 @@ Supported bosses:
 
 Boss RNG only uses information the game has already shown you:
 
+- **Your kill counts and boss log counts**, the same numbers the Beasts tab and
+  boss log show, without either needing to be open.
 - **Kills and drops as they happen.** When a boss's kill count or a unique's boss
-  log count goes up, Boss RNG counts the change. Changes in the first seconds
-  after logging in are ignored, so the login sync isn't mistaken for kills.
-- **Your all-time kill count**, only while the Beasts tab is showing that boss.
+  log count goes up, Boss RNG counts the change, to keep what the game doesn't:
+  dry streaks, and which boss a shared drop came from. Changes in the first
+  seconds after logging in are ignored, so the login sync isn't mistaken for kills.
 - **Amascut's enrage** for each kill, from the enrage you chose for the instance.
-  For kills from before Boss RNG, you pick the enrage in the Details window.
-- **Your all-time boss log counts**, only while the boss log is open on that
-  boss's page.
+  For untracked kills, you pick the enrage in the Details window.
 
-Both all-time counts have to be seen in the same session before they're used.
-Until then, Boss RNG uses the kills and drops it has tracked itself. It never
-reads hidden values such as bad luck mitigation, and it never interacts with the
-game for you.
+It never reads hidden values such as bad luck mitigation, and it never interacts
+with the game for you.
 
 ## Your data
 

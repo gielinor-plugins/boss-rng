@@ -89,7 +89,7 @@ function format.Dry(result)
 end
 
 -- What the numbers are based on: "All-time: 576 kills · 7 uniques" once the
--- game's totals are captured, else "Tracked: ...", the kills and drops Boss RNG
+-- game's totals can be read, else "Tracked: ...", the kills and drops Boss RNG
 -- has seen itself.
 function format.Totals(result)
     return (result.allTime and "All-time: " or "Tracked: ") .. count(result.kills, "kill") .. " · " .. count(result.received, "unique")

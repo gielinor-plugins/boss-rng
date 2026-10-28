@@ -6,7 +6,6 @@ local mock = {}
 local subscribers = {} -- [event name] = { [ref] = handler }
 local vars = {}        -- [var name] = VarType-like table
 local saved = {}       -- PersistentDB entries
-local interfaces = {}  -- [interface name] = { [component index] = component }, while open
 
 -- Copies a table, so saved data can't be changed by accident (like the real thing,
 -- which serializes it).
@@ -23,7 +22,7 @@ end
 
 -- Clears everything. Pass keepSaved = true to keep saved data, like a plugin reload.
 function mock.Reset(keepSaved)
-    subscribers, vars, interfaces = {}, {}, {}
+    subscribers, vars = {}, {}
     if not keepSaved then
         saved = {}
     end
@@ -47,17 +46,6 @@ function mock.Reset(keepSaved)
     })
     var = { VarPlayer = vars }
     GameState = { LOGINSCREEN = 10, GAME = 30 }
-    -- Interface ids are their names, which keeps lookups readable.
-    id = { Interface = setmetatable({}, { __index = function(_, name) return name end }) }
-    ui = {
-        ComponentType = { LABEL = 4 },
-        Interfaces = {
-            GetInterface = function(_, interfaceID) return interfaces[interfaceID] end,
-            GetComponent = function(_, interfaceID, index)
-                return interfaces[interfaceID] and interfaces[interfaceID][index]
-            end,
-        },
-    }
     Player = {
         IsAvailable = function() return mock.inGame end,
         GetEntity = function() return { displayName = mock.characterName } end,
@@ -95,20 +83,7 @@ function mock.SubscriptionCount()
 end
 
 -- Opens an interface with the given components, { [index] = component }.
-function mock.OpenInterface(name, components)
-    interfaces[name] = components or {}
-end
-
-function mock.CloseInterface(name)
-    interfaces[name] = nil
-end
-
--- A text component showing content.
-function mock.Label(content)
-    return { type = ui.ComponentType.LABEL, hidden = false, content = content }
-end
-
--- Sets the value the game shows for a var, adding the var if needed.
+-- Sets a var's value, adding the var if needed.
 function mock.SetValue(name, value)
     vars[name] = vars[name] or { configName = name }
     vars[name].value = value

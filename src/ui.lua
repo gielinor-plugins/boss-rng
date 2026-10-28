@@ -5,6 +5,7 @@
 
 local bosses = require("src/bosses")
 local choices = require("src/choices")
+local gamevars = require("src/gamevars")
 local safe = require("src/safe")
 local stats = require("src/stats")
 local tracker = require("src/tracker")
@@ -28,12 +29,13 @@ local function bossesWithKills()
     for _, boss in ipairs(bosses) do
         local tallies = tracker.Tallies(boss)
         if tallies then
-            table.insert(entries, { boss = boss, tallies = tallies, picks = choices.For(boss) })
+            table.insert(entries, { boss = boss, tallies = tallies, picks = choices.For(boss),
+                allTime = gamevars.AllTime(boss) })
         end
     end
     local pools = stats.Pools(entries, choices.Splits())
     for _, entry in ipairs(entries) do
-        entry.stats = stats.ForBoss(entry.boss, entry.tallies, entry.picks, pools)
+        entry.stats = stats.ForBoss(entry, pools)
     end
 
     local list, allStats = {}, {}
@@ -154,6 +156,9 @@ local function onContentLayerReady(event)
     panel.Attach(event.component)
     redrawPanel()
 end
+
+-- Redraws both views, e.g. once all-time totals can be read after login.
+bossUi.Refresh = redrawAll
 
 function bossUi.Start()
     tracker.OnChange(redrawAll)

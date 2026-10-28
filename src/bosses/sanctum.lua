@@ -24,7 +24,7 @@ local function rolls(books, weapons, shard)
     return list
 end
 
-local VERMYX, KEZALAM, NAKATRA = "Vermyx, Brood Mother", "Kezalam, the Wanderer", "Nakatra, Devourer Eternal"
+local KC = "BSLAY_KILLS_RAID_REBIRTH1_" -- each boss's kill count var starts with this
 
 return {
     key = "sanctum", -- saved data key: never change it
@@ -34,16 +34,12 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Vermyx", beasts = VERMYX, kc = "BSLAY_KILLS_RAID_REBIRTH1_WYRM_BOSS", rolls = rolls(125) },
-        { name = "Vermyx hard mode", beasts = VERMYX, kc = "BSLAY_KILLS_RAID_REBIRTH1_WYRM_BOSS_HARDMODE",
-            rolls = rolls(100) },
-        { name = "Kezalam", beasts = KEZALAM, kc = "BSLAY_KILLS_RAID_REBIRTH1_BEAST_BOSS", rolls = rolls(125) },
-        { name = "Kezalam hard mode", beasts = KEZALAM, kc = "BSLAY_KILLS_RAID_REBIRTH1_BEAST_BOSS_HARDMODE",
-            rolls = rolls(100) },
-        { name = "Nakatra", beasts = NAKATRA, kc = "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS",
-            rolls = rolls(125, 75) },
-        { name = "Nakatra hard mode", beasts = NAKATRA, kc = "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS_HARDMODE",
-            rolls = rolls(100, 60, 75) },
+        { name = "Vermyx", kc = KC .. "WYRM_BOSS", rolls = rolls(125) },
+        { name = "Vermyx hard mode", kc = KC .. "WYRM_BOSS_HARDMODE", rolls = rolls(100) },
+        { name = "Kezalam", kc = KC .. "BEAST_BOSS", rolls = rolls(125) },
+        { name = "Kezalam hard mode", kc = KC .. "BEAST_BOSS_HARDMODE", rolls = rolls(100) },
+        { name = "Nakatra", kc = KC .. "SLAYER_MASTER_BOSS", rolls = rolls(125, 75) },
+        { name = "Nakatra hard mode", kc = KC .. "SLAYER_MASTER_BOSS_HARDMODE", rolls = rolls(100, 60, 75) },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

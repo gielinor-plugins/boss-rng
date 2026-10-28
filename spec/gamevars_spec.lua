@@ -110,6 +110,34 @@ describe("gamevars", function()
         assert.are.same({ "High", "Low" }, reports)
     end)
 
+    it("reads all-time totals once vars can be trusted", function()
+        for name, value in pairs({ KC_NORMAL = 40, KC_HARD = 2, LOG_WEAPON = 3, LOG_ARMOR = 1 }) do
+            var.VarPlayer[name].value = value
+        end
+        assert.are.same({ kills = { KC_NORMAL = 40, KC_HARD = 2 }, items = { ["101"] = 3, ["102"] = 1 } },
+            gamevars.AllTime(BOSS))
+        mock.Fire("GameStateChanged", { newState = GameState.LOGINSCREEN })
+        assert.is_nil(gamevars.AllTime(BOSS))
+        mock.Fire("GameStateChanged", { newState = GameState.GAME })
+        assert.is_nil(gamevars.AllTime(BOSS)) -- vars may still be arriving
+        advance(5 * 50)
+        assert.are.equal(40, gamevars.AllTime(BOSS).kills.KC_NORMAL)
+    end)
+
+    it("says when vars can be trusted after entering the game", function()
+        local ready = 0
+        gamevars.Stop()
+        gamevars.Start({ BOSS }, function() end, function() end, function() ready = ready + 1 end)
+        advance(1)
+        assert.are.equal(1, ready)
+        mock.Fire("GameStateChanged", { newState = GameState.GAME })
+        advance(1)
+        assert.are.equal(1, ready)
+        advance(5 * 50)
+        advance(1)
+        assert.are.equal(2, ready)
+    end)
+
     it("ignores big jumps and decreases", function()
         change(KC_VAR, 0, 554) -- like a login sync
         change(KC_VAR, 554, 553)

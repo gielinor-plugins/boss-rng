@@ -1,12 +1,12 @@
--- Reads boss kill counts and boss log counts from the game, and reports when they
--- go up. It stores nothing. The only other module that reads game vars is
--- src/capture.lua, which reads totals while the game shows them.
+-- Reads boss kill counts and boss log counts from the game: their all-time
+-- totals, and each kill and drop as the count goes up. It stores nothing, and
+-- it's the only module that reads game vars. These counts aren't hidden (the
+-- Beasts tab and boss log show them, and Jagex confirmed they may be read without
+-- either open); hidden values such as bad luck mitigation are never read.
 --
 -- Kill counts and log counts are varbits: slices of a bigger "base" var. At a kill
 -- or drop the game sends the base var's old and new value (VarTransmit), and the
--- change in each slice is what we report. We use only the change, at the moment the
--- player sees the kill or drop, because a var may only be used once the game has
--- shown that information to the player. Bosses whose chest hides which unique
+-- change in each slice is a kill or drop. Bosses whose chest hides which unique
 -- dropped until it's opened would break this, so they aren't supported yet.
 
 local choices = require("src/choices")
@@ -16,8 +16,9 @@ local gamevars = {}
 
 local REF = "bossrng_gamevars"
 
--- After entering the game, wait this long before trusting changes, so vars sent at
--- login aren't mistaken for kills or drops. The client runs 50 ticks per second.
+-- After entering the game, wait this long before trusting vars, so the ones sent
+-- at login aren't mistaken for kills or drops, or read before they've arrived.
+-- The client runs 50 ticks per second.
 local SETTLE_TICKS = 5 * 50
 
 -- Each KC varbit rises by 1 per kill, and an item's count by a little per drop.
@@ -28,6 +29,13 @@ local watched = {} -- [base var id] = slices to check when that var changes
 local pending = { kills = {}, drops = {} } -- changes waiting for the next tick
 local tick = 0
 local readyAtTick = nil -- nil while not in the game
+local onReady = nil -- called once vars can be trusted after entering the game
+local announced = false -- whether onReady was called since entering the game
+
+-- True once vars can be trusted: in the game, and settled after entering it.
+local function isReady()
+    return readyAtTick ~= nil and tick >= readyAtTick
+end
 
 -- Number of zero bits below a mask's lowest set bit, e.g. 0xFFFF0000 gives 16.
 local function lowestBit(mask)
@@ -60,7 +68,7 @@ end
 local function onVarTransmit(event)
     local slices = watched[event.var.id]
     local old, new = event.oldValue, event.newValue
-    if slices == nil or readyAtTick == nil or tick < readyAtTick then
+    if slices == nil or not isReady() then
         return
     end
     if type(old) ~= "number" or type(new) ~= "number" then
@@ -75,11 +83,8 @@ local function onVarTransmit(event)
 end
 
 local function onGameStateChanged(event)
-    if event.newState == GameState.GAME then
-        readyAtTick = tick + SETTLE_TICKS
-    else
-        readyAtTick = nil
-    end
+    readyAtTick = event.newState == GameState.GAME and tick + SETTLE_TICKS or nil
+    announced = false
 end
 
 -- When a kill and a drop change in the same tick they can arrive in either order
@@ -97,6 +102,10 @@ end
 local function onLogic(event)
     tick = event.logicTick
     flush()
+    if isReady() and not announced then
+        announced = true
+        safe.Call("updating once the game is ready", onReady)
+    end
 end
 
 -- True if a kill counts for this mode: always, unless the mode is one tier of a
@@ -110,10 +119,36 @@ local function inTier(boss, mode)
     return choices.Snap(choice, var.VarPlayer[choice.var].value) == mode.tier.value
 end
 
--- True while changes are waiting for the next tick, when a kill count can already
--- show a kill that hasn't been reported yet.
-function gamevars.HasPending()
-    return #pending.kills > 0 or #pending.drops > 0
+-- The current value of a var by name, or nil if the game doesn't have it.
+local function value(name)
+    local found = var.VarPlayer[name]
+    return found and found.value
+end
+
+-- A boss's all-time totals, read from the game: { kills = { [kill count var] = n },
+-- items = { [item id text] = n } } for its uniques. Nil until vars can be trusted,
+-- or if any can't be read.
+function gamevars.AllTime(boss)
+    if not isReady() then
+        return nil
+    end
+    local allTime = { kills = {}, items = {} }
+    for _, mode in ipairs(boss.modes) do
+        allTime.kills[mode.kc] = value(mode.kc)
+        if allTime.kills[mode.kc] == nil then
+            return nil
+        end
+    end
+    for itemID, item in pairs(boss.items) do
+        if item.kind == "unique" then
+            local key = tostring(itemID)
+            allTime.items[key] = value(item.log)
+            if allTime.items[key] == nil then
+                return nil
+            end
+        end
+    end
+    return allTime
 end
 
 -- Starts reporting changes for every boss in bosses (the list from src/bosses.lua),
@@ -121,7 +156,9 @@ end
 --   onKills(boss, mode, count)   a KC varbit of that mode went up (for modes
 --                                that share one, only the mode whose tier it is)
 --   onDrops(boss, itemID, count) the log count of a unique item went up
-function gamevars.Start(bosses, onKills, onDrops)
+-- and calls ready() each time vars can be trusted after entering the game.
+function gamevars.Start(bosses, onKills, onDrops, ready)
+    onReady = ready
     for _, boss in ipairs(bosses) do
         for _, mode in ipairs(boss.modes) do
             watch(mode.kc, "kills", function(count)
@@ -138,7 +175,7 @@ function gamevars.Start(bosses, onKills, onDrops)
     end
 
     -- No state change arrives if the plugin starts while already in the game. Any
-    -- vars sent at login should have arrived by then, so changes are trusted at once.
+    -- vars sent at login should have arrived by then, so they're trusted at once.
     readyAtTick = Player.IsAvailable() and 0 or nil
 
     Event.Logic.Subscribe(REF, onLogic)
@@ -153,6 +190,7 @@ function gamevars.Stop()
     watched = {}
     pending = { kills = {}, drops = {} }
     readyAtTick = nil
+    onReady, announced = nil, false
 end
 
 return gamevars

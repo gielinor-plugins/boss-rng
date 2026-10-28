@@ -3,16 +3,14 @@
 -- sanctum.lua for the optional parts. (src/bosses/common.lua, godwars.lua and
 -- godwars2.lua are helpers, not bosses.)
 --
--- Optional parts of a mode:
---   beasts  the Beasts tab page showing its kill count, if not its boss's name
---   tier    { choice = key, value = v }: for modes sharing one kill count var,
---           split by one of the boss's choices (see src/choices.lua). A tracked
---           kill counts for the mode whose tier the choice's var is in; kills
---           from before tracking, for the mode of the player's pick.
+-- A mode can have a tier, { choice = key, value = v }, for modes sharing one kill
+-- count var, split by one of the boss's choices (see src/choices.lua). A tracked
+-- kill counts for the mode whose tier the choice's var is in; untracked kills,
+-- for the mode of the player's pick.
 --
 -- A unique listed by more than one boss has one boss log count for all of them,
 -- so its drops can't be told apart. Such a unique is pooled: it gets pooledBy,
--- the bosses that list it, and its luck uses all their kills (see stats.Pool).
+-- the bosses that list it, and its count is split between them (see stats.Pools).
 
 local BOSS_FILES = {
     "graardor", "kreearra", "kril", "nex", "zilyana", -- God Wars
