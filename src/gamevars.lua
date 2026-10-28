@@ -9,6 +9,7 @@
 -- shown that information to the player. Bosses whose chest hides which unique
 -- dropped until it's opened would break this, so they aren't supported yet.
 
+local choices = require("src/choices")
 local safe = require("src/safe")
 
 local gamevars = {}
@@ -98,6 +99,17 @@ local function onLogic(event)
     flush()
 end
 
+-- True if a kill counts for this mode: always, unless the mode is one tier of a
+-- choice (see src/bosses.lua), when the choice's var must be in that tier. The
+-- game sets the var as the fight starts, before its kill.
+local function inTier(boss, mode)
+    if mode.tier == nil then
+        return true
+    end
+    local choice = choices.Find(boss, mode.tier.choice)
+    return choices.Snap(choice, var.VarPlayer[choice.var].value) == mode.tier.value
+end
+
 -- True while changes are waiting for the next tick, when a kill count can already
 -- show a kill that hasn't been reported yet.
 function gamevars.HasPending()
@@ -106,12 +118,17 @@ end
 
 -- Starts reporting changes for every boss in bosses (the list from src/bosses.lua),
 -- on the logic tick after they happen:
---   onKills(boss, mode, count)   a KC varbit of that mode went up
+--   onKills(boss, mode, count)   a KC varbit of that mode went up (for modes
+--                                that share one, only the mode whose tier it is)
 --   onDrops(boss, itemID, count) the log count of a unique item went up
 function gamevars.Start(bosses, onKills, onDrops)
     for _, boss in ipairs(bosses) do
         for _, mode in ipairs(boss.modes) do
-            watch(mode.kc, "kills", function(count) onKills(boss, mode, count) end)
+            watch(mode.kc, "kills", function(count)
+                if inTier(boss, mode) then
+                    onKills(boss, mode, count)
+                end
+            end)
         end
         for itemID, item in pairs(boss.items) do
             if item.kind == "unique" then -- only items that count toward luck

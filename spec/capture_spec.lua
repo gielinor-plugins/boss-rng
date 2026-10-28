@@ -9,6 +9,7 @@ local BOSS = {
     modes = {
         { name = "Normal", kc = "KC_NORMAL" },
         { name = "Hard mode", kc = "KC_HARD" },
+        { name = "Second fight", kc = "KC_SECOND", beasts = "Second Boss" },
     },
     items = {
         [101] = { log = "LOG_WEAPON", kind = "unique" },
@@ -39,6 +40,7 @@ describe("capture", function()
         mock.Reset()
         mock.SetValue("KC_NORMAL", 40)
         mock.SetValue("KC_HARD", 2)
+        mock.SetValue("KC_SECOND", 7)
         mock.SetValue("LOG_WEAPON", 3)
         mock.SetValue("LOG_SHARED", 9)
         for _, name in ipairs({ "src/capture", "src/gamevars" }) do
@@ -60,7 +62,14 @@ describe("capture", function()
         mock.OpenInterface("BSLAY_BOSS_INFO", { [11] = mock.Label("<col=ffffff>Test Boss</col>") })
         advance()
         assert.are.equal(BOSS, kills[1].boss)
-        assert.are.same({ Normal = 40, ["Hard mode"] = 2 }, kills[1].counts)
+        assert.are.same({ KC_NORMAL = 40, KC_HARD = 2 }, kills[1].counts)
+    end)
+
+    it("reads a mode's kill count from its own Beasts tab page", function()
+        mock.OpenInterface("BSLAY_BOSS_INFO", { [11] = mock.Label("Second Boss") })
+        advance()
+        assert.are.equal(BOSS, kills[1].boss)
+        assert.are.same({ KC_SECOND = 7 }, kills[1].counts)
     end)
 
     it("ignores bosses it doesn't know, and a hidden name", function()

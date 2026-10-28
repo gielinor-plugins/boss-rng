@@ -1,6 +1,7 @@
 -- Checks every boss file follows the data format. Run from the project root: busted
 
 local bosses = require("src/bosses")
+local choices = require("src/choices")
 local luck = require("src/luck")
 
 local KINDS = { unique = true, shared = true, lore = true, pet = true, excluded = true }
@@ -37,11 +38,25 @@ describe("boss data", function()
                 end
             end)
 
-            it("states its assumptions in plain words", function()
-                assert.is_true(#boss.assumptions > 0)
+            it("states its assumptions, if any, in plain words", function()
+                assert.are.equal("table", type(boss.assumptions))
                 for _, note in ipairs(boss.assumptions) do
                     assert.are.equal("string", type(note))
                     assert.is_nil(note:find("<", 1, true)) -- the game would read it as a tag
+                end
+            end)
+
+            it("has a mode for every option of a choice its modes are tiers of", function()
+                for _, mode in ipairs(boss.modes) do
+                    local choice = mode.tier and choices.Find(boss, mode.tier.choice)
+                    for _, option in ipairs(choice and choice.options or {}) do
+                        local found = false
+                        for _, other in ipairs(boss.modes) do
+                            found = found or (other.tier ~= nil and other.tier.choice == choice.key
+                                and other.tier.value == option.value)
+                        end
+                        assert.is_true(found)
+                    end
                 end
             end)
 
@@ -73,6 +88,12 @@ local CASES = {
         hard = { [37070] = 1 / 179, [37030] = (1 - 5 / 179) / 44 } },
     { file = "furies", items = 9, rates = { [37090] = 1 / 256, [37095] = 1 / 256 }, hard = { [37024] = 1 / 179 } },
     { file = "gregorovic", items = 8, rates = { [37075] = 1 / 256, [37080] = 1 / 256 }, hard = { [37021] = 1 / 179 } },
+    -- Normal mode, then the 100% enrage tier: an armour piece, a weapon, the Nexus and the Shard.
+    { file = "amascut", items = 11,
+        rates = { [59344] = 3 / 4 / 5 / 600, [59350] = 1 / 4 / 2 / 600, [59358] = 1 / 750 },
+        hard = { [59336] = 3 / 4 / 5 / 70, [59354] = 1 / 4 / 2 / 70, [59358] = 1 / 280, [57128] = 1 / 280 } },
+    -- Vermyx, then Vermyx in hard mode.
+    { file = "sanctum", items = 9, rates = { [57156] = 1 / 250, [57124] = 1 / 250 }, hard = { [57156] = 1 / 200 } },
 }
 
 for _, case in ipairs(CASES) do
@@ -97,6 +118,25 @@ for _, case in ipairs(CASES) do
         end)
     end)
 end
+
+-- Nakatra's rolls, normal then hard mode.
+describe("sanctum's Nakatra", function()
+    local modes = require("src/bosses/sanctum").modes
+    it("has the wiki rates", function()
+        local normal, hard = luck.ItemChances(modes[5].rolls), luck.ItemChances(modes[6].rolls)
+        assert.are.near(1 / 250, normal[57124], 1e-12)
+        assert.are.near(1 / 150, normal[57162], 1e-12)
+        assert.is_nil(normal[57128])
+        assert.are.near(1 / 120, hard[57158], 1e-12)
+        assert.are.near(1 / 75, hard[57128], 1e-12)
+    end)
+end)
+
+it("pools the Shard of Genesis Essence between Amascut and the Sanctum", function()
+    local shard = require("src/bosses/amascut").items[57128]
+    assert.are.equal(2, #shard.pooledBy)
+    assert.are.equal(shard, require("src/bosses/sanctum").items[57128])
+end)
 
 -- The generals' uniques can't drop together, so their chances simply add up.
 it("gives a general at most one unique per kill", function()

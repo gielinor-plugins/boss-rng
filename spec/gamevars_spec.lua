@@ -91,6 +91,25 @@ describe("gamevars", function()
         assert.are.same({ "drop 101" }, reports)
     end)
 
+    it("reports a shared kill count's kill for the mode whose tier it is", function()
+        gamevars.Stop()
+        local choice = { key = "level", var = "LEVEL", options = { { value = 1 }, { value = 5 } } }
+        local tiered = {
+            choices = { choice },
+            modes = {
+                { name = "Low", kc = "KC_NORMAL", tier = { choice = "level", value = 1 } },
+                { name = "High", kc = "KC_NORMAL", tier = { choice = "level", value = 5 } },
+            },
+            items = {},
+        }
+        gamevars.Start({ tiered }, function(_, mode) table.insert(reports, mode.name) end, function() end)
+        mock.SetValue("LEVEL", 7)
+        change(KC_VAR, 1, 2)
+        mock.SetValue("LEVEL", 3)
+        change(KC_VAR, 2, 3)
+        assert.are.same({ "High", "Low" }, reports)
+    end)
+
     it("ignores big jumps and decreases", function()
         change(KC_VAR, 0, 554) -- like a login sync
         change(KC_VAR, 554, 553)

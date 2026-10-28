@@ -1,6 +1,7 @@
 -- Captures a boss's all-time totals while the game is showing them: its kill
--- counts while the Beasts tab shows that boss, and its boss log counts while the
--- boss log is open on its page. Jagex's rule is that a var may only be used once
+-- counts while a Beasts tab page shows them (a boss with several fights may
+-- have several pages), and its boss log counts while the boss log is open on
+-- its page. Jagex's rule is that a var may only be used once
 -- the game has shown that information to the player, so these are only read
 -- while they're on screen. Checked once a second.
 
@@ -19,7 +20,7 @@ local LOG_BOOK_VAR = "COLLECTION_LOG_DATA" -- the boss log's row in the game dat
 local LOG_PAGE_VAR = "COLLECTION_LOG_SELECTED" -- the open page's 0-based index
 local PAGES_COLUMN = 8 -- the book row's list of page rows
 
-local byName, byLogPage = {}, {}
+local byName, byLogPage = {}, {} -- [Beasts tab name] = { boss, modes }; [page] = boss
 local onKills, onLogCounts
 local lastCheckTick = -math.huge
 
@@ -31,8 +32,9 @@ local function value(varName)
     return var.VarPlayer[varName].value
 end
 
--- The boss the Beasts tab panel shows, or nil. Its name may carry color tags.
-local function beastsBoss()
+-- The page the Beasts tab panel shows, { boss, modes }, or nil. Its name may
+-- carry color tags.
+local function beastsPage()
     local text = ui.Interfaces:GetComponent(id.Interface[BEASTS_PANEL], BEASTS_NAME)
     if text == nil or text.type ~= ui.ComponentType.LABEL or text.hidden then
         return nil
@@ -47,11 +49,11 @@ local function logBoss()
     return page and byLogPage[page.configName]
 end
 
--- A boss's kill count per mode: { [mode name] = kills }.
-local function readKills(boss)
+-- The kill counts a Beasts tab page shows: { [kill count var] = kills }.
+local function readKills(page)
     local kills = {}
-    for _, mode in ipairs(boss.modes) do
-        kills[mode.name] = value(mode.kc)
+    for _, mode in ipairs(page.modes) do
+        kills[mode.kc] = value(mode.kc)
     end
     return kills
 end
@@ -81,9 +83,9 @@ local function check()
             onLogCounts(boss, readLogCounts(boss))
         end
     elseif isOpen(BEASTS_PANEL) then
-        local boss = beastsBoss()
-        if boss then
-            onKills(boss, readKills(boss))
+        local page = beastsPage()
+        if page then
+            onKills(page.boss, readKills(page))
         end
     end
 end
@@ -96,12 +98,17 @@ local function onLogic(event)
 end
 
 -- Starts capturing for every boss in bosses (the list from src/bosses.lua):
---   kills(boss, { [mode name] = kill count })     while the Beasts tab shows it
---   logCounts(boss, { [item id] = log count })     while its boss log page is open
--- Only unique items are captured. Bosses are matched to the Beasts tab by name.
+--   kills(boss, { [kill count var] = kills })   while a Beasts tab page shows them
+--   logCounts(boss, { [item id] = log count })   while its boss log page is open
+-- Only unique items are captured. Modes are matched to Beasts tab pages by name:
+-- the mode's beasts, else its boss's name.
 function capture.Start(bosses, kills, logCounts)
     for _, boss in ipairs(bosses) do
-        byName[boss.name] = boss
+        for _, mode in ipairs(boss.modes) do
+            local name = mode.beasts or boss.name
+            byName[name] = byName[name] or { boss = boss, modes = {} }
+            table.insert(byName[name].modes, mode)
+        end
         byLogPage[boss.logPage] = boss
     end
     onKills, onLogCounts = kills, logCounts

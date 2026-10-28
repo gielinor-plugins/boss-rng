@@ -2,8 +2,12 @@
 
 local mock = require("spec/mock_api")
 
-local BOSS = { key = "testboss" }
-local NORMAL, HARD = { name = "Normal" }, { name = "Hard mode" }
+local NORMAL, HARD = { name = "Normal", kc = "KC_NORMAL" }, { name = "Hard mode", kc = "KC_HARD" }
+local BOSS = {
+    key = "testboss",
+    modes = { NORMAL, HARD },
+    items = { [101] = { kind = "unique" }, [102] = { kind = "unique", pooledBy = {} } },
+}
 
 describe("tracker", function()
     local tracker
@@ -34,7 +38,7 @@ describe("tracker", function()
         tracker.AddKills(BOSS, NORMAL, 1)
         tracker.AddDrops(BOSS, 101, 1)
         tracker.AddKills(BOSS, NORMAL, 1)
-        assert.are.same({ count = 1, atKill = 2 }, tracker.Tallies(BOSS).items["101"])
+        assert.are.same({ count = 1, atKills = { Normal = 2 } }, tracker.Tallies(BOSS).items["101"])
     end)
 
     it("counts dry kills per mode until a unique drops", function()
@@ -44,6 +48,19 @@ describe("tracker", function()
         tracker.AddDrops(BOSS, 101, 1)
         tracker.AddKills(BOSS, HARD, 1)
         assert.are.same({ ["Hard mode"] = 1 }, tracker.Tallies(BOSS).dry)
+    end)
+
+    it("tracks a pooled unique only for the boss killed last", function()
+        local other = { key = "other", modes = { NORMAL }, items = BOSS.items }
+        tracker.SetAllTimeItems(BOSS, { [101] = 0, [102] = 3 })
+        tracker.AddKills(other, NORMAL, 1)
+        tracker.AddDrops(BOSS, 102, 1)
+        assert.is_nil(tracker.Tallies(BOSS).items["102"])
+        assert.are.equal(4, tracker.Tallies(BOSS).allTime.items["102"]) -- the shared count still goes up
+        tracker.AddKills(BOSS, NORMAL, 1)
+        tracker.AddDrops(BOSS, 102, 1)
+        assert.are.equal(1, tracker.Tallies(BOSS).items["102"].count)
+        assert.are.same({}, tracker.Tallies(BOSS).dry)
     end)
 
     it("remembers the last boss killed", function()
@@ -92,18 +109,28 @@ describe("tracker", function()
         assert.are.equal(2, calls)
     end)
     describe("all-time totals", function()
-        local KILLS, ITEMS = { Normal = 40, ["Hard mode"] = 2 }, { [101] = 3 }
+        local KILLS, ITEMS = { KC_NORMAL = 40, KC_HARD = 2 }, { [101] = 3, [102] = 1 }
+        local ITEM_KEYS = { ["101"] = 3, ["102"] = 1 }
 
         local function allTime()
-            return tracker.AllTime(tracker.Tallies(BOSS))
+            return tracker.AllTime(BOSS, tracker.Tallies(BOSS))
         end
 
         it("are known once kills and log counts are both seen", function()
             tracker.SetAllTimeKills(BOSS, KILLS)
             assert.is_nil(allTime())
             tracker.SetAllTimeItems(BOSS, ITEMS)
-            assert.are.same({ kills = KILLS, items = { ["101"] = 3 } },
+            assert.are.same({ kills = KILLS, items = ITEM_KEYS },
                 mock.Saved("char:Tester").bosses.testboss.allTime)
+            assert.are.same({ kills = KILLS, items = ITEM_KEYS }, allTime())
+        end)
+
+        it("can come from several Beasts tab pages", function()
+            tracker.SetAllTimeItems(BOSS, ITEMS)
+            tracker.SetAllTimeKills(BOSS, { KC_NORMAL = 40 })
+            assert.is_nil(allTime())
+            tracker.SetAllTimeKills(BOSS, { KC_HARD = 2 })
+            assert.are.same(KILLS, allTime().kills)
         end)
 
         it("need both seen in the same session", function()
@@ -128,7 +155,7 @@ describe("tracker", function()
             tracker.SetAllTimeItems(BOSS, ITEMS)
             tracker.AddDrops(BOSS, 101, 1)
             tracker.AddKills(BOSS, HARD, 1)
-            assert.are.same({ kills = { Normal = 41, ["Hard mode"] = 3 }, items = { ["101"] = 4 } }, allTime())
+            assert.are.same({ kills = { KC_NORMAL = 41, KC_HARD = 3 }, items = { ["101"] = 4, ["102"] = 1 } }, allTime())
         end)
 
         it("stay known while new counts match them", function()
@@ -143,10 +170,10 @@ describe("tracker", function()
             tracker.SetAllTimeKills(BOSS, KILLS)
             tracker.SetAllTimeItems(BOSS, ITEMS)
             reload()
-            tracker.SetAllTimeKills(BOSS, { Normal = 45, ["Hard mode"] = 2 })
+            tracker.SetAllTimeKills(BOSS, { KC_NORMAL = 45, KC_HARD = 2 })
             assert.is_nil(allTime())
-            tracker.SetAllTimeItems(BOSS, { [101] = 4 })
-            assert.are.same({ kills = { Normal = 45, ["Hard mode"] = 2 }, items = { ["101"] = 4 } }, allTime())
+            tracker.SetAllTimeItems(BOSS, { [101] = 4, [102] = 1 })
+            assert.are.same({ kills = { KC_NORMAL = 45, KC_HARD = 2 }, items = { ["101"] = 4, ["102"] = 1 } }, allTime())
         end)
 
         it("keep the other kind if it was seen this session", function()
@@ -154,8 +181,8 @@ describe("tracker", function()
             tracker.SetAllTimeItems(BOSS, ITEMS)
             reload()
             tracker.SetAllTimeItems(BOSS, ITEMS) -- still matches
-            tracker.SetAllTimeKills(BOSS, { Normal = 45, ["Hard mode"] = 2 }) -- kills while away, no drops
-            assert.are.same({ kills = { Normal = 45, ["Hard mode"] = 2 }, items = { ["101"] = 3 } }, allTime())
+            tracker.SetAllTimeKills(BOSS, { KC_NORMAL = 45, KC_HARD = 2 }) -- kills while away, no drops
+            assert.are.same({ kills = { KC_NORMAL = 45, KC_HARD = 2 }, items = ITEM_KEYS }, allTime())
         end)
 
         it("save only when something changes", function()

@@ -6,6 +6,15 @@ local common = {}
 -- the group, so bosses whose kills can't be told apart assume solo kills.
 common.SOLO_KILLS = "Solo kills"
 
+-- The Shard of Genesis Essence, dropped by Amascut and by Nakatra in the
+-- Sanctum of Rebirth, with one boss log count for both.
+common.SHARD = 57128
+common.SHARD_ITEM = {
+    log = "ITEMLOG_ITEM_COMBATV2_INNATE_MASTERY_UNLOCK_T95_WEAPON_STAT_UPGRADE_T1",
+    kind = "unique",
+    plural = "Shards", -- for labels about its pooled count (see src/bosses.lua)
+}
+
 -- Weights for a roll's items split evenly between ids.
 function common.Even(ids)
     local weights = {}

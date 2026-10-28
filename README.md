@@ -1,7 +1,34 @@
 # Boss RNG
 
-Boss RNG shows how lucky you have been with boss log drops at every boss in the
-Beasts tab: for each item, each boss, and overall.
+Boss RNG shows how lucky you have been with boss log uniques, compared to an
+average player with the same kills: for each item, each boss, and overall. It
+shows where you stand, never drop rates.
+
+Supported bosses:
+
+- **God Wars Dungeon:** General Graardor, Kree'arra, Commander Zilyana, K'ril
+  Tsutsaroth and Nex.
+- **God Wars Dungeon 2:** Helwyr, Vindicta & Gorvek, the Twin Furies and Gregorovic.
+- **Amascut, the Devourer** and the **Sanctum of Rebirth** (Vermyx, Kezalam and
+  Nakatra, as one entry).
+
+## What Boss RNG reads
+
+Boss RNG only uses information the game has already shown you:
+
+- **Kills and drops as they happen.** When a boss's kill count or a unique's boss
+  log count goes up, Boss RNG counts the change. Changes in the first seconds
+  after logging in are ignored, so the login sync isn't mistaken for kills.
+- **Your all-time kill count**, only while the Beasts tab is showing that boss.
+- **Amascut's enrage** for each kill, from the enrage you chose for the instance.
+  For kills from before Boss RNG, you pick the enrage in the Details window.
+- **Your all-time boss log counts**, only while the boss log is open on that
+  boss's page.
+
+Both all-time counts have to be seen in the same session before they're used.
+Until then, Boss RNG uses the kills and drops it has tracked itself. It never
+reads hidden values such as bad luck mitigation, and it never interacts with the
+game for you.
 
 ## Your data
 
@@ -21,7 +48,6 @@ src/          plugin modules, loaded with require("src/...")
 resources/    images and sounds, if added later (a folder name the game reserves)
 spec/         tests
 tools/        sync.sh (copy to the beta env locally), package.sh (build the mod.io zip)
-docs/         design notes and API notes
 ```
 
 Only `main.lua`, `plugin.json`, `src/` and `resources/` are shipped.
