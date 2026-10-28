@@ -87,7 +87,7 @@ describe("stats.ForBoss", function()
         it("keeps dry streaks from tracking, marking ones that may be longer", function()
             local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }, {
                 ["1"] = { count = 1, atKill = 4 },
-            }, { Normal = 6 }), { Normal = 100 }, { ["1"] = 3 }))
+            }, { Normal = 6 }), { Normal = 100 }, { ["1"] = 3, ["2"] = 1 }))
             assert.are.equal(6, result.dryKills)
             assert.is_false(result.dryAtLeast)
             assert.are.equal(6, result.items[1].dryKills)
@@ -96,7 +96,25 @@ describe("stats.ForBoss", function()
             assert.is_true(result.items[2].dryAtLeast)
         end)
 
-        it("know the streak is exact when every kill was tracked", function()
+        it("counts every kill as dry for uniques never received", function()
+            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }),
+                { Normal = 100, ["Hard mode"] = 20 }, { ["1"] = 2 }))
+            assert.are.equal(120, result.items[2].dryKills)
+            assert.is_false(result.items[2].dryAtLeast)
+            assert.are.equal(10, result.items[1].dryKills) -- received, so from tracking
+            assert.is_true(result.items[1].dryAtLeast)
+        end)
+
+        it("counts every kill as dry for the boss with no uniques at all", function()
+            local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }),
+                { Normal = 100, ["Hard mode"] = 20 }, {}))
+            assert.are.equal(120, result.dryKills)
+            assert.is_false(result.dryAtLeast)
+            local missAll = (1 - 3 / 100) ^ 100 * (1 - 1 / 20) ^ 20
+            assert.are.near(1 - missAll, result.dryShare, 1e-12)
+        end)
+
+        it("knows the streak is exact when every kill was tracked", function()
             local result = stats.ForBoss(BOSS, withAllTime(tallies({ Normal = 10 }), { Normal = 10 }, {}))
             assert.is_false(result.dryAtLeast)
             assert.is_false(result.items[1].dryAtLeast)

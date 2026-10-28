@@ -56,22 +56,47 @@ function widgets.AddText(parent, content, x, y, width, font)
     return text
 end
 
--- content shortened with "..." so it fits in width pixels in font (an id.Font
--- value), since text draws past the end of its box. If the font can't be
--- measured, content comes back whole.
-function widgets.Fit(content, font, width)
-    local ok, fitted = pcall(function()
-        local measure = config.Font.FromID(font)
-        if measure:GetStringWidth(content) <= width then
-            return content
-        end
-        local cut = content
-        while #cut > 0 and measure:GetStringWidth(cut .. "...") > width do
-            cut = cut:sub(1, -2)
-        end
-        return (cut:gsub("%s+$", "")) .. "..."
+-- How many pixels wide content is in font (an id.Font value), or nil if the
+-- font can't be measured. Text draws past the end of its box, so text that may
+-- be long is measured to fit it.
+local function textWidth(content, font)
+    local ok, width = pcall(function()
+        return config.Font.FromID(font):GetStringWidth(content)
     end)
-    return ok and fitted or content
+    return ok and width or nil
+end
+
+-- content shortened with "..." so it fits in width pixels in font. If the font
+-- can't be measured, content comes back whole.
+function widgets.Fit(content, font, width)
+    if (textWidth(content, font) or 0) <= width then
+        return content
+    end
+    local cut = content
+    while #cut > 0 and textWidth(cut .. "...", font) > width do
+        cut = cut:sub(1, -2)
+    end
+    return (cut:gsub("%s+$", "")) .. "..."
+end
+
+-- content split between words into lines that fit in width pixels in font. If
+-- the font can't be measured, content comes back as one line.
+function widgets.Wrap(content, font, width)
+    if textWidth(content, font) == nil then
+        return { content }
+    end
+    local lines, line = {}, nil
+    for word in content:gmatch("%S+") do
+        local longer = line and (line .. " " .. word) or word
+        if line and textWidth(longer, font) > width then
+            table.insert(lines, line)
+            line = word
+        else
+            line = longer
+        end
+    end
+    table.insert(lines, line or "")
+    return lines
 end
 
 -- Centers text in its box, across and down.

@@ -6,13 +6,14 @@ local tracker = require("src/tracker")
 
 local stats = {}
 
--- Share of players who would have had a unique within the dry streak. Each mode's
--- dry kills use that mode's own rates: the chance of missing every time is the
--- product of each mode's chance of missing.
-local function dryShare(boss, tallies)
+-- Share of players who would have had a unique within the dry streak, from its
+-- kills per mode ({ [mode name] = kills }). Each mode's dry kills use that
+-- mode's own rates: the chance of missing every time is the product of each
+-- mode's chance of missing.
+local function dryShare(boss, dry)
     local missAll = 1
     for _, mode in ipairs(boss.modes) do
-        local dryKills = tallies.dry[mode.name] or 0
+        local dryKills = dry[mode.name] or 0
         missAll = missAll * (1 - luck.DryPercentile(luck.ChanceOfAny(mode.rolls), dryKills))
     end
     return 1 - missAll
@@ -42,7 +43,8 @@ end
 
 -- Stats for one boss from its tallies (see tracker.Tallies), or nil without any.
 -- Luck uses the game's all-time totals once captured, else the tracked ones.
--- Dry streaks always come from tracking, since the game doesn't show them.
+-- Dry streaks come from tracking, since the game doesn't show them, except for
+-- uniques the all-time counts say were never received: every kill is dry there.
 --   allTime     true if kills and received are all-time totals
 --   kills       kills
 --   expected    uniques an average player would have after those kills
@@ -68,12 +70,13 @@ function stats.ForBoss(boss, tallies)
     for itemID, expected in pairs(expectedPerItem(boss, kills)) do
         local key = tostring(itemID)
         local tracked = tallies.items[key] -- nil until a drop is tracked
-        local item = {
-            expected = expected,
-            received = received[key] or 0,
-            dryKills = trackedKills - (tracked and tracked.atKill or 0),
-            dryAtLeast = tracked == nil and not allTracked,
-        }
+        local item = { expected = expected, received = received[key] or 0 }
+        if allTime and item.received == 0 then
+            item.dryKills, item.dryAtLeast = result.kills, false
+        else
+            item.dryKills = trackedKills - (tracked and tracked.atKill or 0)
+            item.dryAtLeast = tracked == nil and not allTracked
+        end
         item.luck = luck.Percentile(item.expected, item.received)
         result.items[itemID] = item
         result.expected = result.expected + item.expected
@@ -81,9 +84,14 @@ function stats.ForBoss(boss, tallies)
     end
 
     result.luck = luck.Percentile(result.expected, result.received)
-    result.dryKills = tracker.Total(tallies.dry)
-    result.dryAtLeast = next(tallies.items) == nil and not allTracked
-    result.dryShare = dryShare(boss, tallies)
+    local dry = tallies.dry
+    if allTime and result.received == 0 then
+        dry, result.dryAtLeast = allTime.kills, false
+    else
+        result.dryAtLeast = next(tallies.items) == nil and not allTracked
+    end
+    result.dryKills = tracker.Total(dry)
+    result.dryShare = dryShare(boss, dry)
     return result
 end
 

@@ -64,8 +64,12 @@ function format.Luck(result)
     return (short == "average" and "about average" or short) .. " luck"
 end
 
--- A dry streak's kills: "12", or "12+" when it may be longer (see stats).
+-- A dry streak's kills: "12", "12+" when it may be longer (see stats), or "?"
+-- when no kill has been tracked since a drop Boss RNG didn't see.
 function format.DryCount(result)
+    if result.dryAtLeast and result.dryKills == 0 then
+        return "?"
+    end
     return format.Number(result.dryKills) .. (result.dryAtLeast and "+" or "")
 end
 

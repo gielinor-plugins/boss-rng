@@ -46,6 +46,8 @@ describe("format", function()
             format.Dry({ kills = 1, dryKills = 1, dryAtLeast = true, dryShare = 0.003 }))
         assert.are.equal("1,204+", format.DryCount({ dryKills = 1204, dryAtLeast = true }))
         assert.are.equal("7", format.DryCount({ dryKills = 7 }))
+        assert.are.equal("?", format.DryCount({ dryKills = 0, dryAtLeast = true }))
+        assert.are.equal("0", format.DryCount({ dryKills = 0 }))
         assert.are.equal("Dry streak: counted from your next kill",
             format.Dry({ kills = 300, dryKills = 0, dryAtLeast = true, dryShare = 0 }))
     end)

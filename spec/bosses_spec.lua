@@ -37,6 +37,14 @@ describe("boss data", function()
                 end
             end)
 
+            it("states its assumptions in plain words", function()
+                assert.is_true(#boss.assumptions > 0)
+                for _, note in ipairs(boss.assumptions) do
+                    assert.are.equal("string", type(note))
+                    assert.is_nil(note:find("<", 1, true)) -- the game would read it as a tag
+                end
+            end)
+
             it("only rolls unique items", function()
                 for _, mode in ipairs(boss.modes) do
                     for itemID in pairs(luck.ItemChances(mode.rolls)) do

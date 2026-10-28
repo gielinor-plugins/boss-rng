@@ -7,6 +7,7 @@
 local format = require("src/format")
 local stats = require("src/stats")
 local frame = require("src/ui/frame")
+local info = require("src/ui/info")
 local widgets = require("src/ui/widgets")
 
 local window = {}
@@ -23,6 +24,7 @@ local MAX_ROWS = 6
 local ROW_HEIGHT = 34
 local ROW_GAP = 2
 local ROW_STEP = ROW_HEIGHT + ROW_GAP
+local SLOT_X = 4
 local SLOT_SIZE = 30
 local ICON_SIZE = 26
 local ROW_WIDTH = TABLE_WIDTH - frame.THUMB_SPACE
@@ -45,6 +47,7 @@ function window.IsOpen()
 end
 
 function window.Close()
+    info.Hide()
     widgets.Destroy(box)
     box = nil
 end
@@ -71,16 +74,17 @@ local function sortedItems(result)
     return rows
 end
 
-local function addGreyText(parent, content, x, y, width)
-    local text = widgets.AddText(parent, content, x, y, width, widgets.SMALL_FONT)
+-- Grey text, in SMALL_FONT unless font is given.
+local function addGreyText(parent, content, x, y, width, font)
+    local text = widgets.AddText(parent, content, x, y, width, font or widgets.SMALL_FONT)
     text.colour = widgets.GREY
     return text
 end
 
 -- A dry count or the DRY heading, right aligned in the dry column. The API's
 -- align modes have no plain "right": BOTTOMRIGHT on the horizontal axis is right.
-local function addDryText(parent, content, x, y)
-    addGreyText(parent, content, x, y, DRY_WIDTH).alignHorizontal = ui.AlignMode.BOTTOMRIGHT
+local function addDryText(parent, content, x, y, font)
+    addGreyText(parent, content, x, y, DRY_WIDTH, font).alignHorizontal = ui.AlignMode.BOTTOMRIGHT
 end
 
 -- One line of luck over every boss with kills. It sits above the dropdown since
@@ -97,15 +101,17 @@ local function addOverall(parent, state, y)
 end
 
 -- The headline for the picked boss, below room left for the dropdown: its luck
--- as a sentence and a full width bar, then its dry streak, its totals and what
--- an average player would have. Returns
--- the y below it.
+-- as a sentence with an "i" for its assumptions, a full width bar, then its dry
+-- streak, its totals and what an average player would have. Returns the y
+-- below it.
 local function addHeadline(parent, state, y)
-    local result = state.list[state.selected].stats
+    local entry = state.list[state.selected]
+    local result = entry.stats
     y = y + 34
 
     local headlineY = y
-    widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 8, result)
+    widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 30, result)
+    info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", entry.boss.assumptions)
     y = y + 24
     if result.luck then
         widgets.AddLuckBar(parent, PAD + 8, y, result.luck, TABLE_WIDTH - 8)
@@ -127,7 +133,7 @@ end
 local function addItemRow(view, row, y, width)
     widgets.AddRect(view, 0, y, width, ROW_HEIGHT, ROW)
     local slotY = y + (ROW_HEIGHT - SLOT_SIZE) // 2
-    widgets.AddSprite(view, "RS3_INV_ICON_SLOT", 4, slotY, SLOT_SIZE, SLOT_SIZE)
+    widgets.AddSprite(view, "RS3_INV_ICON_SLOT", SLOT_X, slotY, SLOT_SIZE, SLOT_SIZE)
     local icon = ui.Sprite.new(view)
     local received = row.item.received
     -- The game only accepts whole numbers here, and saved ids can load back as
@@ -141,7 +147,7 @@ local function addItemRow(view, row, y, width)
         or ui.ObjectQuantityDisplayMode.NEVER
     icon.alpha = received > 0 and 1.0 or 0.35
     local inset = (SLOT_SIZE - ICON_SIZE) // 2
-    widgets.Place(icon, 4 + inset, slotY + inset, ICON_SIZE, ICON_SIZE)
+    widgets.Place(icon, SLOT_X + inset, slotY + inset, ICON_SIZE, ICON_SIZE)
 
     local textY = y + (ROW_HEIGHT - widgets.TEXT_HEIGHT) // 2
     local nameWidth = LUCK_X - NAME_X - 6
@@ -157,10 +163,12 @@ local function addItemRow(view, row, y, width)
 end
 
 -- The table's column names, lined up with its columns.
+-- ITEM starts over the item slots, so each name sits at its column's edge, and
+-- they're semibold like the row names.
 local function addColumnNames(parent, y)
-    addGreyText(parent, "ITEM", PAD + NAME_X, y, 60)
-    addGreyText(parent, "LUCK", PAD + LUCK_X, y, 60)
-    addDryText(parent, "DRY", PAD + DRY_X, y)
+    addGreyText(parent, "ITEM", PAD + SLOT_X, y, 60, widgets.ROW_FONT)
+    addGreyText(parent, "LUCK", PAD + LUCK_X, y, 60, widgets.ROW_FONT)
+    addDryText(parent, "DRY", PAD + DRY_X, y, widgets.ROW_FONT)
 end
 
 -- The height of count rows, without a gap after the last.
