@@ -15,6 +15,15 @@ function stats.Rolls(mode, picks)
     return mode.rolls
 end
 
+-- A boss's kills without Boss RNG (all-time less tracked: before it was
+-- installed, while it was off, or on another computer) and their share of its
+-- all-time kills. Never below 0, in case the game's count lags the tracked one.
+function stats.Untracked(tallies, allTime)
+    local total = tracker.Total(allTime.kills)
+    local untracked = math.max(total - tracker.Total(tallies.kills), 0)
+    return untracked, total > 0 and untracked / total or 0
+end
+
 -- Each mode's chance per kill of each unique: { [mode name] = { [item id] = chance } }.
 local function chancesPerMode(boss, picks)
     local chances = {}

@@ -112,6 +112,8 @@ local CASES = {
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
     -- Astellarn solo, then in a group, by default duo.
     { file = "dragonkin", items = 7, rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
+    -- Before the game is read: every kill at today's rates.
+    { file = "corp", items = 7, rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 } },
     { file = "solak", items = 7,
         rates = { [42785] = 1 / 200, [42770] = 1 / 400, [42774] = 1 / 400, [42767] = 1 / 500, [42782] = 1 / 500 } },
     -- Full contribution: 12 rolls at 1/5,400 each.
@@ -198,6 +200,22 @@ it("mixes the Dragonkin Laboratory's group rates by the player's pick", function
     local chances = luck.ItemChances(stats.Rolls(boss.modes[6], { group = "duoTrio" }))
     assert.are.near(1 / 166 / 2 + 1 / 250 / 2, chances[43393], 1e-12)
     assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", boss.modes[6].kc)
+end)
+
+it("mixes the Corporeal Beast's old and new sigil rates for untracked kills", function()
+    local mode = require("src/bosses/corp").modes[1]
+    -- Half of all kills untracked, half of those before the change: a quarter old.
+    local chances = luck.ItemChances(stats.Rolls(mode, { before = 50, untracked = 0.5 }))
+    assert.are.near(0.25 / 1280 + 0.75 / 1024, chances[13752], 1e-12)
+    assert.are.near(0.25 / 2560 + 0.75 / 1024, chances[13746], 1e-12)
+end)
+
+it("says the Corporeal Beast's pick in full in the assumptions, with the kills it's for", function()
+    local boss = require("src/bosses/corp")
+    assert.are.equal("Of your kills without Boss RNG, share before the July 2026 sigil rate change: 70%",
+        choices.Assumptions(boss, { before = 70 })[2])
+    assert.are.equal("Of your 5,000 kills without Boss RNG, share before the July 2026 sigil rate change: 70%",
+        choices.Assumptions(boss, { before = 70, untrackedKills = 5000 })[2])
 end)
 
 it("mixes Barrows chests by the player's shares", function()

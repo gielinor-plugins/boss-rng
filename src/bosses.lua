@@ -15,7 +15,10 @@
 --
 -- A boss can read vars for its rolls and assumptions: reads = { [key] = var }.
 -- Once read, each value is passed with the picks under its key (TzKal-Zuk's
--- Igneous stones). Until then it's nil.
+-- Igneous stones). Until then it's nil. Every boss also gets its kills without
+-- Boss RNG (see stats.Untracked) as picks.untrackedKills and their share of all
+-- kills as picks.untracked (for rates that changed before Boss RNG: the
+-- Corporeal Beast's sigils), nil until read.
 --
 -- A boss's assumptions can be a function of the player's picks too, for ones
 -- that only hold for some picks (Kerapac's duo kills).
@@ -34,6 +37,7 @@ local BOSS_FILES = {
     "araxxi", "barrows", "rots", "solak",
     "croesus", "kerapac", "zuk", -- Elder God Wars Dungeon
     "dragonkin", -- elite dungeons
+    "corp",
 }
 
 local bosses = {}

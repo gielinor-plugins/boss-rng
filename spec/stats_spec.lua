@@ -280,6 +280,33 @@ describe("stats.Pools", function()
     end)
 end)
 
+describe("stats.Untracked", function()
+    it("counts every kill as without Boss RNG until kills are tracked", function()
+        assert.are.same({ 5000, 1 }, { stats.Untracked(tallies({}), totals({ KC = 5000 })) })
+    end)
+
+    it("leaves out tracked kills", function()
+        assert.are.same({ 5000, 5000 / 5020 }, { stats.Untracked(tallies({ Normal = 20 }), totals({ KC = 5020 })) })
+    end)
+
+    it("adds kills made while Boss RNG was off", function()
+        assert.are.same({ 5030, 5030 / 5050 }, { stats.Untracked(tallies({ Normal = 20 }), totals({ KC = 5050 })) })
+    end)
+
+    it("adds up every mode", function()
+        local untracked = stats.Untracked(tallies({ Normal = 3, Hard = 2 }), totals({ KC = 10, KC_HARD = 10 }))
+        assert.are.equal(15, untracked)
+    end)
+
+    it("never goes below 0 if the game's count lags", function()
+        assert.are.same({ 0, 0 }, { stats.Untracked(tallies({ Normal = 12 }), totals({ KC = 10 })) })
+    end)
+
+    it("gives a share of 0 with no kills", function()
+        assert.are.same({ 0, 0 }, { stats.Untracked(tallies({}), totals({})) })
+    end)
+end)
+
 describe("stats.Overall", function()
     it("adds up bosses and applies the same percentile", function()
         local overall = stats.Overall({

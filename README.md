@@ -12,6 +12,7 @@ Supported bosses:
 - **Amascut, the Devourer** and the **Sanctum of Rebirth** (Vermyx, Kezalam and
   Nakatra, as one entry).
 - **Araxxi**, the **Barrows brothers**, **Barrows: Rise of the Six** and **Solak.**
+- **Corporeal Beast.**
 - **Elder God Wars Dungeon:** Croesus, Kerapac and TzKal-Zuk.
 - **Dragonkin Laboratory** (Astellarn, Verak Lith and the Black stone dragon, as one entry).
 
@@ -26,7 +27,7 @@ Boss RNG only uses information the game has already shown you:
   dry streaks, and which boss a shared drop came from. Changes in the first
   seconds after logging in are ignored, so the login sync isn't mistaken for kills.
 - **Amascut's enrage** for each kill, from the enrage you chose for the instance.
-  For untracked kills, you pick the enrage in the Details window.
+  For kills without Boss RNG, you pick the enrage in the Details window.
 
 It never reads hidden values such as bad luck mitigation, and it never interacts
 with the game for you.

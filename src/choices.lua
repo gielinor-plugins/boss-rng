@@ -6,6 +6,9 @@
 -- A boss file can declare choices (see src/bosses/amascut.lua), each with:
 --   key      saved data key: never change it
 --   label    shown before its dropdown, and with the pick in the assumptions
+--   note     optional: said in the assumptions instead of the label, when the
+--            label is shortened to fit beside its dropdown; text, or a function
+--            of the picks (see src/bosses.lua) giving it
 --   default  the value until the player picks one
 --   options  { { value = 100, label = "100%" }, ... }, in the order to list them;
 --            an option can add a note, saying it in full in the assumptions when
@@ -67,7 +70,7 @@ function choices.For(boss)
 end
 
 -- A boss's assumptions for these picks: its own (a list, or a function of the
--- picks), then each choice's pick ("Enrage of untracked kills: 500%").
+-- picks), then each choice's pick ("Enrage of kills without Boss RNG: 500%").
 function choices.Assumptions(boss, picks)
     local notes = {}
     local own = boss.assumptions
@@ -76,7 +79,8 @@ function choices.Assumptions(boss, picks)
     end
     for _, choice in ipairs(boss.choices or {}) do
         local option = choices.Option(choice, picks[choice.key])
-        table.insert(notes, choice.label .. ": " .. (option.note or option.label))
+        local note = type(choice.note) == "function" and choice.note(picks) or choice.note or choice.label
+        table.insert(notes, note .. ": " .. (option.note or option.label))
     end
     return notes
 end

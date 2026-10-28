@@ -117,9 +117,9 @@ local function addOverall(parent, state, y)
     return y + LINE_HEIGHT + 8
 end
 
--- A pooled unique's label: "Untracked Shards from this boss".
-local function splitLabel(itemID, item)
-    return "Untracked " .. (item.plural or itemName(itemID)) .. " from this boss"
+-- A pooled unique's drops: "Shard drops".
+local function drops(itemID, item)
+    return (item.short or itemName(itemID)) .. " drops"
 end
 
 -- The picked boss's assumptions: its own and its picks (see choices.Assumptions),
@@ -131,9 +131,9 @@ local function assumptions(state, entry)
         local pool = state.pools[itemID]
         if pool and pool.split then
             local share = pool.split[entry.boss.key]
-            table.insert(notes, splitLabel(itemID, item) .. ": " .. share .. " of " .. pool.untracked)
+            table.insert(notes, drops(itemID, item) .. " without Boss RNG from this boss: " .. share .. " of " .. pool.untracked)
         elseif pool and pool.untracked and not pool.received then
-            table.insert(notes, (item.plural or itemName(itemID)) .. " left out until untracked ones are split")
+            table.insert(notes, drops(itemID, item) .. " left out until those without Boss RNG are split")
         end
     end
     return notes
@@ -156,7 +156,7 @@ local function pickers(state, entry)
                 table.insert(options, { value = count, label = tostring(count) })
             end
             table.insert(options, { value = false, label = "Not set" })
-            local label = splitLabel(itemID, item) .. " (of " .. pool.untracked .. ")"
+            local label = drops(itemID, item) .. " without Boss RNG (of " .. pool.untracked .. ")"
             table.insert(list, { label = label, options = options,
                 current = pool.split and pool.split[entry.boss.key] or false,
                 onPick = function(value) state.onSplit(pool, itemID, entry.boss, value or nil) end })

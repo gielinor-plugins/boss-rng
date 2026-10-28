@@ -4,7 +4,7 @@ local mock = require("spec/mock_api")
 
 local ENRAGE = {
     key = "enrage",
-    label = "Enrage of untracked kills",
+    label = "Enrage of kills without Boss RNG",
     default = 100,
     options = { { value = 100, label = "100%" }, { value = 500, label = "500%" } },
 }

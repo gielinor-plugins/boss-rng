@@ -12,7 +12,7 @@ common.SHARD = 57128
 common.SHARD_ITEM = {
     log = "ITEMLOG_ITEM_COMBATV2_INNATE_MASTERY_UNLOCK_T95_WEAPON_STAT_UPGRADE_T1",
     kind = "unique",
-    plural = "Shards", -- for labels about its pooled count (see src/bosses.lua)
+    short = "Shard", -- for labels about its pooled drops, "Shard drops" (see src/bosses.lua)
 }
 
 -- Options for a choice of percentages, e.g. { 0, 5, 10 } gives 0%, 5% and 10%.
