@@ -79,19 +79,25 @@ local function redrawAll()
     end
 end
 
--- Shows the picked boss in both views. The redraw waits for the next tick, so a
--- dropdown isn't destroyed while its own event is still running.
-local function pick(key)
-    selectedKey = key
+-- Redraws both views on the next tick, so a component isn't destroyed while its
+-- own event is still running.
+local function redrawSoon()
     Event.Logic.Subscribe(REDRAW_REF, function()
         Event.Logic.Unsubscribe(REDRAW_REF)
         redrawAll()
     end)
 end
 
+-- Shows the picked boss in both views.
+local function pick(key)
+    selectedKey = key
+    redrawSoon()
+end
+
 -- What both views draw: the bosses with kills (list), the index of the picked
 -- one (selected, nil without kills), and what to do when the player picks a
--- boss (onPick) or asks for details (onDetails).
+-- boss (onPick) or asks for details (onDetails), and how to redraw after a
+-- change made in a view (onRedraw).
 function currentState()
     local list = bossesWithKills()
     return {
@@ -99,6 +105,7 @@ function currentState()
         selected = #list > 0 and selectedIndex(list) or nil,
         onPick = pick,
         onDetails = showWindow,
+        onRedraw = redrawSoon,
     }
 end
 

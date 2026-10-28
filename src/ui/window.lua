@@ -37,10 +37,17 @@ local DRY_X = 300
 local DRY_WIDTH = ROW_WIDTH - 8 - DRY_X
 
 local ROW = Vector4.new(1.0, 1.0, 1.0, 0.06)
+local HEADER = Vector4.new(0.0, 0.0, 0.0, 0.35) -- the band behind the column names
 local ACCENT = Vector4.new(0.85, 0.7, 0.35, 0.8) -- the line beside the headline
 
 local box = nil -- the window while it's open; destroying it removes its contents
 local position = { x = 200, y = 120 } -- kept while the plugin runs, so it reopens in place
+local luckColumn = "luck" -- what the luck column shows: "luck" or "counts"; kept too
+
+-- The luck column's two views, picked in its heading. Alphabetical, as the
+-- game's dropdown lists them.
+local COLUMNS = { { key = "counts", label = "Counts" }, { key = "luck", label = "Luck" } }
+local COLUMN_PICKER_WIDTH = 100
 
 function window.IsOpen()
     return box ~= nil
@@ -74,17 +81,17 @@ local function sortedItems(result)
     return rows
 end
 
--- Grey text, in SMALL_FONT unless font is given.
-local function addGreyText(parent, content, x, y, width, font)
-    local text = widgets.AddText(parent, content, x, y, width, font or widgets.SMALL_FONT)
+-- Grey text in SMALL_FONT.
+local function addGreyText(parent, content, x, y, width)
+    local text = widgets.AddText(parent, content, x, y, width, widgets.SMALL_FONT)
     text.colour = widgets.GREY
     return text
 end
 
--- A dry count or the DRY heading, right aligned in the dry column. The API's
+-- A dry count or the Dry heading, right aligned in the dry column. The API's
 -- align modes have no plain "right": BOTTOMRIGHT on the horizontal axis is right.
-local function addDryText(parent, content, x, y, font)
-    addGreyText(parent, content, x, y, DRY_WIDTH, font).alignHorizontal = ui.AlignMode.BOTTOMRIGHT
+local function addDryText(parent, content, x, y)
+    widgets.AddText(parent, content, x, y, DRY_WIDTH, widgets.SMALL_FONT).alignHorizontal = ui.AlignMode.BOTTOMRIGHT
 end
 
 -- One line of luck over every boss with kills. It sits above the dropdown since
@@ -94,8 +101,10 @@ local function addOverall(parent, state, y)
     for _, entry in ipairs(state.list) do
         table.insert(allStats, entry.stats)
     end
-    widgets.AddText(parent, "All bosses", PAD, y, NAME_X + 40, widgets.ROW_FONT).colour = widgets.YELLOW
-    local luckX = PAD + NAME_X + 44
+    -- Uniques and an average player's are added up over every boss, so bosses
+    -- with more kills count for more.
+    widgets.AddText(parent, "All bosses combined", PAD, y, 132, widgets.ROW_FONT).colour = widgets.YELLOW
+    local luckX = PAD + 136
     widgets.AddLuckLine(parent, luckX, y, TABLE_WIDTH - luckX, stats.Overall(allStats))
     return y + LINE_HEIGHT + 8
 end
@@ -128,8 +137,8 @@ local function addHeadline(parent, state, y)
 end
 
 -- A row for a unique: a faint background, its slot (dimmed if not received
--- yet), then its name, a short luck bar with its group ("top 3%") and its dry
--- streak, each in its column.
+-- yet), then its name, its luck column (a short luck bar with its group, "top
+-- 3%", or its counts, "12 · avg 19.4") and its dry streak, each in its column.
 local function addItemRow(view, row, y, width)
     widgets.AddRect(view, 0, y, width, ROW_HEIGHT, ROW)
     local slotY = y + (ROW_HEIGHT - SLOT_SIZE) // 2
@@ -153,22 +162,41 @@ local function addItemRow(view, row, y, width)
     local nameWidth = LUCK_X - NAME_X - 6
     local name = widgets.Fit(row.name, widgets.ROW_FONT, nameWidth)
     widgets.AddText(view, name, NAME_X, textY, nameWidth, widgets.ROW_FONT)
-    if row.item.luck then
-        local barY = y + (ROW_HEIGHT - widgets.BAR_HEIGHT) // 2
-        widgets.AddLuckBar(view, LUCK_X, barY, row.item.luck, ROW_BAR_WIDTH)
+    if luckColumn == "counts" then
+        widgets.AddText(view, format.CountShort(row.item), LUCK_X, textY, DRY_X - LUCK_X, widgets.SMALL_FONT)
+    else
+        if row.item.luck then
+            local barY = y + (ROW_HEIGHT - widgets.BAR_HEIGHT) // 2
+            widgets.AddLuckBar(view, LUCK_X, barY, row.item.luck, ROW_BAR_WIDTH)
+        end
+        local labelX = LUCK_X + ROW_BAR_WIDTH + 6
+        widgets.AddText(view, format.LuckShort(row.item), labelX, textY, DRY_X - labelX, widgets.SMALL_FONT)
     end
-    local labelX = LUCK_X + ROW_BAR_WIDTH + 6
-    widgets.AddText(view, format.LuckShort(row.item), labelX, textY, DRY_X - labelX, widgets.SMALL_FONT)
     addDryText(view, format.DryCount(row.item), DRY_X, textY)
 end
 
--- The table's column names, lined up with its columns.
--- ITEM starts over the item slots, so each name sits at its column's edge, and
--- they're semibold like the row names.
-local function addColumnNames(parent, y)
-    addGreyText(parent, "ITEM", PAD + SLOT_X, y, 60, widgets.ROW_FONT)
-    addGreyText(parent, "LUCK", PAD + LUCK_X, y, 60, widgets.ROW_FONT)
-    addDryText(parent, "DRY", PAD + DRY_X, y, widgets.ROW_FONT)
+-- The table's column names on a dark band as tall as a dropdown, with a line
+-- under it, each at its column's edge. The luck column's heading is a dropdown
+-- switching it between luck and counts; picking calls onSwitch. The other names
+-- match the dropdown's text, so the row reads as one.
+local function addColumnNames(parent, y, onSwitch)
+    widgets.AddRect(parent, PAD, y, TABLE_WIDTH, widgets.DROPDOWN_HEIGHT, HEADER)
+    widgets.AddSeparator(parent, PAD, y + widgets.DROPDOWN_HEIGHT - 1, TABLE_WIDTH)
+    local textY = y + (widgets.DROPDOWN_HEIGHT - widgets.TEXT_HEIGHT) // 2
+    widgets.AddText(parent, "Item", PAD + SLOT_X, textY, 60, widgets.SMALL_FONT)
+    addDryText(parent, "Dry", PAD + DRY_X, textY)
+
+    local labels, selected = {}, 1
+    for i, column in ipairs(COLUMNS) do
+        labels[i] = column.label
+        if column.key == luckColumn then
+            selected = i
+        end
+    end
+    widgets.AddDropdown(parent, PAD + LUCK_X, y, COLUMN_PICKER_WIDTH, labels, selected, function(index)
+        luckColumn = COLUMNS[index].key
+        onSwitch()
+    end)
 end
 
 -- The height of count rows, without a gap after the last.
@@ -191,8 +219,8 @@ function window.Draw(state)
     local pickerY = y + 4
     y = addHeadline(box, state, pickerY)
     widgets.AddSeparator(box, PAD, y, TABLE_WIDTH)
-    addColumnNames(box, y + 6)
-    y = y + 6 + LINE_HEIGHT
+    local headerY = y + 4
+    y = headerY + widgets.DROPDOWN_HEIGHT + 3
 
     -- The uniques, in a scrolling view.
     local rows = sortedItems(state.list[state.selected].stats)
@@ -206,8 +234,10 @@ function window.Draw(state)
     -- Below the rows: the box's insets, plus a small gap.
     box:SetSize(WIDTH, y + 4 + 2 * frame.INSET)
 
-    -- The dropdown is added last: components added later are drawn on top and
-    -- take clicks first, so its open list must come after everything it covers.
+    -- The dropdowns are added last: components added later are drawn on top and
+    -- take clicks first, so each open list comes after everything it covers. The
+    -- column heading's list opens over the rows; the boss picker's over the rest.
+    addColumnNames(box, headerY, state.onRedraw)
     widgets.AddBossPicker(box, state, PAD, pickerY, TABLE_WIDTH)
 end
 

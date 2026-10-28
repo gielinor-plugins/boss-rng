@@ -7,12 +7,14 @@ describe("safe.Call", function()
         package.loaded["src/safe"] = nil
         safe = require("src/safe")
         printed = {}
-        realPrint = print
-        print = function(text) table.insert(printed, text) end
+        -- busted runs each spec file with its own globals, so the real print
+        -- that src/safe.lua calls has to be replaced through _G.
+        realPrint = _G.print
+        _G.print = function(text) table.insert(printed, text) end
     end)
 
     after_each(function()
-        print = realPrint
+        _G.print = realPrint
     end)
 
     it("runs code and reports success", function()

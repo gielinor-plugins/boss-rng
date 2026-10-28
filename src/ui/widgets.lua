@@ -19,6 +19,7 @@ widgets.GREY = Vector4.new(0.75, 0.75, 0.75, 1.0) -- secondary text
 widgets.TEXT_HEIGHT = 20
 widgets.BAR_WIDTH = 110
 widgets.BAR_HEIGHT = 10
+widgets.DROPDOWN_HEIGHT = 25
 
 local SEPARATOR = Vector4.new(1.0, 1.0, 1.0, 0.12)
 local BAR_BACK = Vector4.new(0.0, 0.0, 0.0, 0.6)
@@ -26,7 +27,6 @@ local TICK = Vector4.new(1.0, 1.0, 1.0, 0.9) -- marks average luck on a bar
 -- A solid gold timer bar fill. It stretches to any width without marks that
 -- could be mistaken for values (the adrenaline bar's segment notches could).
 local BAR_FILL = "TIMERBAR_120_S_1"
-local PICKER_HEIGHT = 25
 
 -- Destroys a component and everything in it, if there is one. It may already be
 -- gone (the game clears a panel layer when it's resized), so failures are ignored.
@@ -144,34 +144,48 @@ function widgets.AddLuckBar(parent, x, y, share, width)
     widgets.AddRect(parent, x + width // 2, y, 2, height, TICK)
 end
 
--- A luck bar with its sentence beside it. Without luck, only the sentence shows.
+-- A luck bar with its group beside it ("bottom 12%"). Without luck, only the
+-- text shows.
 function widgets.AddLuckLine(parent, x, y, width, result)
     if result.luck then
         widgets.AddLuckBar(parent, x, y + 5, result.luck)
         x = x + widgets.BAR_WIDTH + 8
         width = width and width - widgets.BAR_WIDTH - 8
     end
-    return widgets.AddText(parent, format.Luck(result), x, y, width, widgets.SMALL_FONT)
+    return widgets.AddText(parent, format.LuckShort(result), x, y, width, widgets.SMALL_FONT)
 end
 
--- A dropdown of the bosses in state.list, showing state.selected. Picking one
--- calls state.onPick with that boss's key.
-function widgets.AddBossPicker(parent, state, x, y, width)
+-- The game's dropdown, listing labels and showing labels[selected]. Picking
+-- another calls onPick with its index. labels must be in alphabetical order: the
+-- game lists them that way and reports picks by position. Add a dropdown after
+-- anything its open list covers, so it's drawn on top and takes clicks first.
+function widgets.AddDropdown(parent, x, y, width, labels, selected, onPick)
     local combo = ui.ComboField.new(parent)
     combo.stylesheetID = id.StyleSheet.COMBO_DEFAULT
-    widgets.Place(combo, x, y, width, PICKER_HEIGHT)
-    for i, entry in ipairs(state.list) do
-        combo:Add(entry.boss.name, i)
+    widgets.Place(combo, x, y, width, widgets.DROPDOWN_HEIGHT)
+    for i, label in ipairs(labels) do
+        combo:Add(label, i)
     end
-    combo:Select(state.selected)
+    combo:Select(selected)
     -- A change fires twice: the old entry with 0, then the new one with 1.
-    combo:Subscribe(ui.Hook.ONSELECTIONCHANGED, function(_, entryID, status)
-        local entry = state.list[entryID]
-        if status == 1 and entry then
-            safe.Call("picking a boss", state.onPick, entry.boss.key)
+    combo:Subscribe(ui.Hook.ONSELECTIONCHANGED, function(_, index, status)
+        if status == 1 and labels[index] then
+            safe.Call("picking from a dropdown", onPick, index)
         end
     end)
     return combo
+end
+
+-- A dropdown of the bosses in state.list (alphabetical, see src/ui.lua), showing
+-- state.selected. Picking one calls state.onPick with that boss's key.
+function widgets.AddBossPicker(parent, state, x, y, width)
+    local names = {}
+    for i, entry in ipairs(state.list) do
+        names[i] = entry.boss.name
+    end
+    return widgets.AddDropdown(parent, x, y, width, names, state.selected, function(index)
+        state.onPick(state.list[index].boss.key)
+    end)
 end
 
 return widgets

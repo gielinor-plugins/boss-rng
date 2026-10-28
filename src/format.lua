@@ -107,4 +107,18 @@ function format.Average(result)
     return "Average player: " .. average .. (average == "1.0" and " unique" or " uniques")
 end
 
+-- An average player's count in a few words, for table rows: "avg 2.3", or
+-- "avg under 0.1" when it would round to zero.
+function format.AverageShort(result)
+    if result.expected < 0.05 then
+        return "avg under 0.1"
+    end
+    return string.format("avg %.1f", result.expected)
+end
+
+-- A row's counts in a few words: "12 · avg 19.4" (see format.AverageShort).
+function format.CountShort(result)
+    return format.Number(result.received) .. " · " .. format.AverageShort(result)
+end
+
 return format
