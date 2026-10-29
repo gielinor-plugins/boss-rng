@@ -53,3 +53,12 @@ is dead, so Boss RNG doesn't use it.
 - **Chests from before Boss RNG:** your kill count can't say which of them had
   Akrisae or Linza, so you choose those shares on the settings page. Partial
   chests from back then aren't counted, since they rarely drop pieces.
+
+## Not counted
+
+- **Amulet of the forsaken:** it's on the collection log, but it has no published
+  drop rate, so there's nothing to compare your count to.
+- **Corruption sigil:** it only drops if you have a dragon defender or better,
+  which Boss RNG doesn't track.
+- **Barrows chest** (a boss trophy, 1 in 500): it isn't on the collection log,
+  so there's no count to read.

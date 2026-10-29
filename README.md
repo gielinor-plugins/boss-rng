@@ -12,7 +12,7 @@ Supported bosses:
 - **Amascut, the Devourer** and the **Sanctum of Rebirth** (Vermyx, Kezalam and
   Nakatra, as one entry).
 - **Araxxi**, the **Barrows brothers**, **Barrows: Rise of the Six** and **Solak.**
-- **Corporeal Beast.**
+- **Corporeal Beast** and **Rasial, the First Necromancer.**
 - **Elder God Wars Dungeon:** Croesus, Kerapac and TzKal-Zuk.
 - **Dragonkin Laboratory** (Astellarn, Verak Lith and the Black stone dragon, as one entry).
 

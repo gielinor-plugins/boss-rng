@@ -97,7 +97,7 @@ local CASES = {
         hard = { [37070] = 1 / 179, [37030] = (1 - 5 / 179) / 44 } },
     { file = "furies", items = 9, rates = { [37090] = 1 / 256, [37095] = 1 / 256 }, hard = { [37024] = 1 / 179 } },
     { file = "gregorovic", items = 8, rates = { [37075] = 1 / 256, [37080] = 1 / 256 }, hard = { [37021] = 1 / 179 } },
-    -- Normal mode, then the 100% enrage tier: an armour piece, a weapon, the Nexus and the Shard.
+    -- Normal mode, then the 100% enrage tier: an armor piece, a weapon, the Nexus and the Shard.
     { file = "amascut", items = 11,
         rates = { [59344] = 3 / 4 / 5 / 600, [59350] = 1 / 4 / 2 / 600, [59358] = 1 / 750 },
         hard = { [59336] = 3 / 4 / 5 / 70, [59354] = 1 / 4 / 2 / 70, [59358] = 1 / 280, [57128] = 1 / 280 } },
@@ -114,6 +114,9 @@ local CASES = {
     { file = "dragonkin", items = 7, rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
     -- Before the game is read: every kill at today's rates.
     { file = "corp", items = 7, rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 } },
+    -- Every unique is 1/640: a 1/320 weapon roll and a 1/128 armor roll.
+    { file = "rasial", items = 8,
+        rates = { [55480] = 1 / 640, [55482] = 1 / 640, [55488] = 1 / 640, [55496] = 1 / 640 } },
     { file = "solak", items = 7,
         rates = { [42785] = 1 / 200, [42770] = 1 / 400, [42774] = 1 / 400, [42767] = 1 / 500, [42782] = 1 / 500 } },
     -- Full contribution: 12 rolls at 1/5,400 each.
