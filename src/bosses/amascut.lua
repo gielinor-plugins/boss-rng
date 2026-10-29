@@ -7,6 +7,10 @@
 -- the two weapons), one for the Nexus and, in enrage mode, one for the Shard of
 -- Genesis Essence. Enrage rates depend on the enrage tier, so each tier is a
 -- mode of its own. The tiers share one kill count: see src/bosses.lua.
+--
+-- Each kill makes five loot piles, each with its own unique rolls: one per player
+-- in a team of five, and in smaller teams the rest go to the top damagers. Kill
+-- counts don't say the team, so one pile per kill is assumed.
 
 local common = require("src/bosses/common")
 
@@ -62,7 +66,7 @@ return {
     key = "amascut", -- saved data key: never change it
     name = "Amascut, the Devourer",
     logPage = "COLLECTION_BOSS_AMASCUT", -- the boss log page's database row
-    assumptions = {},
+    assumptions = { "One loot pile per kill (teams of 5)" },
     choices = { ENRAGE },
     modes = modes,
 
