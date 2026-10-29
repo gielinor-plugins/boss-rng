@@ -2,9 +2,9 @@
 -- the views to draw: { label, options, current, onPick } each. Plain Lua, so it
 -- can be tested offline.
 --
--- Picks that only change kills without Boss RNG (choices with untrackedOnly)
--- go on the settings page. The rest stay in the Details window until they're
--- moved boss by boss.
+-- Picks that only change kills without Boss RNG (choices with untrackedOnly,
+-- and splits of pooled uniques' drops without Boss RNG) go on the settings
+-- page. The rest stay in the Details window until they're moved boss by boss.
 
 local format = require("src/format")
 
@@ -23,16 +23,14 @@ function pickers.Drops(itemID, item)
     return (item.short or pickers.ItemName(itemID)) .. " drops"
 end
 
--- "1 kill" or "5,000 kills".
-local function kills(count)
-    return format.Number(count) .. (count == 1 and " kill" or " kills")
-end
-
--- What a boss's settings page picks are used for, with the count of kills once
--- it's read: "Used to calculate luck for your 280 kills without Boss RNG".
-function pickers.Purpose(entry)
+-- A boss's kills without Boss RNG, for its settings page section: "280
+-- untracked kills", or a note until the game is read.
+function pickers.UntrackedKills(entry)
     local count = entry.picks.untrackedKills
-    return "Used to calculate luck for your " .. (count and kills(count) or "kills") .. " without Boss RNG"
+    if count == nil then
+        return "Untracked kills not read yet"
+    end
+    return format.Number(count) .. (count == 1 and " untracked kill" or " untracked kills")
 end
 
 -- The dropdown for one of a boss's choices.
@@ -59,7 +57,7 @@ local function splitPickers(entry, pools, onSplit)
             end
             table.insert(options, { value = false, label = "Not set" })
             table.insert(list, {
-                label = pickers.Drops(itemID, item) .. " without Boss RNG (of " .. pool.untracked .. ")",
+                label = pickers.Drops(itemID, item) .. " from this boss (of " .. pool.untracked .. ")",
                 options = options,
                 current = pool.split and pool.split[entry.boss.key] or false,
                 onPick = function(value) onSplit(pool, itemID, entry.boss, value or nil) end,
@@ -70,23 +68,12 @@ local function splitPickers(entry, pools, onSplit)
 end
 
 -- The settings page's dropdowns for a boss (entry, see src/ui.lua): its
--- choices with untrackedOnly. onChoose(boss, choice, value) saves a pick.
-function pickers.ForSettings(entry, onChoose)
+-- choices with untrackedOnly, then its pooled unique splits (see splitPickers).
+-- onChoose(boss, choice, value) saves a pick.
+function pickers.ForSettings(entry, pools, onChoose, onSplit)
     local list = {}
     for _, choice in ipairs(entry.boss.choices or {}) do
         if choice.untrackedOnly then
-            table.insert(list, choicePicker(entry, choice, onChoose))
-        end
-    end
-    return list
-end
-
--- The Details window's dropdowns for a boss: its other choices, then its
--- pooled unique splits (see splitPickers).
-function pickers.ForDetails(entry, pools, onChoose, onSplit)
-    local list = {}
-    for _, choice in ipairs(entry.boss.choices or {}) do
-        if not choice.untrackedOnly then
             table.insert(list, choicePicker(entry, choice, onChoose))
         end
     end
@@ -96,10 +83,22 @@ function pickers.ForDetails(entry, pools, onChoose, onSplit)
     return list
 end
 
+-- The Details window's dropdowns for a boss: its other choices.
+function pickers.ForDetails(entry, onChoose)
+    local list = {}
+    for _, choice in ipairs(entry.boss.choices or {}) do
+        if not choice.untrackedOnly then
+            table.insert(list, choicePicker(entry, choice, onChoose))
+        end
+    end
+    return list
+end
+
 -- The assumptions' last line for a boss with picks on the settings page: where
 -- to change them. Nil for a boss without.
-function pickers.WhereToChange(entry)
-    if #pickers.ForSettings(entry, function() end) == 0 then
+function pickers.WhereToChange(entry, pools)
+    local function noop() end
+    if #pickers.ForSettings(entry, pools, noop, noop) == 0 then
         return nil
     end
     return "Change these in " .. SETTINGS_PATH

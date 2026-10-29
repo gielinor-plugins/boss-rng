@@ -13,7 +13,7 @@ local settings = {}
 local PAD = 10
 local PICKER_WIDTH = 140
 local LINE_HEIGHT = 18 -- between lines of small text
-local INTRO = "Kills without Boss RNG: fill in what the plugin didn't record."
+local INTRO = "Used to calculate luck for untracked kills: those the plugin didn't record."
 local NOTHING = "Nothing to pick yet: bosses you've killed that need a pick show here."
 
 local layer = nil -- the game's settings layer, while the page is open
@@ -50,7 +50,7 @@ end
 local function sections(state)
     local list = {}
     for _, entry in ipairs(state.list) do
-        local found = pickers.ForSettings(entry, state.onChoose)
+        local found = pickers.ForSettings(entry, state.pools, state.onChoose, state.onSplit)
         if #found > 0 then
             table.insert(list, { entry = entry, pickers = found })
         end
@@ -58,11 +58,11 @@ local function sections(state)
     return list
 end
 
--- A boss's section at y: its name, what its picks are used for, then a line
--- per pick (its label and dropdown, queued in dropdowns). Returns the y below it.
+-- A boss's section at y: its name, its untracked kills, then a line per pick
+-- (its label and dropdown, queued in dropdowns). Returns the y below it.
 local function addSection(view, section, y, width, dropdowns)
     widgets.AddText(view, section.entry.boss.name, 0, y, width, widgets.CARD_FONT).colour = widgets.GOLD
-    addGreyText(view, pickers.Purpose(section.entry), 0, y + 20, width)
+    addGreyText(view, pickers.UntrackedKills(section.entry), 0, y + 20, width)
     y = y + 20 + LINE_HEIGHT + 4
     local dropdownX = width - PICKER_WIDTH
     for _, picker in ipairs(section.pickers) do

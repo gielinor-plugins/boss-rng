@@ -18,7 +18,7 @@ local ELIXIR = 13754
 local BEFORE = {
     key = "before", -- saved data key: never change it
     -- Boss RNG came out after July 2026, so only kills without it can be before it.
-    label = "Kills without Boss RNG, pre-July 2026",
+    label = "Kills prior to July 2026 sigil drop rate change",
     note = function(picks)
         local kills = picks.untrackedKills
         local which = kills and ("Of your " .. format.Number(kills) .. (kills == 1 and " kill" or " kills"))
@@ -27,6 +27,7 @@ local BEFORE = {
     end,
     default = 100,
     options = common.Percentages({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }),
+    untrackedOnly = true, -- tracked kills are all after July 2026
 }
 
 local LOG = "ITEMLOG_ITEM_CORP_"

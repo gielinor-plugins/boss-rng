@@ -131,7 +131,7 @@ local function assumptions(state, entry)
             table.insert(notes, drops(itemID, item) .. " left out until those without Boss RNG are split")
         end
     end
-    local where = pickers.WhereToChange(entry)
+    local where = pickers.WhereToChange(entry, state.pools)
     if where then
         table.insert(notes, where)
     end
@@ -142,7 +142,7 @@ end
 -- label, and the dropdown, queued in dropdowns (see window.Draw). A divider sets
 -- them apart from the lines of text above. Returns the y below them.
 local function addPickers(parent, state, y, dropdowns)
-    local list = pickers.ForDetails(state.list[state.selected], state.pools, state.onChoose, state.onSplit)
+    local list = pickers.ForDetails(state.list[state.selected], state.onChoose)
     if #list == 0 then
         return y
     end

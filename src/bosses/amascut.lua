@@ -44,9 +44,11 @@ local TIERS = {
 
 local ENRAGE = {
     key = "enrage", -- saved data key: never change it
-    label = "Enrage of kills without Boss RNG",
+    label = "Average Enrage",
+    note = "Average enrage of kills without Boss RNG", -- in the assumptions, away from the settings page
     default = 100,
     var = "AMASCUT_BOSS_LAST_ENRAGE", -- set as an instance starts
+    untrackedOnly = true, -- tracked kills use the var
     options = {},
 }
 
