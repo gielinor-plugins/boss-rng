@@ -15,6 +15,8 @@
 --            its label is shortened to fit its dropdown
 --   var      optional: the game var holding the value at each tracked kill, for
 --            a choice whose options are numbers, lowest first
+--   untrackedOnly  true if the pick only changes kills without Boss RNG, so it
+--            goes on the settings page (see src/pickers.lua)
 
 local saved = require("src/saved")
 

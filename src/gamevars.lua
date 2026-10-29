@@ -47,22 +47,19 @@ local function lowestBit(mask)
     return shift
 end
 
--- Watches a varbit by name. report(change) is called whenever it goes up.
--- group is "kills" or "drops".
-local function watch(name, group, report)
-    local varbit = var.VarPlayer[name]
-    if varbit == nil or not varbit.isVarBit then
+-- Watches a varbit by name, or with mask, bits of a var the game doesn't name
+-- as a varbit. report(change) is called whenever it goes up. group is "kills"
+-- or "drops".
+local function watch(name, group, report, mask)
+    local found = var.VarPlayer[name]
+    if found == nil or (mask == nil and not found.isVarBit) then
         print("[Boss RNG] Unknown varbit " .. name)
         return
     end
-    local baseID = varbit.baseVar.id
+    local baseID = mask and found.id or found.baseVar.id
+    mask = mask or found.varBitMask
     watched[baseID] = watched[baseID] or {}
-    table.insert(watched[baseID], {
-        mask = varbit.varBitMask,
-        shift = lowestBit(varbit.varBitMask),
-        group = group,
-        report = report,
-    })
+    table.insert(watched[baseID], { mask = mask, shift = lowestBit(mask), group = group, report = report })
 end
 
 local function onVarTransmit(event)
@@ -157,21 +154,47 @@ function gamevars.AllTime(boss)
     return allTime
 end
 
+-- The mode a boss's kill event says the kill was (see killEvent in
+-- src/bosses.lua), from the game's values as it's reported, or nil if any
+-- can't be read.
+local function eventMode(boss)
+    local values = {}
+    for key, name in pairs(boss.killEvent.reads) do
+        values[key] = value(name)
+        if values[key] == nil then
+            return nil
+        end
+    end
+    return boss.modeFor(boss.killEvent.mode(values))
+end
+
 -- Starts reporting changes for every boss in bosses (the list from src/bosses.lua),
 -- on the logic tick after they happen:
 --   onKills(boss, mode, count)   a KC varbit of that mode went up (for modes
---                                that share one, only the mode whose tier it is)
+--                                that share one, only the mode whose tier it is;
+--                                modes marked untracked aren't watched), or the
+--                                boss's kill event var did, for the mode it says
 --   onDrops(boss, itemID, count) the log count of a unique item went up
 -- and calls ready() each time vars can be trusted after entering the game.
 function gamevars.Start(bosses, onKills, onDrops, ready)
     onReady = ready
     for _, boss in ipairs(bosses) do
         for _, mode in ipairs(boss.modes) do
-            watch(mode.kc, "kills", function(count)
-                if inTier(boss, mode) then
-                    onKills(boss, mode, count)
+            if not mode.untracked then
+                watch(mode.kc, "kills", function(count)
+                    if inTier(boss, mode) then
+                        onKills(boss, mode, count)
+                    end
+                end)
+            end
+        end
+        if boss.killEvent then
+            watch(boss.killEvent.var, "kills", function()
+                local mode = eventMode(boss)
+                if mode then
+                    onKills(boss, mode, 1)
                 end
-            end)
+            end, boss.killEvent.mask)
         end
         for itemID, item in pairs(boss.items) do
             if item.kind == "unique" then -- only items that count toward luck

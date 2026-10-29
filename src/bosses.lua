@@ -20,6 +20,17 @@
 -- kills as picks.untracked (for rates that changed before Boss RNG: the
 -- Corporeal Beast's sigils), nil until read.
 --
+-- A boss can count each tracked kill for a mode made from the game's values at
+-- the kill (Barrows chests, by the brothers killed):
+--   killEvent    { var, mask, reads = { [key] = var }, mode = function(values) }:
+--                when var (or with mask, those bits of it) goes up, the reads
+--                are read and mode gives the mode's name
+--   modeFor      function(name): that mode ({ name, kc, rolls }); kc is nil for
+--                kills outside the kill count, shown apart as extraKills (a
+--                label, "partial chest")
+-- The boss's own mode for the kill count is then marked untracked: its kill
+-- count isn't watched, and it only gets the kills without Boss RNG.
+--
 -- A boss's assumptions can be a function of the player's picks too, for ones
 -- that only hold for some picks (Kerapac's duo kills).
 --

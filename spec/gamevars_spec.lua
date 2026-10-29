@@ -91,6 +91,38 @@ describe("gamevars", function()
         assert.are.same({ "drop 101" }, reports)
     end)
 
+    it("reports a kill event's kill for the mode its values say, not the untracked mode's kill count", function()
+        gamevars.Stop()
+        local evented = {
+            modes = { { name = "Normal", kc = "KC_NORMAL", untracked = true } },
+            items = {},
+            killEvent = { var = "LOG_SHARED", reads = { who = "WHO" }, mode = function(values)
+                return "Chest " .. values.who
+            end },
+            modeFor = function(name) return { name = name } end,
+        }
+        gamevars.Start({ evented }, function(_, mode, count)
+            table.insert(reports, mode.name .. " +" .. count)
+        end, function() end)
+        mock.SetValue("WHO", 3)
+        change(KC_VAR, 1, 2) -- the kill count alone: not watched
+        change(LOG_VAR, 0, 0x010000) -- the event var goes up
+        assert.are.same({ "Chest 3 +1" }, reports)
+    end)
+
+    it("can watch bits of a var the game doesn't name as a varbit", function()
+        gamevars.Stop()
+        local evented = {
+            modes = {},
+            items = {},
+            killEvent = { var = "LOG_BASE", mask = 0x1000000, reads = {}, mode = function() return "Chest" end },
+            modeFor = function(name) return { name = name } end,
+        }
+        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.name) end, function() end)
+        change(LOG_VAR, 0x020000, 0x1020000)
+        assert.are.same({ "Chest" }, reports)
+    end)
+
     it("reports a shared kill count's kill for the mode whose tier it is", function()
         gamevars.Stop()
         local choice = { key = "level", var = "LEVEL", options = { { value = 1 }, { value = 5 } } }

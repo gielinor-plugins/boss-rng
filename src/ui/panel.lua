@@ -54,9 +54,12 @@ function panel.Draw(state)
     -- panel's width.
     widgets.AddSeparator(parent, PAD, y, layer.width - 2 * PAD)
     y = y + 6
-    for _, line in ipairs({ format.Totals(result), format.Average(result), format.Dry(result) }) do
-        widgets.AddText(parent, line, PAD, y, nil, widgets.SMALL_FONT)
-        y = y + LINE_HEIGHT
+    local lines = { format.Totals(result), format.Extra(result), format.Average(result), format.Dry(result) }
+    for _, line in ipairs(lines) do
+        if line ~= "" then
+            widgets.AddText(parent, line, PAD, y, nil, widgets.SMALL_FONT)
+            y = y + LINE_HEIGHT
+        end
     end
 
     local details = ui.Button.new(parent)

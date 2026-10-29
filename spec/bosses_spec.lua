@@ -218,13 +218,61 @@ it("says the Corporeal Beast's pick in full in the assumptions, with the kills i
         choices.Assumptions(boss, { before = 70, untrackedKills = 5000 })[2])
 end)
 
-it("mixes Barrows chests by the player's shares", function()
-    local mode = require("src/bosses/barrows").modes[1]
-    local chances = luck.ItemChances(stats.Rolls(mode, { akrisae = 0, linza = 0, partial = 50 }))
-    -- Six brothers: 7 rolls at 1/102; half a partial chest more: 4 rolls at 1/276.
-    assert.are.near((7 / 102 + 0.5 * 4 / 276) / 6 / 4, chances[4716], 1e-12)
-    assert.is_nil(chances[21744]) -- no Akrisae
-    assert.is_nil(chances[37449]) -- no Linza
+describe("Barrows", function()
+    local boss = require("src/bosses/barrows")
+    local SIX = { "Ahrim", "Dharok", "Guthan", "Karil", "Torag", "Verac" }
+
+    -- The tracked chest's mode name from the game's values as it's looted, for
+    -- these originals, Akrisae and Linza.
+    local function opened(originals, akrisae, linza)
+        local values = { Ahrim = 0, Dharok = 0, Guthan = 0, Karil = 0, Torag = 0, Verac = 0 }
+        for _, name in ipairs(originals) do
+            values[name] = 1
+        end
+        values.linzaKilled = linza and 1 or 0
+        values.killedCount = #originals + (akrisae and 1 or 0) + values.linzaKilled
+        return boss.killEvent.mode(values)
+    end
+
+    it("mixes chests without Boss RNG by the player's shares", function()
+        local chances = luck.ItemChances(stats.Rolls(boss.modes[1], { akrisae = 0, linza = 0 }))
+        assert.are.near(7 / 102 / 6 / 4, chances[4716], 1e-12) -- six brothers: 7 rolls at 1/102
+        assert.is_nil(chances[21744]) -- no Akrisae
+        assert.is_nil(chances[37449]) -- no Linza
+    end)
+
+    it("names a tracked chest by the brothers killed, Akrisae from the count", function()
+        assert.are.equal("Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza", opened(SIX, true, true))
+        assert.are.equal("Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Linza", opened(SIX, false, true))
+        assert.are.equal("Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae", opened(SIX, true, false))
+        assert.are.equal("Chest: Ahrim, Dharok, Guthan", opened({ "Ahrim", "Dharok", "Guthan" }, false, false))
+    end)
+
+    it("gives a full chest the kill count and a partial one only its brothers' items", function()
+        local full = boss.modeFor(opened(SIX, true, true))
+        assert.are.equal("BSLAY_KILLS_BARROWS", full.kc)
+        local chances = luck.ItemChances(full.rolls)
+        assert.are.near(7 / 73 / 7 / 4, chances[4716], 1e-12)
+        assert.are.near(1 / 96 / 5, chances[37449], 1e-12)
+
+        -- Five originals and Akrisae make six: in the kill count too.
+        local fiveAndAkrisae = opened({ "Dharok", "Guthan", "Karil", "Torag", "Verac" }, true, false)
+        assert.are.equal("BSLAY_KILLS_BARROWS", boss.modeFor(fiveAndAkrisae).kc)
+
+        local partial = boss.modeFor(opened({ "Ahrim", "Dharok", "Guthan" }, false, false))
+        assert.is_nil(partial.kc)
+        chances = luck.ItemChances(partial.rolls)
+        assert.are.near(4 / 276 / 3 / 4, chances[4716], 1e-12) -- 3 brothers: 4 rolls at 1/276
+        assert.is_nil(chances[4732]) -- no Karil
+        assert.is_nil(chances[37449]) -- no Linza
+    end)
+
+    it("only assumes old partial chests aren't counted when there are chests without Boss RNG", function()
+        assert.are.equal(2, #choices.Assumptions(boss, { akrisae = 100, linza = 100 }))
+        local notes = choices.Assumptions(boss, { akrisae = 70, linza = 100, untrackedKills = 280 })
+        assert.are.equal("Partial chests before Boss RNG not counted (they rarely drop pieces)", notes[1])
+        assert.are.equal("Chests with Akrisae killed: 70%", notes[2])
+    end)
 end)
 
 -- Nakatra's rolls, normal then hard mode.

@@ -95,6 +95,15 @@ function format.Totals(result)
     return (result.allTime and "All-time: " or "Tracked: ") .. count(result.kills, "kill") .. " · " .. count(result.received, "unique")
 end
 
+-- Tracked kills outside the kill count, counted in the numbers: "+ 4 partial
+-- chests", or "" without any.
+function format.Extra(result)
+    if (result.extraKills or 0) == 0 then
+        return ""
+    end
+    return "+ " .. count(result.extraKills, result.extraLabel or "other kill")
+end
+
 -- How many uniques an average player would have after the same kills, to
 -- compare with the player's own: "Average player: 2.3 uniques". Shown to one
 -- decimal place, and below 1 as "under 1 unique". (Not "<1": the game reads "<"

@@ -15,28 +15,63 @@ function stats.Rolls(mode, picks)
     return mode.rolls
 end
 
--- A boss's kills without Boss RNG (all-time less tracked: before it was
--- installed, while it was off, or on another computer) and their share of its
--- all-time kills. Never below 0, in case the game's count lags the tracked one.
-function stats.Untracked(tallies, allTime)
+-- A boss's modes: its own, then one per tracked kill counted for a mode made
+-- from the game's values at the kill (see killEvent in src/bosses.lua).
+local function modesOf(boss, tallies)
+    local modes, known = {}, {}
+    for _, mode in ipairs(boss.modes) do
+        table.insert(modes, mode)
+        known[mode.name] = true
+    end
+    if boss.modeFor then
+        local names = {}
+        for name in pairs(tallies.kills) do
+            if not known[name] then
+                table.insert(names, name)
+            end
+        end
+        table.sort(names) -- the same order every time
+        for _, name in ipairs(names) do
+            table.insert(modes, boss.modeFor(name))
+        end
+    end
+    return modes
+end
+
+-- Tracked kills of modes in a kill count (all but partial Barrows chests, say).
+local function trackedInKillCounts(modes, tallies)
+    local total = 0
+    for _, mode in ipairs(modes) do
+        if mode.kc then
+            total = total + (tallies.kills[mode.name] or 0)
+        end
+    end
+    return total
+end
+
+-- A boss's kills without Boss RNG (its kill counts less the tracked kills in
+-- them: from before it was installed, while it was off, or on another
+-- computer) and their share of its all-time kills. Never below 0, in case the
+-- game's count lags the tracked one.
+function stats.Untracked(boss, tallies, allTime)
     local total = tracker.Total(allTime.kills)
-    local untracked = math.max(total - tracker.Total(tallies.kills), 0)
+    local untracked = math.max(total - trackedInKillCounts(modesOf(boss, tallies), tallies), 0)
     return untracked, total > 0 and untracked / total or 0
 end
 
 -- Each mode's chance per kill of each unique: { [mode name] = { [item id] = chance } }.
-local function chancesPerMode(boss, picks)
+local function chancesPerMode(modes, picks)
     local chances = {}
-    for _, mode in ipairs(boss.modes) do
+    for _, mode in ipairs(modes) do
         chances[mode.name] = luck.ItemChances(stats.Rolls(mode, picks))
     end
     return chances
 end
 
 -- Uniques an average player would have from kills ({ [mode name] = kills }), by item id.
-local function expectedFrom(boss, chances, kills)
+local function expectedFrom(modes, chances, kills)
     local expected = {}
-    for _, mode in ipairs(boss.modes) do
+    for _, mode in ipairs(modes) do
         for itemID, chance in pairs(chances[mode.name]) do
             expected[itemID] = (expected[itemID] or 0) + (kills[mode.name] or 0) * chance
         end
@@ -48,9 +83,9 @@ end
 -- kills per mode ({ [mode name] = kills }). Each mode's dry kills use that
 -- mode's own rates: the chance of missing every time is the product of each
 -- mode's chance of missing. counted is the set of uniques the streak counts.
-local function dryShare(boss, picks, dry, counted)
+local function dryShare(modes, picks, dry, counted)
     local missAll = 1
-    for _, mode in ipairs(boss.modes) do
+    for _, mode in ipairs(modes) do
         local dryKills = dry[mode.name] or 0
         missAll = missAll * (1 - luck.DryPercentile(luck.ChanceOfAny(stats.Rolls(mode, picks), counted), dryKills))
     end
@@ -58,38 +93,47 @@ local function dryShare(boss, picks, dry, counted)
 end
 
 -- The mode a kill count var's kills from before tracking go to: its only mode,
--- or for modes that are tiers of a choice (see src/bosses.lua), the picked one.
+-- the one marked untracked (see src/bosses.lua), or for modes that are tiers of
+-- a choice, the picked one.
 local function earlierMode(modes, picks)
     if #modes == 1 then
         return modes[1]
     end
     for _, mode in ipairs(modes) do
-        if picks[mode.tier.choice] == mode.tier.value then
+        if mode.untracked then
+            return mode
+        end
+    end
+    for _, mode in ipairs(modes) do
+        if mode.tier and picks[mode.tier.choice] == mode.tier.value then
             return mode
         end
     end
     return nil
 end
 
--- A boss's modes grouped by kill count var: { [var] = { modes } }.
-local function modesByVar(boss)
+-- Modes grouped by kill count var: { [var] = { modes } }. Modes outside any
+-- kill count are left out.
+local function modesByVar(modes)
     local groups = {}
-    for _, mode in ipairs(boss.modes) do
-        groups[mode.kc] = groups[mode.kc] or {}
-        table.insert(groups[mode.kc], mode)
+    for _, mode in ipairs(modes) do
+        if mode.kc then
+            groups[mode.kc] = groups[mode.kc] or {}
+            table.insert(groups[mode.kc], mode)
+        end
     end
     return groups
 end
 
 -- Kills per mode, { [mode name] = kills }: the tracked kills, plus with all-time
 -- totals each kill count var's kills from before tracking.
-local function killsPerMode(boss, tallies, allTime, picks)
+local function killsPerMode(allModes, tallies, allTime, picks)
     local kills = {}
-    for _, mode in ipairs(boss.modes) do
+    for _, mode in ipairs(allModes) do
         kills[mode.name] = tallies.kills[mode.name] or 0
     end
     if allTime then
-        for kc, modes in pairs(modesByVar(boss)) do
+        for kc, modes in pairs(modesByVar(allModes)) do
             local earlier = allTime.kills[kc]
             for _, mode in ipairs(modes) do
                 earlier = earlier - kills[mode.name]
@@ -105,9 +149,9 @@ end
 
 -- Kills of the modes that can drop an item: counts[mode name], less
 -- since[mode name] if given.
-local function killsThatCanDrop(boss, chances, itemID, counts, since)
+local function killsThatCanDrop(modes, chances, itemID, counts, since)
     local total = 0
-    for _, mode in ipairs(boss.modes) do
+    for _, mode in ipairs(modes) do
         if chances[mode.name][itemID] then
             total = total + (counts[mode.name] or 0) - (since and since[mode.name] or 0)
         end
@@ -118,8 +162,9 @@ end
 -- True if a boss has kills Boss RNG didn't track that could drop an item: an
 -- all-time kill count above its modes' tracked kills, for modes that can drop it.
 local function hasUntrackedKillsThatCanDrop(boss, picks, tallies, allTime, itemID)
-    local chances = chancesPerMode(boss, picks)
-    for kc, modes in pairs(modesByVar(boss)) do
+    local allModes = modesOf(boss, tallies)
+    local chances = chancesPerMode(allModes, picks)
+    for kc, modes in pairs(modesByVar(allModes)) do
         local tracked, canDrop = 0, false
         for _, mode in ipairs(modes) do
             tracked = tracked + (tallies.kills[mode.name] or 0)
@@ -141,13 +186,13 @@ end
 -- An item's numbers: expected and received, its luck, and its dry streak from
 -- tracking (atKills of its latest tracked drop), unless all-time counts say it
 -- was never received: then every kill that could drop it is dry.
-local function itemNumbers(boss, chances, itemID, expected, received, tallies, allTimeKills, allTracked)
+local function itemNumbers(modes, chances, itemID, expected, received, tallies, allTimeKills, allTracked)
     local drop = tallies.items[tostring(itemID)]
     local item = { expected = expected, received = received, luck = luck.Percentile(expected, received) }
     if allTimeKills and received == 0 then
-        item.dryKills, item.dryAtLeast = killsThatCanDrop(boss, chances, itemID, allTimeKills), false
+        item.dryKills, item.dryAtLeast = killsThatCanDrop(modes, chances, itemID, allTimeKills), false
     else
-        item.dryKills = killsThatCanDrop(boss, chances, itemID, tallies.kills, drop and drop.atKills)
+        item.dryKills = killsThatCanDrop(modes, chances, itemID, tallies.kills, drop and drop.atKills)
         item.dryAtLeast = drop == nil and not allTracked
     end
     return item
@@ -194,7 +239,9 @@ end
 -- listing it has all-time totals; then its share of the one log count, once
 -- known, else it's left out, table row and all, until the player splits it.
 --   allTime     true if kills and received are all-time totals
---   kills       kills
+--   kills       kills in the boss's kill counts
+--   extraKills  tracked kills outside them (partial Barrows chests), counted
+--               in the rest, called extraLabel ("partial chest")
 --   expected    uniques an average player would have after those kills
 --   received    uniques the player received
 --   luck        share of players with fewer uniques, from 0 to 1 (nil without kills)
@@ -210,23 +257,34 @@ function stats.ForBoss(entry, pools)
         return nil
     end
     local picks = entry.picks or {}
-    local kills = killsPerMode(boss, tallies, allTime, picks)
+    local modes = modesOf(boss, tallies)
+    local kills = killsPerMode(modes, tallies, allTime, picks)
     -- Only all-time totals can show that every kill was tracked.
-    local allTracked = allTime ~= nil and tracker.Total(allTime.kills) <= tracker.Total(tallies.kills)
-    local chances = chancesPerMode(boss, picks)
-    local trackedExpected = expectedFrom(boss, chances, tallies.kills)
+    local allTracked = allTime ~= nil and tracker.Total(allTime.kills) <= trackedInKillCounts(modes, tallies)
+    local chances = chancesPerMode(modes, picks)
+    local trackedExpected = expectedFrom(modes, chances, tallies.kills)
 
-    local result = { allTime = allTime ~= nil, kills = tracker.Total(kills), expected = 0, received = 0, items = {} }
+    local inKillCounts, extra = 0, 0
+    for _, mode in ipairs(modes) do
+        if mode.kc then
+            inKillCounts = inKillCounts + kills[mode.name]
+        else
+            extra = extra + kills[mode.name]
+        end
+    end
+    local result = { allTime = allTime ~= nil, kills = inKillCounts, extraKills = extra,
+        extraLabel = boss.extraKills, expected = 0, received = 0, items = {} }
     local counted, anyTracked = {}, false -- the uniques in the boss's numbers
-    for itemID, expected in pairs(expectedFrom(boss, chances, kills)) do
+    for itemID, expected in pairs(expectedFrom(modes, chances, kills)) do
         local pool = boss.items[itemID].pooledBy and pools and pools[itemID]
         if not (pool and pool.untracked and not pool.received) then
             local item
             if not allTime or (pool and pool.untracked == nil) then
-                item = itemNumbers(boss, chances, itemID, trackedExpected[itemID], trackedCount(tallies, itemID), tallies)
+                local received = trackedCount(tallies, itemID)
+                item = itemNumbers(modes, chances, itemID, trackedExpected[itemID], received, tallies)
             else
                 local received = pool and pool.received and pool.received[boss.key] or allTime.items[tostring(itemID)]
-                item = itemNumbers(boss, chances, itemID, expected, received, tallies, kills, allTracked)
+                item = itemNumbers(modes, chances, itemID, expected, received, tallies, kills, allTracked)
             end
             result.items[itemID] = item
             counted[itemID] = true
@@ -244,7 +302,7 @@ function stats.ForBoss(entry, pools)
         result.dryAtLeast = not anyTracked and not allTracked
     end
     result.dryKills = tracker.Total(dry)
-    result.dryShare = dryShare(boss, picks, dry, counted)
+    result.dryShare = dryShare(modes, picks, dry, counted)
     grouped(boss, result.items)
     return result
 end

@@ -282,28 +282,59 @@ end)
 
 describe("stats.Untracked", function()
     it("counts every kill as without Boss RNG until kills are tracked", function()
-        assert.are.same({ 5000, 1 }, { stats.Untracked(tallies({}), totals({ KC = 5000 })) })
+        assert.are.same({ 5000, 1 }, { stats.Untracked(BOSS, tallies({}), totals({ KC_NORMAL = 5000 })) })
     end)
 
     it("leaves out tracked kills", function()
-        assert.are.same({ 5000, 5000 / 5020 }, { stats.Untracked(tallies({ Normal = 20 }), totals({ KC = 5020 })) })
+        assert.are.same({ 5000, 5000 / 5020 },
+            { stats.Untracked(BOSS, tallies({ Normal = 20 }), totals({ KC_NORMAL = 5020 })) })
     end)
 
     it("adds kills made while Boss RNG was off", function()
-        assert.are.same({ 5030, 5030 / 5050 }, { stats.Untracked(tallies({ Normal = 20 }), totals({ KC = 5050 })) })
+        assert.are.same({ 5030, 5030 / 5050 },
+            { stats.Untracked(BOSS, tallies({ Normal = 20 }), totals({ KC_NORMAL = 5050 })) })
     end)
 
     it("adds up every mode", function()
-        local untracked = stats.Untracked(tallies({ Normal = 3, Hard = 2 }), totals({ KC = 10, KC_HARD = 10 }))
+        local untracked = stats.Untracked(BOSS, tallies({ Normal = 3, ["Hard mode"] = 2 }),
+            totals({ KC_NORMAL = 10, KC_HARD = 10 }))
         assert.are.equal(15, untracked)
     end)
 
     it("never goes below 0 if the game's count lags", function()
-        assert.are.same({ 0, 0 }, { stats.Untracked(tallies({ Normal = 12 }), totals({ KC = 10 })) })
+        assert.are.same({ 0, 0 }, { stats.Untracked(BOSS, tallies({ Normal = 12 }), totals({ KC_NORMAL = 10 })) })
     end)
 
     it("gives a share of 0 with no kills", function()
-        assert.are.same({ 0, 0 }, { stats.Untracked(tallies({}), totals({})) })
+        assert.are.same({ 0, 0 }, { stats.Untracked(BOSS, tallies({}), totals({})) })
+    end)
+end)
+
+-- A test boss whose tracked kills are counted for modes made at each kill: full
+-- ones (in the kill count) roll item 1 at 1/10, partial ones (outside it) at 1/20.
+local EVENTED = {
+    modes = { { name = "Normal", kc = "KC", untracked = true, rolls = { { chance = 1 / 10, items = { [1] = 1 } } } } },
+    modeFor = function(name)
+        local full = name == "Full"
+        local chance = full and 1 / 10 or 1 / 20
+        return { name = name, kc = full and "KC" or nil, rolls = { { chance = chance, items = { [1] = 1 } } } }
+    end,
+    extraKills = "partial chest",
+    items = { [1] = { kind = "unique" } },
+}
+
+describe("stats with kills counted at each kill", function()
+    it("counts tracked kills for their own modes, and the kill count's rest for the untracked one", function()
+        local result = forBoss(EVENTED, tallies({ Full = 10, Partial = 4 }), totals({ KC = 30 }, { ["1"] = 3 }))
+        assert.are.equal(30, result.kills)
+        assert.are.equal(4, result.extraKills)
+        assert.are.equal("partial chest", result.extraLabel)
+        assert.are.near(30 / 10 + 4 / 20, result.expected, 1e-9) -- 20 untracked + 10 full at 1/10, 4 at 1/20
+    end)
+
+    it("doesn't count kills outside the kill count as tracked ones in it", function()
+        local untracked = { stats.Untracked(EVENTED, tallies({ Full = 10, Partial = 4 }), totals({ KC = 30 })) }
+        assert.are.same({ 20, 20 / 30 }, untracked)
     end)
 end)
 

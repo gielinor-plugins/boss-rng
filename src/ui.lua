@@ -1,6 +1,7 @@
--- Boss RNG's UI: the ribbon panel (src/ui/panel.lua) and the Details window
--- (src/ui/window.lua). This module decides which boss both views show and
--- redraws them when that or the player's tallies change.
+-- Boss RNG's UI: the ribbon panel (src/ui/panel.lua), the Details window
+-- (src/ui/window.lua) and the settings page (src/ui/settings.lua). This module
+-- decides which boss the views show and redraws them when that, the player's
+-- picks or tallies change.
 -- All UI code lives in src/ui.lua and src/ui/, using Jagex's native components.
 
 local bosses = require("src/bosses")
@@ -10,6 +11,7 @@ local safe = require("src/safe")
 local stats = require("src/stats")
 local tracker = require("src/tracker")
 local panel = require("src/ui/panel")
+local settings = require("src/ui/settings")
 local window = require("src/ui/window")
 
 local bossUi = {}
@@ -22,14 +24,14 @@ local lastKillKey = nil -- the last boss killed when we last drew
 local currentState -- defined below, after the actions it refers to
 
 -- A boss's picks for its choices, with, once the game is read, the values it
--- reads and its share of untracked kills (see src/bosses.lua).
+-- reads and its kills without Boss RNG (see src/bosses.lua).
 local function picksFor(boss, tallies, allTime)
     local picks = choices.For(boss)
     if allTime then
         for key, value in pairs(allTime.values) do
             picks[key] = value
         end
-        picks.untrackedKills, picks.untracked = stats.Untracked(tallies, allTime)
+        picks.untrackedKills, picks.untracked = stats.Untracked(boss, tallies, allTime)
     end
     return picks
 end
@@ -101,14 +103,22 @@ local function showWindow()
     end
 end
 
+-- Redraws the settings page if it's open, or one plain line if drawing fails.
+local function redrawSettings()
+    if settings.IsOpen() and not safe.Call("drawing the settings", settings.Draw, currentState()) then
+        safe.Call("drawing the settings error", settings.ShowError)
+    end
+end
+
 local function redrawAll()
     redrawPanel()
+    redrawSettings()
     if window.IsOpen() then
         showWindow()
     end
 end
 
--- Redraws both views on the next tick, so a component isn't destroyed while its
+-- Redraws the views on the next tick, so a component isn't destroyed while its
 -- own event is still running.
 local function redrawSoon()
     Event.Logic.Subscribe(REDRAW_REF, function()
@@ -144,7 +154,7 @@ local function split(pool, itemID, boss, count)
     redrawSoon()
 end
 
--- What both views draw: the bosses with kills (list), luck over all of them
+-- What the views draw: the bosses with kills (list), luck over all of them
 -- (overall), the pooled uniques (pools, see stats.Pools), the index of the
 -- picked boss (selected, nil without kills), what to do when the player picks a
 -- boss (onPick), picks for one of its choices (onChoose), splits a pooled
@@ -171,18 +181,27 @@ local function onContentLayerReady(event)
     redrawPanel()
 end
 
--- Redraws both views, e.g. once all-time totals can be read after login.
+-- The game clears the settings page and fires this each time it opens.
+local function onSettingsLayerReady(event)
+    settings.Attach(event.component)
+    redrawSettings()
+end
+
+-- Redraws the views, e.g. once all-time totals can be read after login.
 bossUi.Refresh = redrawAll
 
 function bossUi.Start()
     tracker.OnChange(redrawAll)
     Event.ContentLayerReady.Subscribe(REF, onContentLayerReady)
+    Event.SettingsLayerReady.Subscribe(REF, onSettingsLayerReady)
 end
 
 function bossUi.Stop()
     Event.ContentLayerReady.Unsubscribe(REF)
+    Event.SettingsLayerReady.Unsubscribe(REF)
     Event.Logic.Unsubscribe(REDRAW_REF)
     panel.Detach()
+    settings.Detach()
     window.Close()
 end
 

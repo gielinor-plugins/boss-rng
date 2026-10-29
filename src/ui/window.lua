@@ -7,6 +7,7 @@
 
 local choices = require("src/choices")
 local format = require("src/format")
+local pickers = require("src/pickers")
 local frame = require("src/ui/frame")
 local info = require("src/ui/info")
 local widgets = require("src/ui/widgets")
@@ -28,7 +29,7 @@ local ROW_STEP = ROW_HEIGHT + ROW_GAP
 local SLOT_X = 4
 local SLOT_SIZE = 30
 local ICON_SIZE = 26
-local ROW_WIDTH = TABLE_WIDTH - frame.THUMB_SPACE
+local ROW_WIDTH = TABLE_WIDTH - frame.SCROLLBAR_SPACE
 local ROW_BAR_WIDTH = 50
 local NAME_X = SLOT_SIZE + 10
 local LUCK_X = 180
@@ -60,11 +61,7 @@ function window.Close()
     box = nil
 end
 
--- The game's name for an item, or its id if that can't be read.
-local function itemName(itemID)
-    local ok, name = pcall(function() return config.Obj.FromID(math.tointeger(itemID)).name end)
-    return ok and name or ("Item " .. tostring(itemID))
-end
+local itemName = pickers.ItemName
 
 -- The uniques in card order: unluckiest first, then by name. A group of uniques
 -- (see src/bosses.lua) shows its own name, and its first item's icon.
@@ -117,14 +114,12 @@ local function addOverall(parent, state, y)
     return y + LINE_HEIGHT + 8
 end
 
--- A pooled unique's drops: "Shard drops".
-local function drops(itemID, item)
-    return (item.short or itemName(itemID)) .. " drops"
-end
+local drops = pickers.Drops
 
 -- The picked boss's assumptions: its own and its picks (see choices.Assumptions),
--- and for each pooled unique (see stats.Pools) the player's split of untracked
--- drops, or, if not split, that it's left out until it is.
+-- for each pooled unique (see stats.Pools) the player's split of untracked
+-- drops, or, if not split, that it's left out until it is, and where to change
+-- picks that are on the settings page.
 local function assumptions(state, entry)
     local notes = choices.Assumptions(entry.boss, entry.picks)
     for itemID, item in pairs(entry.boss.items) do
@@ -136,40 +131,18 @@ local function assumptions(state, entry)
             table.insert(notes, drops(itemID, item) .. " left out until those without Boss RNG are split")
         end
     end
+    local where = pickers.WhereToChange(entry)
+    if where then
+        table.insert(notes, where)
+    end
     return notes
 end
 
--- The picked boss's dropdowns, each { label, options, current, onPick }: one per
--- choice, then one per pooled unique whose untracked drops the player can split
--- (see stats.Pools), listing "Not set" and each count from 0.
-local function pickers(state, entry)
-    local list = {}
-    for _, choice in ipairs(entry.boss.choices or {}) do
-        table.insert(list, { label = choice.label, options = choice.options, current = entry.picks[choice.key],
-            onPick = function(value) state.onChoose(entry.boss, choice, value) end })
-    end
-    for itemID, item in pairs(entry.boss.items) do
-        local pool = state.pools[itemID]
-        if pool and pool.ask then
-            local options = {}
-            for count = 0, pool.untracked do
-                table.insert(options, { value = count, label = tostring(count) })
-            end
-            table.insert(options, { value = false, label = "Not set" })
-            local label = drops(itemID, item) .. " without Boss RNG (of " .. pool.untracked .. ")"
-            table.insert(list, { label = label, options = options,
-                current = pool.split and pool.split[entry.boss.key] or false,
-                onPick = function(value) state.onSplit(pool, itemID, entry.boss, value or nil) end })
-        end
-    end
-    return list
-end
-
--- A line per dropdown of the picked boss (see pickers): its label, and the
--- dropdown, queued in dropdowns (see window.Draw). A divider sets them apart from
--- the lines of text above. Returns the y below them.
+-- A line per Details dropdown of the picked boss (see pickers.ForDetails): its
+-- label, and the dropdown, queued in dropdowns (see window.Draw). A divider sets
+-- them apart from the lines of text above. Returns the y below them.
 local function addPickers(parent, state, y, dropdowns)
-    local list = pickers(state, state.list[state.selected])
+    local list = pickers.ForDetails(state.list[state.selected], state.pools, state.onChoose, state.onSplit)
     if #list == 0 then
         return y
     end
@@ -213,6 +186,11 @@ local function addHeadline(parent, state, y, dropdowns)
     y = y + LINE_HEIGHT
     addGreyText(parent, format.Totals(result), PAD + 8, y, TABLE_WIDTH - 8)
     y = y + LINE_HEIGHT
+    local extra = format.Extra(result)
+    if extra ~= "" then
+        addGreyText(parent, extra, PAD + 8, y, TABLE_WIDTH - 8)
+        y = y + LINE_HEIGHT
+    end
     addGreyText(parent, format.Average(result), PAD + 8, y, TABLE_WIDTH - 8)
     y = addPickers(parent, state, y + LINE_HEIGHT, dropdowns)
     widgets.AddRect(parent, PAD, headlineY, 2, y - headlineY, ACCENT)
