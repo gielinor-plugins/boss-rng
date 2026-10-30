@@ -21,21 +21,23 @@
 -- Corporeal Beast's sigils), nil until read.
 --
 -- A boss can count each tracked kill for a mode made from the game's values at
--- the kill (Barrows chests, by the brothers killed):
---   killEvent    { var, mask, reads = { [key] = var }, mode = function(values) }:
+-- the kill (Barrows chests by the brothers killed, Araxxi kills by team):
+--   killEvents   a list of { var, mask, reads = { [key] = var }, mode = function(values) }:
 --                when var (or with mask, those bits of it) goes up, the reads
---                are read and mode gives the mode's name
+--                are read and mode gives the mode's name, or nil to leave the
+--                kill untracked
 --   modeFor      function(name): that mode ({ name, kc, rolls }); kc is nil for
 --                kills outside the kill count, shown apart as extraKills (a
 --                label, "partial chest")
--- The boss's own mode for the kill count is then marked untracked: its kill
+-- The boss's own mode for that kill count is then marked untracked: its kill
 -- count isn't watched, and it only gets the kills without Boss RNG.
 --
 -- A boss's assumptions can be a function of the player's picks too, for ones
 -- that only hold for some picks (Kerapac's duo kills).
 --
 -- A mode's rolls can be a function of the player's picks for the boss's choices
--- (see src/choices.lua), for rates set by one, such as Araxxi's share of duo kills.
+-- (see src/choices.lua), for rates set by one, such as Araxxi's share of
+-- untracked duo kills.
 --
 -- A unique listed by more than one boss has one boss log count for all of them,
 -- so its drops can't be told apart. Such a unique is pooled: it gets pooledBy,

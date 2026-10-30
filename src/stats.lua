@@ -16,7 +16,7 @@ function stats.Rolls(mode, picks)
 end
 
 -- A boss's modes: its own, then one per tracked kill counted for a mode made
--- from the game's values at the kill (see killEvent in src/bosses.lua).
+-- from the game's values at the kill (see killEvents in src/bosses.lua).
 local function modesOf(boss, tallies)
     local modes, known = {}, {}
     for _, mode in ipairs(boss.modes) do

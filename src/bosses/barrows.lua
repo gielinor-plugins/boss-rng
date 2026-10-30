@@ -187,7 +187,7 @@ return {
 
     -- Mode names are saved with the player's data: never change them. Normal gets
     -- the kill count's chests without Boss RNG; tracked chests get modes of their
-    -- own (killEvent, modeFor).
+    -- own (killEvents, modeFor).
     modes = {
         { name = "Normal", kc = VARS.kc, untracked = true, rolls = function(picks)
             local akrisae, rolls = picks.akrisae / 100, {}
@@ -198,7 +198,7 @@ return {
             return rolls
         end },
     },
-    killEvent = { var = VARS.run, mask = VARS.looted, reads = reads, mode = chestLooted },
+    killEvents = { { var = VARS.run, mask = VARS.looted, reads = reads, mode = chestLooted } },
     modeFor = chestMode,
     extraKills = "partial chest", -- tracked chests outside the kill count
 

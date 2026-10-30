@@ -155,11 +155,23 @@ for _, case in ipairs(CASES) do
     end)
 end
 
-it("mixes Araxxi's solo and duo rates by the share of duo kills", function()
+it("mixes Araxxi's solo and duo rates by the share of untracked duo kills", function()
     local mode = require("src/bosses/araxxi").modes[1]
-    local chances = luck.ItemChances(stats.Rolls(mode, { duo = 25 }))
-    assert.are.near((0.75 / 40 + 0.25 / 70) / 3, chances[31718], 1e-12)
-    assert.are.near((0.75 / 120 + 0.25 / 200) / 3, chances[31722], 1e-12)
+    local chances = luck.ItemChances(stats.Rolls(mode, { duo = 20 }))
+    assert.are.near((0.8 / 40 + 0.2 / 70) / 3, chances[31718], 1e-12)
+    assert.are.near((0.8 / 120 + 0.2 / 200) / 3, chances[31722], 1e-12)
+end)
+
+it("counts each tracked Araxxi kill as solo or duo by the duo flag", function()
+    local boss = require("src/bosses/araxxi")
+    local event = boss.killEvents[1]
+    assert.are.equal("BSLAY_KILLS_ARAXXI", event.var)
+    assert.are.equal("Solo", event.mode({ duo = 0 }))
+    assert.are.equal("Duo", event.mode({ duo = 1 }))
+    local duo = luck.ItemChances(boss.modeFor("Duo").rolls)
+    assert.are.near(1 / 70 / 3, duo[31718], 1e-12)
+    assert.are.near(1 / 120 / 3, luck.ItemChances(boss.modeFor("Solo").rolls)[31722], 1e-12)
+    assert.are.equal("BSLAY_KILLS_ARAXXI", boss.modeFor("Duo").kc)
 end)
 
 it("scales Kerapac's loot piles by the player's team", function()
@@ -199,6 +211,19 @@ describe("TzKal-Zuk's checkpoints", function()
         assert.are.equal(0, notes(50, 0, 100)) -- hard mode only
         assert.are.equal(1, notes(60, 8, 99))
     end)
+end)
+
+it("counts each tracked Dragonkin Laboratory group kill by the players at the kill", function()
+    local boss = require("src/bosses/dragonkin")
+    local event = boss.killEvents[3] -- the Black stone dragon's
+    assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", event.var)
+    assert.is_nil(event.mode({ players = 0 })) -- not read yet: left untracked
+    assert.are.equal("Black stone dragon, 1 player", event.mode({ players = 1 }))
+    assert.are.equal("Black stone dragon, 3 players", event.mode({ players = 4 }))
+    local mode = boss.modeFor(event.mode({ players = 2 }))
+    assert.are.equal("Black stone dragon, 2 players", mode.name)
+    assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", mode.kc)
+    assert.are.near(1 / 166, luck.ItemChances(mode.rolls)[43393], 1e-12)
 end)
 
 it("mixes the Dragonkin Laboratory's group rates by the player's pick", function()
@@ -248,7 +273,7 @@ describe("Barrows", function()
         end
         values.linzaKilled = linza and 1 or 0
         values.killedCount = #originals + (akrisae and 1 or 0) + values.linzaKilled
-        return boss.killEvent.mode(values)
+        return boss.killEvents[1].mode(values)
     end
 
     it("mixes chests without Boss RNG by the player's shares", function()

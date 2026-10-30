@@ -31,6 +31,7 @@ local tick = 0
 local readyAtTick = nil -- nil while not in the game
 local onReady = nil -- called once vars can be trusted after entering the game
 local announced = false -- whether onReady was called since entering the game
+local killedThisSession = {} -- [boss] = true once a kill is reported since entering the game
 
 -- True once vars can be trusted: in the game, and settled after entering it.
 local function isReady()
@@ -49,7 +50,9 @@ end
 
 -- Watches a varbit by name, or with mask, bits of a var the game doesn't name
 -- as a varbit. report(change) is called whenever it goes up. group is "kills"
--- or "drops".
+-- or "drops". A count (a kill count or a boss log count, never mask bits) only
+-- goes up, so it reports only rises above the highest value it's had this
+-- session: the game can send counts again from 0, and those aren't kills or drops.
 local function watch(name, group, report, mask)
     local found = var.VarPlayer[name]
     if found == nil or (mask == nil and not found.isVarBit) then
@@ -57,23 +60,44 @@ local function watch(name, group, report, mask)
         return
     end
     local baseID = mask and found.id or found.baseVar.id
+    local count = mask == nil and name or nil -- a named varbit
     mask = mask or found.varBitMask
     watched[baseID] = watched[baseID] or {}
-    table.insert(watched[baseID], { mask = mask, shift = lowestBit(mask), group = group, report = report })
+    table.insert(watched[baseID], { mask = mask, shift = lowestBit(mask), group = group, report = report, count = count })
+end
+
+-- Calls fn(slice) for every watched slice that's a count.
+local function eachCount(fn)
+    for _, slices in pairs(watched) do
+        for _, slice in ipairs(slices) do
+            if slice.count then
+                fn(slice)
+            end
+        end
+    end
+end
+
+-- How much a slice went up from old to new: for a count, from the highest it's
+-- had this session (which it then keeps).
+local function rise(slice, old, new)
+    local from, to = (old & slice.mask) >> slice.shift, (new & slice.mask) >> slice.shift
+    if slice.count == nil then
+        return to - from
+    end
+    from = math.max(slice.highest or from, from)
+    slice.highest = math.max(from, to)
+    return to - from
 end
 
 local function onVarTransmit(event)
     local slices = watched[event.var.id]
     local old, new = event.oldValue, event.newValue
-    if slices == nil or not isReady() then
-        return
-    end
-    if type(old) ~= "number" or type(new) ~= "number" then
+    if slices == nil or type(old) ~= "number" or type(new) ~= "number" then
         return
     end
     for _, slice in ipairs(slices) do
-        local change = ((new & slice.mask) >> slice.shift) - ((old & slice.mask) >> slice.shift)
-        if change > 0 and change <= MAX_CHANGE then
+        local change = rise(slice, old, new) -- counts keep their highest even while settling
+        if isReady() and change > 0 and change <= MAX_CHANGE then
             table.insert(pending[slice.group], { report = slice.report, change = change })
         end
     end
@@ -82,6 +106,8 @@ end
 local function onGameStateChanged(event)
     readyAtTick = event.newState == GameState.GAME and tick + SETTLE_TICKS or nil
     announced = false
+    killedThisSession = {}
+    eachCount(function(slice) slice.highest = nil end) -- maybe another character
 end
 
 -- When a kill and a drop change in the same tick they can arrive in either order
@@ -101,6 +127,10 @@ local function onLogic(event)
     flush()
     if isReady() and not announced then
         announced = true
+        eachCount(function(slice)
+            local found = var.VarPlayer[slice.count]
+            slice.highest = math.max(slice.highest or 0, found and found.value or 0)
+        end)
         safe.Call("updating once the game is ready", onReady)
     end
 end
@@ -154,51 +184,66 @@ function gamevars.AllTime(boss)
     return allTime
 end
 
--- The mode a boss's kill event says the kill was (see killEvent in
+-- The mode a boss's kill event says the kill was (see killEvents in
 -- src/bosses.lua), from the game's values as it's reported, or nil if any
--- can't be read.
-local function eventMode(boss)
+-- can't be read or the event gives none.
+local function eventMode(boss, event)
     local values = {}
-    for key, name in pairs(boss.killEvent.reads) do
+    for key, name in pairs(event.reads) do
         values[key] = value(name)
         if values[key] == nil then
             return nil
         end
     end
-    return boss.modeFor(boss.killEvent.mode(values))
+    local name = event.mode(values)
+    return name and boss.modeFor(name)
 end
 
 -- Starts reporting changes for every boss in bosses (the list from src/bosses.lua),
 -- on the logic tick after they happen:
 --   onKills(boss, mode, count)   a KC varbit of that mode went up (for modes
 --                                that share one, only the mode whose tier it is;
---                                modes marked untracked aren't watched), or the
---                                boss's kill event var did, for the mode it says
---   onDrops(boss, itemID, count) the log count of a unique item went up
+--                                modes marked untracked aren't watched), or one
+--                                of the boss's kill event vars did, for the mode
+--                                it says
+--   onDrops(boss, itemID, count) the log count of a unique item went up, for a
+--                                boss killed since entering the game
 -- and calls ready() each time vars can be trusted after entering the game.
+--
+-- The game can send boss log counts again long after login, as jumps from 0
+-- that look like drops. Counts only report rises above their highest this
+-- session (see watch), and only bosses killed this session can have drops.
 function gamevars.Start(bosses, onKills, onDrops, ready)
     onReady = ready
+    local function killed(boss, mode, count)
+        killedThisSession[boss] = true
+        onKills(boss, mode, count)
+    end
     for _, boss in ipairs(bosses) do
         for _, mode in ipairs(boss.modes) do
             if not mode.untracked then
                 watch(mode.kc, "kills", function(count)
                     if inTier(boss, mode) then
-                        onKills(boss, mode, count)
+                        killed(boss, mode, count)
                     end
                 end)
             end
         end
-        if boss.killEvent then
-            watch(boss.killEvent.var, "kills", function()
-                local mode = eventMode(boss)
+        for _, event in ipairs(boss.killEvents or {}) do
+            watch(event.var, "kills", function()
+                local mode = eventMode(boss, event)
                 if mode then
-                    onKills(boss, mode, 1)
+                    killed(boss, mode, 1)
                 end
-            end, boss.killEvent.mask)
+            end, event.mask)
         end
         for itemID, item in pairs(boss.items) do
             if item.kind == "unique" then -- only items that count toward luck
-                watch(item.log, "drops", function(count) onDrops(boss, itemID, count) end)
+                watch(item.log, "drops", function(count)
+                    if killedThisSession[boss] then
+                        onDrops(boss, itemID, count)
+                    end
+                end)
             end
         end
     end
@@ -219,7 +264,7 @@ function gamevars.Stop()
     watched = {}
     pending = { kills = {}, drops = {} }
     readyAtTick = nil
-    onReady, announced = nil, false
+    onReady, announced, killedThisSession = nil, false, {}
 end
 
 return gamevars

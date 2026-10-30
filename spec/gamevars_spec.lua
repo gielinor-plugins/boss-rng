@@ -67,6 +67,8 @@ describe("gamevars", function()
     end)
 
     it("reports each unique item that went up in one change", function()
+        change(KC_VAR, 1, 2)
+        reports = {}
         change(LOG_VAR, 0x020101, 0x030202) -- weapon, armor and shared all +1
         table.sort(reports)
         assert.are.same({ "drop 101 +1", "drop 102 +1" }, reports)
@@ -96,9 +98,9 @@ describe("gamevars", function()
         local evented = {
             modes = { { name = "Normal", kc = "KC_NORMAL", untracked = true } },
             items = {},
-            killEvent = { var = "LOG_SHARED", reads = { who = "WHO" }, mode = function(values)
-                return "Chest " .. values.who
-            end },
+            killEvents = { { var = "LOG_SHARED", reads = { who = "WHO" }, mode = function(values)
+                return values.who > 0 and "Chest " .. values.who or nil
+            end } },
             modeFor = function(name) return { name = name } end,
         }
         gamevars.Start({ evented }, function(_, mode, count)
@@ -108,6 +110,9 @@ describe("gamevars", function()
         change(KC_VAR, 1, 2) -- the kill count alone: not watched
         change(LOG_VAR, 0, 0x010000) -- the event var goes up
         assert.are.same({ "Chest 3 +1" }, reports)
+        mock.SetValue("WHO", 0)
+        change(LOG_VAR, 0x010000, 0x020000) -- no mode for it: left untracked
+        assert.are.same({ "Chest 3 +1" }, reports)
     end)
 
     it("can watch bits of a var the game doesn't name as a varbit", function()
@@ -115,7 +120,7 @@ describe("gamevars", function()
         local evented = {
             modes = {},
             items = {},
-            killEvent = { var = "LOG_BASE", mask = 0x1000000, reads = {}, mode = function() return "Chest" end },
+            killEvents = { { var = "LOG_BASE", mask = 0x1000000, reads = {}, mode = function() return "Chest" end } },
             modeFor = function(name) return { name = name } end,
         }
         gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.name) end, function() end)
@@ -174,6 +179,38 @@ describe("gamevars", function()
         advance(5 * 50)
         advance(1)
         assert.are.equal(2, ready)
+    end)
+
+    it("ignores drops of a boss not killed since entering the game", function()
+        change(LOG_VAR, 0x00, 0x02) -- boss log counts sent again, from 0
+        assert.are.same({}, reports)
+        change(KC_VAR, 1, 2)
+        change(LOG_VAR, 0x02, 0x03)
+        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+
+        -- Back in the game: a new session, with no kills yet.
+        mock.Fire("GameStateChanged", { newState = GameState.GAME })
+        advance(5 * 50)
+        change(LOG_VAR, 0x03, 0x04)
+        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+    end)
+
+    it("ignores counts sent again from 0, even for a boss just killed", function()
+        change(KC_VAR, 1, 2)
+        change(LOG_VAR, 0x02, 0x00) -- the log count drops to 0...
+        change(LOG_VAR, 0x00, 0x02) -- ...and comes back: no drop
+        change(LOG_VAR, 0x02, 0x03)
+        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+    end)
+
+    it("knows each count's value once the game is ready", function()
+        var.VarPlayer.LOG_WEAPON.value = 2
+        mock.Fire("GameStateChanged", { newState = GameState.GAME })
+        advance(5 * 50) -- ready: the weapon's count is 2
+        change(KC_VAR, 1, 2)
+        change(LOG_VAR, 0x00, 0x02) -- sent again from 0: no drop
+        change(LOG_VAR, 0x02, 0x03)
+        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
     end)
 
     it("ignores big jumps and decreases", function()
