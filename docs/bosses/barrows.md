@@ -46,15 +46,9 @@ is dead, so Boss RNG doesn't use it.
 
 ## How Boss RNG counts your chests
 
-- **Tracked chests:** when you loot, it reads which brothers you killed
-  and counts the chest with exactly their drop chances. Partial chests count
-  too, and show as their own line ("+ 2 partial chests") next to your kill
-  count.
-- **Untracked chests** (ones Boss RNG didn't record): your kill count can't say
-  which of them had Akrisae or Linza, so you choose those shares on the settings
-  page. You also choose the share from before the July 2026 Linza change (0% by
-  default), so those chests use her old rate. Untracked partial chests aren't
-  counted, since they rarely drop pieces.
+When you loot, Boss RNG reads which brothers you killed and counts the chest
+with exactly their drop chances. Partial chests count too, and show after your
+tracked kill count ("12 kills (+2 partial)").
 
 ## Dry streaks
 

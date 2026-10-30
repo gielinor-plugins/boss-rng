@@ -1,4 +1,4 @@
--- Building blocks shared by the ribbon panel and the Details window: fonts,
+-- Building blocks shared by the ribbon panel and the details window: fonts,
 -- colors, and small helpers that create the game's own components.
 
 local format = require("src/format")
@@ -17,7 +17,6 @@ widgets.YELLOW = Vector4.new(1.0, 0.85, 0.2, 1.0)
 widgets.GOLD = Vector4.new(0.94, 0.75, 0.47, 1.0) -- the log's title and headings
 widgets.GREY = Vector4.new(0.75, 0.75, 0.75, 1.0) -- secondary text
 widgets.TEXT_HEIGHT = 20
-widgets.BAR_WIDTH = 110
 widgets.BAR_HEIGHT = 10
 widgets.DROPDOWN_HEIGHT = 25
 
@@ -103,7 +102,10 @@ end
 -- pixels, in font and colour. Returns the y below it.
 function widgets.AddWrapped(parent, content, x, y, width, font, lineHeight, colour)
     for _, line in ipairs(widgets.Wrap(content, font, width)) do
-        widgets.AddText(parent, line, x, y, width, font).colour = colour
+        local text = widgets.AddText(parent, line, x, y, width, font)
+        if colour then
+            text.colour = colour
+        end
         y = y + lineHeight
     end
     return y
@@ -126,11 +128,14 @@ function widgets.AddSeparator(parent, x, y, width)
     return widgets.AddRect(parent, x, y, width, 1, SEPARATOR)
 end
 
--- A boss's luck as a headline: "Bottom 12% luck", in the log's gold.
+-- The gap between lines of a headline.
+local HEADLINE_LINE_HEIGHT = 22
+
+-- A boss's luck as a headline: "Bottom 12% luck", in the log's gold, wrapped to
+-- width. Returns the y below it.
 function widgets.AddLuckHeadline(parent, x, y, width, result)
-    local headline = widgets.AddText(parent, format.Capitalize(format.Luck(result)), x, y, width, widgets.CARD_FONT)
-    headline.colour = widgets.GOLD
-    return headline
+    local headline = format.Capitalize(format.Luck(result))
+    return widgets.AddWrapped(parent, headline, x, y, width, widgets.CARD_FONT, HEADLINE_LINE_HEIGHT, widgets.GOLD)
 end
 
 -- One of the game's sprites, by its name in id.Sprite.
@@ -141,10 +146,8 @@ function widgets.AddSprite(parent, name, x, y, width, height)
 end
 
 -- A luck bar: a gold timer bar fill on a dark back, filled to the luck share,
--- with a tick at the middle, where an average player would be. The width
--- defaults to BAR_WIDTH.
+-- with a tick at the middle, where an average player would be.
 function widgets.AddLuckBar(parent, x, y, share, width)
-    width = width or widgets.BAR_WIDTH
     local height = widgets.BAR_HEIGHT
     widgets.AddRect(parent, x, y, width, height, BAR_BACK)
     local filled = math.floor(width * share)
@@ -152,17 +155,6 @@ function widgets.AddLuckBar(parent, x, y, share, width)
         widgets.AddSprite(parent, BAR_FILL, x, y, filled, height)
     end
     widgets.AddRect(parent, x + width // 2, y, 2, height, TICK)
-end
-
--- A luck bar with its group beside it ("bottom 12%"). Without luck, only the
--- text shows.
-function widgets.AddLuckLine(parent, x, y, width, result)
-    if result.luck then
-        widgets.AddLuckBar(parent, x, y + 5, result.luck)
-        x = x + widgets.BAR_WIDTH + 8
-        width = width and width - widgets.BAR_WIDTH - 8
-    end
-    return widgets.AddText(parent, format.LuckShort(result), x, y, width, widgets.SMALL_FONT)
 end
 
 -- The most entries an open dropdown shows before it scrolls.

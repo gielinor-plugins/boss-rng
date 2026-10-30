@@ -12,33 +12,7 @@ common.SHARD = 57128
 common.SHARD_ITEM = {
     log = "ITEMLOG_ITEM_COMBATV2_INNATE_MASTERY_UNLOCK_T95_WEAPON_STAT_UPGRADE_T1",
     kind = "unique",
-    short = "Shard", -- for labels about its pooled drops, "Shard drops" (see src/bosses.lua)
 }
-
--- Options for a choice of percentages, e.g. { 0, 5, 10 } gives 0%, 5% and 10%.
-function common.Percentages(values)
-    local options = {}
-    for i, value in ipairs(values) do
-        options[i] = { value = value, label = value .. "%" }
-    end
-    return options
-end
-
--- 0% to 100% in steps of 10.
-common.TENTHS = common.Percentages({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 })
-
--- A choice of the share of untracked kills from before a drop rate change. Boss
--- RNG came out after these changes, so tracked kills are all after them. Its key
--- is saved data: "before".
-function common.Before(label, default)
-    return { key = "before", label = label, default = default, options = common.TENTHS, untrackedOnly = true }
-end
-
--- The share of all kills from before a change, from the Before pick and the
--- untracked share of kills.
-function common.OldShare(picks)
-    return picks.before / 100 * (picks.untracked or 0)
-end
 
 -- Team options for a choice of who a boss's kills were done with: each option's
 -- label, its note if the label is shortened, and its shares of solo, duo and trio

@@ -2,12 +2,9 @@
 -- Black stone dragon, as one entry with modes for each boss's solo and group kills.
 --
 -- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28: each boss drops
--- its own codex, per player, at 1/83 solo, 1/166 duo and 1/250 trio. The game
--- counts each boss's solo and group kills apart. Each tracked group kill counts
--- for a mode by the players at the kill, so it's exact; untracked group kills
--- use the player's pick.
-
-local common = require("src/bosses/common")
+-- its own codex, per player, at 1/83 solo, 1/166 duo and 1/250 trio (teams are
+-- at most three). The game counts each boss's solo and group kills apart, and
+-- each tracked group kill counts for a mode by the players at the kill.
 
 local VARS = {
     kc = "BSLAY_KILLS_DUNGEON_DRAGONFORT", -- then the boss's number; _SOLO for solo kills
@@ -16,9 +13,6 @@ local VARS = {
 }
 
 local FLURRY, FURY, BARGE = 43391, 43389, 43393
-
-local GROUP = common.Team("group", "Group kills done", { "duo", "trio", "duoTrio" }) -- saved data key: never change it
-GROUP.untrackedOnly = true -- tracked group kills use the players at the kill
 
 -- A codex roll at 1/83 solo, 1/166 duo or 1/250 trio, by players at the kill.
 local CHANCES = { 1 / 83, 1 / 166, 1 / 250 }
@@ -31,8 +25,8 @@ end
 -- saved with the player's data: never change them.
 local tracked = {}
 
--- A tracked group kill's mode name: 0 players (not read yet) leaves it untracked,
--- and more than 3 count as 3.
+-- A tracked group kill's mode name: 0 players (not read yet) leaves the kill
+-- uncounted, and more than 3 count as 3.
 local function playersMode(name, players)
     if players < 1 then
         return nil
@@ -47,9 +41,7 @@ local modes, killEvents = {}, {}
 local function boss(name, number, item)
     local kc = VARS.kc .. number
     table.insert(modes, { name = name .. ", solo", kc = kc .. "_SOLO", rolls = codex(CHANCES[1], item) })
-    table.insert(modes, { name = name .. ", group", kc = kc, untracked = true, rolls = function(picks)
-        return codex(common.TeamMix(picks.group, 0, CHANCES[2], CHANCES[3]), item)
-    end })
+    table.insert(modes, { name = name .. ", group", kc = kc, byEvent = true })
     for players, chance in ipairs(CHANCES) do
         local modeName = playersMode(name, players)
         tracked[modeName] = { name = modeName, kc = kc, rolls = codex(chance, item) }
@@ -68,8 +60,7 @@ return {
     name = "Dragonkin Laboratory",
     logPage = "COLLECTION_BOSS_DUNGEON_DRAGONFORT", -- the boss log page's database row
     assumptions = {},
-    choices = { GROUP },
-    modes = modes, -- each group mode gets the untracked group kills
+    modes = modes, -- each group kill count's mode is counted only through its kill event
     killEvents = killEvents,
     modeFor = function(name) return tracked[name] end,
 

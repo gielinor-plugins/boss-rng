@@ -9,7 +9,7 @@
 -- change in each slice is a kill or drop. Bosses whose chest hides which unique
 -- dropped until it's opened would break this, so they aren't supported yet.
 
-local choices = require("src/choices")
+local days = require("src/days")
 local safe = require("src/safe")
 
 local gamevars = {}
@@ -135,17 +135,6 @@ local function onLogic(event)
     end
 end
 
--- True if a kill counts for this mode: always, unless the mode is one tier of a
--- choice (see src/bosses.lua), when the choice's var must be in that tier. The
--- game sets the var as the fight starts, before its kill.
-local function inTier(boss, mode)
-    if mode.tier == nil then
-        return true
-    end
-    local choice = choices.Find(boss, mode.tier.choice)
-    return choices.Snap(choice, var.VarPlayer[choice.var].value) == mode.tier.value
-end
-
 -- The current value of a var by name, or nil if the game doesn't have it.
 local function value(name)
     local found = var.VarPlayer[name]
@@ -184,6 +173,14 @@ function gamevars.AllTime(boss)
     return allTime
 end
 
+local CLOCK = "CLOCK_TIME_DATE_MINUTES" -- minutes since 1 January 1970 (UTC)
+
+-- Today, from the game clock (see src/days.lua), or 0 if it can't be read.
+local function today()
+    local minutes = value(CLOCK)
+    return minutes and days.FromMinutes(minutes) or 0
+end
+
 -- The mode a boss's kill event says the kill was (see killEvents in
 -- src/bosses.lua), from the game's values as it's reported, or nil if any
 -- can't be read or the event gives none.
@@ -201,13 +198,12 @@ end
 
 -- Starts reporting changes for every boss in bosses (the list from src/bosses.lua),
 -- on the logic tick after they happen:
---   onKills(boss, mode, count)   a KC varbit of that mode went up (for modes
---                                that share one, only the mode whose tier it is;
---                                modes marked untracked aren't watched), or one
---                                of the boss's kill event vars did, for the mode
---                                it says
---   onDrops(boss, itemID, count) the log count of a unique item went up, for a
---                                boss killed since entering the game
+--   onKills(boss, mode, count, day)  a KC varbit of that mode went up (modes
+--                                    counted by kill events aren't watched), or
+--                                    one of the boss's kill event vars did, for
+--                                    the mode it says; day is today (see today)
+--   onDrops(boss, itemID, count)     the log count of a unique item went up,
+--                                    for a boss killed since entering the game
 -- and calls ready() each time vars can be trusted after entering the game.
 --
 -- The game can send boss log counts again long after login, as jumps from 0
@@ -217,16 +213,12 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
     onReady = ready
     local function killed(boss, mode, count)
         killedThisSession[boss] = true
-        onKills(boss, mode, count)
+        onKills(boss, mode, count, today())
     end
     for _, boss in ipairs(bosses) do
         for _, mode in ipairs(boss.modes) do
-            if not mode.untracked then
-                watch(mode.kc, "kills", function(count)
-                    if inTier(boss, mode) then
-                        killed(boss, mode, count)
-                    end
-                end)
+            if not mode.byEvent then
+                watch(mode.kc, "kills", function(count) killed(boss, mode, count) end)
             end
         end
         for _, event in ipairs(boss.killEvents or {}) do

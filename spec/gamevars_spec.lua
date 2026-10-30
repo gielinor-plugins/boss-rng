@@ -93,10 +93,10 @@ describe("gamevars", function()
         assert.are.same({ "drop 101" }, reports)
     end)
 
-    it("reports a kill event's kill for the mode its values say, not the untracked mode's kill count", function()
+    it("reports a kill event's kill for the mode its values say, not its kill count's own mode", function()
         gamevars.Stop()
         local evented = {
-            modes = { { name = "Normal", kc = "KC_NORMAL", untracked = true } },
+            modes = { { name = "Normal", kc = "KC_NORMAL", byEvent = true } },
             items = {},
             killEvents = { { var = "LOG_SHARED", reads = { who = "WHO" }, mode = function(values)
                 return values.who > 0 and "Chest " .. values.who or nil
@@ -111,7 +111,7 @@ describe("gamevars", function()
         change(LOG_VAR, 0, 0x010000) -- the event var goes up
         assert.are.same({ "Chest 3 +1" }, reports)
         mock.SetValue("WHO", 0)
-        change(LOG_VAR, 0x010000, 0x020000) -- no mode for it: left untracked
+        change(LOG_VAR, 0x010000, 0x020000) -- no mode for it: left uncounted
         assert.are.same({ "Chest 3 +1" }, reports)
     end)
 
@@ -128,23 +128,15 @@ describe("gamevars", function()
         assert.are.same({ "Chest" }, reports)
     end)
 
-    it("reports a shared kill count's kill for the mode whose tier it is", function()
+    it("reports each kill with today, from the game clock", function()
         gamevars.Stop()
-        local choice = { key = "level", var = "LEVEL", options = { { value = 1 }, { value = 5 } } }
-        local tiered = {
-            choices = { choice },
-            modes = {
-                { name = "Low", kc = "KC_NORMAL", tier = { choice = "level", value = 1 } },
-                { name = "High", kc = "KC_NORMAL", tier = { choice = "level", value = 5 } },
-            },
-            items = {},
-        }
-        gamevars.Start({ tiered }, function(_, mode) table.insert(reports, mode.name) end, function() end)
-        mock.SetValue("LEVEL", 7)
+        local days = {}
+        gamevars.Start({ BOSS }, function(_, _, _, day) table.insert(days, day) end, function() end)
+        mock.SetValue("CLOCK_TIME_DATE_MINUTES", 29888748) -- 30 Oct 2026, 01:48 UTC
         change(KC_VAR, 1, 2)
-        mock.SetValue("LEVEL", 3)
+        mock.SetValue("CLOCK_TIME_DATE_MINUTES", nil)
         change(KC_VAR, 2, 3)
-        assert.are.same({ "High", "Low" }, reports)
+        assert.are.same({ 20756, 0 }, days) -- 0 when the clock can't be read
     end)
 
     it("reads the vars a boss reads for its rolls", function()

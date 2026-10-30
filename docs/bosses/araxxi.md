@@ -17,15 +17,9 @@ whose chances don't depend on path or style.
 
 ## How Boss RNG counts your kills
 
-Solo and duo kills share one kill count.
-
-- **Tracked kills:** when your kill count goes up, Boss RNG reads the fight's
-  duo flag, so each kill counts at the solo or duo rates exactly. This works the
-  same for private and public duo encounters.
-- **Untracked kills:** your kill count can't say which were duos, so you pick
-  the share of duo kills on the settings page (Plugin Hub > Manage > Boss RNG
-  settings). Untracked kills are ones Boss RNG didn't record: from before you
-  installed it, while it was off, or on another device.
+Solo and duo kills share one kill count. When it goes up, Boss RNG reads the
+fight's duo flag, so each kill counts at the solo or duo rates exactly. This
+works the same for private and public duo encounters.
 
 ## What Boss RNG reads
 

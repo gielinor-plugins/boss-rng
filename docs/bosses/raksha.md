@@ -24,12 +24,8 @@ Before then, the table also had the Laceration boots and Blast diffusion boots
 
 ## How Boss RNG counts your kills
 
-- **Tracked kills:** all after the change, so they use today's rates.
-- **Untracked kills** (ones Boss RNG didn't record): your kill count can't say
-  when they were, so you choose the share from before the July 2025 change on
-  the settings page (0% by default). Those kills use the old rates, without the
-  Laceration and Blast diffusion boots: they're no longer on the collection log,
-  so a kill that rolled either counts as no unique.
+Solo and duo kills have their own kill counts, at the same rates. Boss RNG came
+out after the July 2025 change, so every tracked kill uses today's rates.
 
 ## What Boss RNG reads
 

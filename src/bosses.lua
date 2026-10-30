@@ -3,11 +3,6 @@
 -- sanctum.lua for the optional parts. (src/bosses/common.lua, godwars.lua and
 -- godwars2.lua are helpers, not bosses.)
 --
--- A mode can have a tier, { choice = key, value = v }, for modes sharing one kill
--- count var, split by one of the boss's choices (see src/choices.lua). A tracked
--- kill counts for the mode whose tier the choice's var is in; untracked kills,
--- for the mode of the player's pick.
---
 -- Uniques can share a group, { name = "Leg pieces" }: one table row adding up
 -- their counts and chances, shown with its lowest item's icon. For items whose
 -- split depends on something the player chose (Araxxi's path) or that varies
@@ -15,33 +10,37 @@
 --
 -- A boss can read vars for its rolls and assumptions: reads = { [key] = var }.
 -- Once read, each value is passed with the picks under its key (TzKal-Zuk's
--- Igneous stones). Until then it's nil. Every boss also gets its kills without
--- Boss RNG (see stats.Untracked) as picks.untrackedKills and their share of all
--- kills as picks.untracked (for rates that changed before Boss RNG: the
--- Corporeal Beast's sigils), nil until read.
+-- Igneous stones). Until then it's nil.
 --
 -- A boss can count each tracked kill for a mode made from the game's values at
 -- the kill (Barrows chests by the brothers killed, Araxxi kills by team):
 --   killEvents   a list of { var, mask, reads = { [key] = var }, mode = function(values) }:
 --                when var (or with mask, those bits of it) goes up, the reads
 --                are read and mode gives the mode's name, or nil to leave the
---                kill untracked
+--                kill uncounted
 --   modeFor      function(name): that mode ({ name, kc, rolls }); kc is nil for
 --                kills outside the kill count, shown apart as extraKills (a
---                label, "partial chest")
--- The boss's own mode for that kill count is then marked untracked: its kill
--- count isn't watched, and it only gets the kills without Boss RNG.
+--                label, "partial")
+-- The boss's own mode for that kill count is then marked byEvent, with no
+-- rolls: its kill count isn't watched, since the events count its kills.
+--
+-- When a mode's rates change, its old ones stay for the kills tracked before:
+--   olderRates   { { before = day, rolls = ... }, ... }, oldest first (days
+--                from src/days.lua, e.g. days.FromDate(2026, 11, 24)): a kill
+--                on a day before an entry's day uses that entry's rolls; later
+--                kills use the mode's own. Kills are saved by day, so an update
+--                with new rates applies to kills tracked before it shipped.
 --
 -- A boss's assumptions can be a function of the player's picks too, for ones
 -- that only hold for some picks (Kerapac's duo kills).
 --
 -- A mode's rolls can be a function of the player's picks for the boss's choices
--- (see src/choices.lua), for rates set by one, such as Araxxi's share of
--- untracked duo kills.
+-- (see src/choices.lua), for rates set by one, such as Kerapac's team.
 --
 -- A unique listed by more than one boss has one boss log count for all of them,
 -- so its drops can't be told apart. Such a unique is pooled: it gets pooledBy,
--- the bosses that list it, and its count is split between them (see stats.Pools).
+-- the bosses that list it, and a tracked drop counts for the boss killed last
+-- (see tracker.AddDrops).
 
 local BOSS_FILES = {
     "graardor", "kreearra", "kril", "nex", "zilyana", -- God Wars

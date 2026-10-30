@@ -1,7 +1,8 @@
 -- The ribbon panel. It can be very small, so it shows only the essentials for
--- one boss, as plain lines rather than bars: its luck, its tracked kills and
--- uniques next to what an average player would have, its dry streak, and a
--- button that opens the Details window.
+-- one boss: the boss, its luck, its tracked kills and uniques, and its dry
+-- streak (with nothing tracked yet, the game's totals instead), and a button at
+-- the bottom that opens the details window. The button stays in view however
+-- small the panel is; lines that don't fit above it are left out.
 
 local format = require("src/format")
 local safe = require("src/safe")
@@ -11,6 +12,7 @@ local panel = {}
 
 local PAD = 5
 local LINE_HEIGHT = 22
+local BUTTON_LABEL, BUTTON_HEIGHT = "View details", 30
 
 local layer = nil -- the game's panel layer, once the player has opened it
 local content = nil -- one layer holding everything we drew, so one Destroy clears it
@@ -46,27 +48,27 @@ function panel.Draw(state)
         return
     end
     local result = state.list[state.selected].stats
+    local width = layer.width - 2 * PAD
 
-    local y = PAD + 32
-    widgets.AddLuckHeadline(parent, PAD, y, nil, result)
-    y = y + LINE_HEIGHT + 2
-    -- A rectangle doesn't stretch to its parent like text does, so it gets the
-    -- panel's width.
-    widgets.AddSeparator(parent, PAD, y, layer.width - 2 * PAD)
+    -- The panel can be narrow, so text wraps to its width.
+    local y = widgets.AddLuckHeadline(parent, PAD, PAD + 32, width, result) + 2
+    widgets.AddSeparator(parent, PAD, y, width)
     y = y + 6
-    local lines = { format.Totals(result), format.Extra(result), format.Average(result), format.Dry(result) }
+    -- At the bottom, but never over the dropdown.
+    local buttonY = math.max(layer.height - PAD - BUTTON_HEIGHT, PAD + 32)
+    local tracked = result.kills + result.extraKills > 0
+    local lines = tracked and { format.TrackedShort(result), format.Dry(result) } or { format.AllTime(result) }
     for _, line in ipairs(lines) do
-        if line ~= "" then
-            widgets.AddText(parent, line, PAD, y, nil, widgets.SMALL_FONT)
-            y = y + LINE_HEIGHT
+        if line ~= "" and y + LINE_HEIGHT <= buttonY - 6 then
+            y = widgets.AddWrapped(parent, line, PAD, y, width, widgets.SMALL_FONT, LINE_HEIGHT)
         end
     end
 
-    local details = ui.Button.new(parent)
-    details.stylesheetID = id.StyleSheet.BUTTON_ACTION_POSITIVE -- the game's yellow block button
-    details.label = "Details"
-    widgets.Place(details, PAD, y + 6, 100, 30)
-    details:Subscribe(ui.Hook.ONBUTTONPRESSED, function()
+    local open = ui.Button.new(parent)
+    open.stylesheetID = id.StyleSheet.BUTTON_DEFAULT -- the docs' default for plugins
+    open.label = BUTTON_LABEL
+    widgets.Place(open, PAD, buttonY, width, BUTTON_HEIGHT)
+    open:Subscribe(ui.Hook.ONBUTTONPRESSED, function()
         safe.Call("opening the window", state.onDetails)
     end)
 

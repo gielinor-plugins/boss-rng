@@ -6,9 +6,8 @@
 -- Araxxor's style. The rolls are independent. Legs and add-ons are each shown as
 -- one group, whose chance doesn't depend on path or style.
 --
--- The game keeps one kill count for solo and duo. Each tracked kill counts for
--- Solo or Duo by the fight's duo flag, so it's exact; untracked kills use the
--- player's share of duo kills.
+-- The game keeps one kill count for solo and duo, so each tracked kill counts
+-- for Solo or Duo by the fight's duo flag.
 
 local common = require("src/bosses/common")
 
@@ -23,30 +22,19 @@ local FANG, EYE, WEB = 31722, 31723, 31724
 local LEGS = { name = "Leg pieces" }
 local ADD_ONS = { name = "Noxious add-ons" }
 
-local DUO = {
-    key = "duo", -- saved data key: never change it
-    label = "Kills done as a duo",
-    default = 0,
-    options = common.TENTHS,
-    untrackedOnly = true, -- tracked kills use the duo flag
-}
-
--- A kill's rolls, for a share of duo kills (0 to 1): a leg and an add-on.
-local function rolls(duoShare)
-    local function mixed(solo, duo)
-        return (1 - duoShare) / solo + duoShare / duo
-    end
+-- A kill's rolls: a leg at 1 in legs, and an add-on at 1 in addOns.
+local function rolls(legs, addOns)
     return {
-        { chance = mixed(40, 70), items = common.Even({ LEG_TOP, LEG_MIDDLE, LEG_BOTTOM }) },
-        { chance = mixed(120, 200), items = common.Even({ FANG, EYE, WEB }) },
+        { chance = 1 / legs, items = common.Even({ LEG_TOP, LEG_MIDDLE, LEG_BOTTOM }) },
+        { chance = 1 / addOns, items = common.Even({ FANG, EYE, WEB }) },
     }
 end
 
 -- Tracked kills' modes, by name. Mode names are saved with the player's data:
 -- never change them.
 local TRACKED = {
-    Solo = { name = "Solo", kc = VARS.kc, rolls = rolls(0) },
-    Duo = { name = "Duo", kc = VARS.kc, rolls = rolls(1) },
+    Solo = { name = "Solo", kc = VARS.kc, rolls = rolls(40, 120) },
+    Duo = { name = "Duo", kc = VARS.kc, rolls = rolls(70, 200) },
 }
 
 return {
@@ -54,14 +42,10 @@ return {
     name = "Araxxi",
     logPage = "COLLECTION_BOSS_ARAXXI", -- the boss log page's database row
     assumptions = {},
-    choices = { DUO },
 
-    -- Mode names are saved with the player's data: never change them. Normal gets
-    -- the untracked kills (and kills tracked before the duo flag was read).
+    -- The kill count's mode, counted only through its kill event (Solo or Duo).
     modes = {
-        { name = "Normal", kc = VARS.kc, untracked = true, rolls = function(picks)
-            return rolls(picks.duo / 100)
-        end },
+        { name = "Normal", kc = VARS.kc, byEvent = true },
     },
     killEvents = { { var = VARS.kc, reads = { duo = VARS.duo }, mode = function(values)
         return values.duo == 1 and "Duo" or "Solo"

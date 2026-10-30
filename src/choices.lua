@@ -1,53 +1,21 @@
--- What each character picks: a boss's choices, such as the enrage of their kills
--- from before Boss RNG, and how a pooled unique's untracked drops split between
--- the bosses that list it (see src/bosses.lua). Picks are the player's own, so
--- they're saved apart from the tallies, which are read from the game.
+-- What each character picks for a boss's choices: what the game can't tell Boss
+-- RNG about their tracked kills, such as Kerapac's team. Picks are the player's
+-- own, so they're saved apart from the tallies.
 --
--- A boss file can declare choices (see src/bosses/amascut.lua), each with:
+-- A boss file can declare choices (see src/bosses/kerapac.lua), each with:
 --   key      saved data key: never change it
 --   label    shown before its dropdown, and with the pick in the assumptions
---            ("Untracked " and the label, for untrackedOnly: start it with a
---            plain word, "Chests with Akrisae killed")
---   note     optional: said in the assumptions instead, when that doesn't read
---            well ("Average enrage of untracked kills")
 --   default  the value until the player picks one
---   options  { { value = 100, label = "100%" }, ... }, in the order to list them;
---            an option can add a note, saying it in full in the assumptions when
---            its label is shortened to fit its dropdown
---   var      optional: the game var holding the value at each tracked kill, for
---            a choice whose options are numbers, lowest first
---   untrackedOnly  true if the pick only changes kills without Boss RNG, so it
---            goes on the settings page (see src/pickers.lua)
+--   options  { { value = "solo", label = "Solo" }, ... }, in the order to list
+--            them; an option can add a note, saying it in full in the
+--            assumptions when its label is shortened to fit its dropdown
 
 local saved = require("src/saved")
 
 local choices = {}
 
--- Saved as { bosses = { [boss key] = { [choice key] = value } },
---            splits = { [item id] = { [boss key] = untracked drops } } }.
-local store = saved.ForCharacter("choices:", 2, function() return { bosses = {}, splits = {} } end)
-
--- A boss's choice with this key, or nil.
-function choices.Find(boss, key)
-    for _, choice in ipairs(boss.choices or {}) do
-        if choice.key == key then
-            return choice
-        end
-    end
-    return nil
-end
-
--- The value of the option a game value falls in: the highest option at or
--- below it, or the lowest option if it's below them all.
-function choices.Snap(choice, value)
-    local snapped = choice.options[1].value
-    for _, option in ipairs(choice.options) do
-        if value >= option.value then
-            snapped = option.value
-        end
-    end
-    return snapped
-end
+-- Saved as { bosses = { [boss key] = { [choice key] = value } } }.
+local store = saved.ForCharacter("choices:", 3, function() return { bosses = {} } end)
 
 -- The option of a choice with this value, or nil.
 function choices.Option(choice, value)
@@ -72,18 +40,8 @@ function choices.For(boss)
     return values
 end
 
--- How a choice is said in the assumptions: its note, or for a pick of untracked
--- kills "Untracked chests with Akrisae killed", so it doesn't read as all kills.
-local function assumptionOf(choice)
-    if choice.note then
-        return choice.note
-    end
-    return choice.untrackedOnly and "Untracked " .. choice.label:sub(1, 1):lower() .. choice.label:sub(2)
-        or choice.label
-end
-
 -- A boss's assumptions for these picks: its own (a list, or a function of the
--- picks), then each choice's pick ("Untracked chests with Akrisae killed: 70%").
+-- picks), then each choice's pick ("Normal mode kills done: Solo").
 function choices.Assumptions(boss, picks)
     local notes = {}
     local own = boss.assumptions
@@ -92,7 +50,7 @@ function choices.Assumptions(boss, picks)
     end
     for _, choice in ipairs(boss.choices or {}) do
         local option = choices.Option(choice, picks[choice.key])
-        table.insert(notes, assumptionOf(choice) .. ": " .. (option.note or option.label))
+        table.insert(notes, choice.label .. ": " .. (option.note or option.label))
     end
     return notes
 end
@@ -106,24 +64,6 @@ function choices.Set(boss, choice, value)
     local picks = record.bosses[boss.key] or {}
     picks[choice.key] = value
     record.bosses[boss.key] = picks
-    store.Save()
-end
-
--- The logged in character's splits of pooled uniques' untracked drops:
--- { [item id] = { [boss key] = count } }.
-function choices.Splits()
-    local record = store.Load()
-    return record and record.splits or {}
-end
-
--- Saves how a pooled unique's untracked drops split, { [boss key] = count }, or
--- clears it with nil.
-function choices.SetSplit(itemID, counts)
-    local record = store.Load()
-    if record == nil then
-        return
-    end
-    record.splits[tostring(itemID)] = counts
     store.Save()
 end
 

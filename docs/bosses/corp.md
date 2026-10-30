@@ -16,13 +16,8 @@ Each kill gives one drop, to one player.
 
 ## How Boss RNG counts your kills
 
-- **Tracked kills** are all after the July 2026 change, so they use today's
-  rates.
-- **Untracked kills:** your kill count can't say when they were, so you choose
-  the share from before the change on the settings page (Plugin Hub > Manage >
-  Boss RNG settings). Those kills use the old sigil rates. Untracked kills are
-  ones Boss RNG didn't record: from before you installed it, while it was off,
-  or on another device.
+- **Rates:** Boss RNG came out after the July 2026 change, so every tracked kill
+  uses today's rates.
 - **Groups:** a kill's drop goes to one player, and your kill count doesn't say
   who you killed with. So Boss RNG assumes every kill was solo, and the "i" says
   so. If you often kill in groups, your luck reads lower than it is.

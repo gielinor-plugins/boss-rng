@@ -6,7 +6,8 @@
 -- armor (armor three times in four, split over its five pieces; else one of
 -- the two weapons), one for the Nexus and, in enrage mode, one for the Shard of
 -- Genesis Essence. Enrage rates depend on the enrage tier, so each tier is a
--- mode of its own. The tiers share one kill count: see src/bosses.lua.
+-- mode of its own, sharing one kill count: each tracked enrage kill counts for
+-- the tier of the enrage set for the instance.
 --
 -- Each kill makes five loot piles, each with its own unique rolls: one per player
 -- in a team of five, and in smaller teams the rest go to the top damagers. Kill
@@ -49,26 +50,24 @@ local TIERS = {
     { enrage = 2000, label = "2,000%+", gear = 25, nexus = 100 },
 }
 
-local ENRAGE = {
-    key = "enrage", -- saved data key: never change it
-    label = "Average Enrage",
-    note = "Average enrage of untracked kills", -- in the assumptions, away from the settings page
-    default = 100,
-    var = VARS.enrage,
-    untrackedOnly = true, -- tracked kills use the var
-    options = {},
-}
-
--- Mode names are saved with the player's data: never change them.
-local modes = { { name = "Normal", kc = VARS.kc, rolls = rolls(600, 750) } }
+-- Each tier's mode, by name. Mode names are saved with the player's data: never
+-- change them.
+local TIER_MODES = {}
 for _, tier in ipairs(TIERS) do
-    table.insert(ENRAGE.options, { value = tier.enrage, label = tier.label })
-    table.insert(modes, {
-        name = "Enrage " .. tier.label,
-        kc = VARS.kcEnrage,
-        tier = { choice = ENRAGE.key, value = tier.enrage },
-        rolls = rolls(tier.gear, tier.nexus, tier.nexus),
-    })
+    local name = "Enrage " .. tier.label
+    TIER_MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls(tier.gear, tier.nexus, tier.nexus) }
+end
+
+-- The mode name of the tier an enrage falls in: the highest tier at or below it,
+-- or the lowest tier below them all.
+local function tierMode(enrage)
+    local found = TIERS[1]
+    for _, tier in ipairs(TIERS) do
+        if enrage >= tier.enrage then
+            found = tier
+        end
+    end
+    return "Enrage " .. found.label
 end
 
 return {
@@ -76,8 +75,17 @@ return {
     name = "Amascut, the Devourer",
     logPage = "COLLECTION_BOSS_AMASCUT", -- the boss log page's database row
     assumptions = { "One loot pile per kill (teams of 5)" },
-    choices = { ENRAGE },
-    modes = modes,
+
+    -- Mode names are saved with the player's data: never change them. The enrage
+    -- kill count's mode is counted only through its kill event (a tier's mode).
+    modes = {
+        { name = "Normal", kc = VARS.kc, rolls = rolls(600, 750) },
+        { name = "Enrage", kc = VARS.kcEnrage, byEvent = true },
+    },
+    killEvents = { { var = VARS.kcEnrage, reads = { enrage = VARS.enrage }, mode = function(values)
+        return tierMode(values.enrage)
+    end } },
+    modeFor = function(name) return TIER_MODES[name] end,
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).

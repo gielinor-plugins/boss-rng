@@ -29,21 +29,16 @@ of it.
 
 ## How Boss RNG counts your kills
 
-- **Tracked enrage kills:** when your enrage kill count goes up, Boss RNG reads
-  the enrage you set for the instance and counts the kill at the rates of the
+- **Enrage kills:** when your enrage kill count goes up, Boss RNG reads the
+  enrage you set for the instance and counts the kill at the rates of the
   highest tier at or below it.
-- **Untracked enrage kills:** your kill count can't say their enrage, so you
-  pick your average enrage on the settings page (Plugin Hub > Manage > Boss RNG
-  settings). Untracked kills are ones Boss RNG didn't record: from before you
-  installed it, while it was off, or on another device.
 - **Loot piles:** each kill makes five loot piles, each with its own rolls. In a
   team of five you get one; in smaller teams the extra piles go to the top
   damagers. Your kill count doesn't say your team, so Boss RNG assumes one pile
   per kill, as in a team of five.
 - **The Shard of Genesis Essence** has one boss log count shared with Nakatra in
   the Sanctum of Rebirth. A tracked Shard counts for whichever of the two you
-  killed last. If you have untracked Shards from both, you split them between
-  the two on the settings page.
+  killed last.
 
 ## What Boss RNG reads
 

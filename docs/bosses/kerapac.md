@@ -23,7 +23,7 @@ top damager gets two and the other player one, so you average one and a half. In
 a trio, each player gets one.
 
 Your kill count doesn't say your team, and no var shows how many players were at
-the kill. So you pick your team for each mode in the Details window, and it
+the kill. So you pick your team for each mode in the details window, and it
 applies to all your kills there. With duo kills picked, Boss RNG assumes you did
 the top damage on half of them, and the "i" says so.
 

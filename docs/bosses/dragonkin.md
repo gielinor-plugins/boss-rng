@@ -16,14 +16,10 @@ Teams are at most three.
 Each boss has a solo kill count and a group kill count.
 
 - **Solo kills** count at 1 in 83.
-- **Tracked group kills:** when a group kill count goes up, Boss RNG reads how
-  many players were in the room at the kill, so each kill counts at the right
-  rate exactly. A group kill where your partner never came in counts at the solo
-  rate.
-- **Untracked group kills:** your kill count can't say your team, so you pick it
-  on the settings page (Plugin Hub > Manage > Boss RNG settings): duo, trio, or
-  half of each. Untracked kills are ones Boss RNG didn't record: from before you
-  installed it, while it was off, or on another device.
+- **Group kills:** when a group kill count goes up, Boss RNG reads how many
+  players were in the room at the kill, so each kill counts at the right rate
+  exactly. A group kill where your partner never came in counts at the solo
+  rate. If the player count can't be read at a kill, that kill isn't counted.
 
 ## What Boss RNG reads
 

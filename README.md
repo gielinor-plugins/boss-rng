@@ -1,8 +1,14 @@
 # Boss RNG
 
 Boss RNG shows how lucky you have been with boss log uniques, compared to an
-average player with the same kills: for each item, each boss, and overall. It
+average player with the same kills: for each boss and each item. It
 shows where you stand, never drop rates.
+
+Luck comes from the kills Boss RNG tracks, from the day you install it: each
+kill at the drop rates of its day, so rate changes never blur your numbers. It
+shows once an average player would have had about one unique; until then, it
+says how many more kills that takes. Your all-time kill counts and boss log
+counts are shown next to it, as facts from the game.
 
 Supported bosses:
 
@@ -27,8 +33,7 @@ Boss RNG only uses information the game has already shown you:
   dry streaks, and which boss a shared drop came from. Changes in the first
   seconds after logging in are ignored, so the login sync isn't mistaken for kills.
 - **Amascut's enrage** for each kill, from the enrage you chose for the instance.
-  For untracked kills (ones Boss RNG didn't record), you pick the enrage on
-  the settings page (Plugin Hub > Manage > Boss RNG settings).
+- **The date**, from the game clock, so each kill uses the rates of its day.
 
 It never reads hidden values such as bad luck mitigation, and it never interacts
 with the game for you.

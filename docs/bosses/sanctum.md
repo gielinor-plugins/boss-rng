@@ -19,13 +19,18 @@ rolls, and each boss rolls on its own:
 The book is the Divine Rage prayer codex or the Scripture of Amascut, evenly.
 Nakatra's weapon is Roar of Awakening or Ode to Deceit, evenly.
 
+The 9 March 2026 update set these rates. Before it, the book table was 1 in 90
+(hard mode 1 in 80), Nakatra's weapons 1 in 50 (hard mode 1 in 40) and the Shard
+1 in 80.
+
 ## How Boss RNG counts your kills
 
-Each boss has its own normal and hard mode kill counts, and all six are counted.
-The Shard of Genesis Essence has one boss log count shared with Amascut: a
-tracked Shard counts for whichever of the two you killed last, and untracked
-Shards from both are split on the settings page (Plugin Hub > Manage > Boss RNG
-settings).
+Each boss has its own normal and hard mode kill counts, and all six are
+counted. Boss RNG came out after the March 2026 update, so every tracked kill
+uses today's rates.
+
+The Shard of Genesis Essence has one boss log count shared with Amascut. A
+tracked Shard counts for whichever of the two you killed last.
 
 ## What Boss RNG reads
 

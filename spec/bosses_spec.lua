@@ -2,6 +2,7 @@
 
 local bosses = require("src/bosses")
 local choices = require("src/choices")
+local luck = require("src/luck")
 local stats = require("src/stats")
 
 -- Each of a boss's choices at its default: { [choice key] = value }.
@@ -12,7 +13,6 @@ local function defaults(boss)
     end
     return picks
 end
-local luck = require("src/luck")
 
 local KINDS = { unique = true, shared = true, lore = true, pet = true, excluded = true }
 
@@ -39,6 +39,13 @@ describe("boss data", function()
                 end
             end)
 
+            it("counts a kill count by its kill events only if it has them", function()
+                for _, mode in ipairs(boss.modes) do
+                    assert.are.equal(mode.byEvent == true, mode.rolls == nil)
+                    assert.is_true(not mode.byEvent or boss.killEvents ~= nil)
+                end
+            end)
+
             it("gives every item a known kind, and counted items a log varbit", function()
                 for _, item in pairs(boss.items) do
                     assert.is_true(KINDS[item.kind] == true)
@@ -55,20 +62,6 @@ describe("boss data", function()
                 end
             end)
 
-            it("has a mode for every option of a choice its modes are tiers of", function()
-                for _, mode in ipairs(boss.modes) do
-                    local choice = mode.tier and choices.Find(boss, mode.tier.choice)
-                    for _, option in ipairs(choice and choice.options or {}) do
-                        local found = false
-                        for _, other in ipairs(boss.modes) do
-                            found = found or (other.tier ~= nil and other.tier.choice == choice.key
-                                and other.tier.value == option.value)
-                        end
-                        assert.is_true(found)
-                    end
-                end
-            end)
-
             it("only rolls unique items", function()
                 for _, mode in ipairs(boss.modes) do
                     for itemID in pairs(luck.ItemChances(stats.Rolls(mode, defaults(boss)))) do
@@ -80,7 +73,8 @@ describe("boss data", function()
     end
 end)
 
--- Each boss's boss log item count, and its wiki rates per kill for a few items.
+-- Each boss's boss log item count, and its wiki rates per kill for a few items,
+-- in its first two modes, or the modes named in modes (made by its kill events).
 local HILT = 63 / 64 / 512 -- a general's hilt: only rolled when the unique table misses
 local NEX = 1 / 384
 local CASES = {
@@ -98,21 +92,22 @@ local CASES = {
     { file = "furies", items = 9, rates = { [37090] = 1 / 256, [37095] = 1 / 256 }, hard = { [37024] = 1 / 179 } },
     { file = "gregorovic", items = 8, rates = { [37075] = 1 / 256, [37080] = 1 / 256 }, hard = { [37021] = 1 / 179 } },
     -- Normal mode, then the 100% enrage tier: an armor piece, a weapon, the Nexus and the Shard.
-    { file = "amascut", items = 11,
+    { file = "amascut", items = 11, modes = { "Normal", "Enrage 100%" },
         rates = { [59344] = 3 / 4 / 5 / 600, [59350] = 1 / 4 / 2 / 600, [59358] = 1 / 750 },
         hard = { [59336] = 3 / 4 / 5 / 70, [59354] = 1 / 4 / 2 / 70, [59358] = 1 / 280, [57128] = 1 / 280 } },
     -- Vermyx, then Vermyx in hard mode.
     { file = "sanctum", items = 9, rates = { [57156] = 1 / 250, [57124] = 1 / 250 }, hard = { [57156] = 1 / 200 } },
-    -- Solo, the default: a leg and an add-on, each group split evenly.
-    { file = "araxxi", items = 15, rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 } },
-    -- The defaults: every chest with all seven brothers (7 rolls at 1/73) and
-    -- Linza (1/96 over her five items). Dharok has 4 items, Ahrim 6.
-    { file = "barrows", items = 39,
+    -- Solo, then duo: a leg and an add-on, each group split evenly.
+    { file = "araxxi", items = 15, modes = { "Solo", "Duo" },
+        rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 }, hard = { [31719] = 1 / 70 / 3, [31724] = 1 / 200 / 3 } },
+    -- A chest with all seven brothers (7 rolls at 1/73) and Linza (1/96 over
+    -- her five items). Dharok has 4 items, Ahrim 6.
+    { file = "barrows", items = 39, modes = { "Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza" },
         rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5 } },
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
-    -- Astellarn solo, then in a group, by default duo.
-    { file = "dragonkin", items = 7, rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
-    -- Before the game is read: every kill at today's rates.
+    -- Astellarn solo, then in a duo.
+    { file = "dragonkin", items = 7, modes = { "Astellarn, solo", "Astellarn, 2 players" },
+        rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
     { file = "corp", items = 7, rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 } },
     -- Solo, then duo: the same rates.
     { file = "raksha", items = 6, rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
@@ -132,6 +127,16 @@ local CASES = {
         hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 } },
 }
 
+-- A boss's mode by name: one of its own, or one its kill events make.
+local function modeNamed(boss, name)
+    for _, mode in ipairs(boss.modes) do
+        if mode.name == name then
+            return mode
+        end
+    end
+    return boss.modeFor(name)
+end
+
 for _, case in ipairs(CASES) do
     describe(case.file, function()
         local boss = require("src/bosses/" .. case.file)
@@ -146,7 +151,8 @@ for _, case in ipairs(CASES) do
 
         it("has the wiki rates", function()
             for modeIndex, rates in ipairs({ case.rates, case.hard }) do
-                local chances = luck.ItemChances(stats.Rolls(boss.modes[modeIndex], defaults(boss)))
+                local mode = case.modes and modeNamed(boss, case.modes[modeIndex]) or boss.modes[modeIndex]
+                local chances = luck.ItemChances(stats.Rolls(mode, defaults(boss)))
                 for itemID, rate in pairs(rates) do
                     assert.are.near(rate, chances[itemID], 1e-12)
                 end
@@ -154,13 +160,6 @@ for _, case in ipairs(CASES) do
         end)
     end)
 end
-
-it("mixes Araxxi's solo and duo rates by the share of untracked duo kills", function()
-    local mode = require("src/bosses/araxxi").modes[1]
-    local chances = luck.ItemChances(stats.Rolls(mode, { duo = 20 }))
-    assert.are.near((0.8 / 40 + 0.2 / 70) / 3, chances[31718], 1e-12)
-    assert.are.near((0.8 / 120 + 0.2 / 200) / 3, chances[31722], 1e-12)
-end)
 
 it("counts each tracked Araxxi kill as solo or duo by the duo flag", function()
     local boss = require("src/bosses/araxxi")
@@ -217,47 +216,13 @@ it("counts each tracked Dragonkin Laboratory group kill by the players at the ki
     local boss = require("src/bosses/dragonkin")
     local event = boss.killEvents[3] -- the Black stone dragon's
     assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", event.var)
-    assert.is_nil(event.mode({ players = 0 })) -- not read yet: left untracked
+    assert.is_nil(event.mode({ players = 0 })) -- not read yet: left uncounted
     assert.are.equal("Black stone dragon, 1 player", event.mode({ players = 1 }))
     assert.are.equal("Black stone dragon, 3 players", event.mode({ players = 4 }))
     local mode = boss.modeFor(event.mode({ players = 2 }))
     assert.are.equal("Black stone dragon, 2 players", mode.name)
     assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", mode.kc)
     assert.are.near(1 / 166, luck.ItemChances(mode.rolls)[43393], 1e-12)
-end)
-
-it("mixes the Dragonkin Laboratory's group rates by the player's pick", function()
-    local boss = require("src/bosses/dragonkin")
-    local chances = luck.ItemChances(stats.Rolls(boss.modes[6], { group = "duoTrio" }))
-    assert.are.near(1 / 166 / 2 + 1 / 250 / 2, chances[43393], 1e-12)
-    assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", boss.modes[6].kc)
-end)
-
-it("mixes the Corporeal Beast's old and new sigil rates for untracked kills", function()
-    local mode = require("src/bosses/corp").modes[1]
-    -- Half of all kills untracked, half of those before the change: a quarter old.
-    local chances = luck.ItemChances(stats.Rolls(mode, { before = 50, untracked = 0.5 }))
-    assert.are.near(0.25 / 1280 + 0.75 / 1024, chances[13752], 1e-12)
-    assert.are.near(0.25 / 2560 + 0.75 / 1024, chances[13746], 1e-12)
-end)
-
-it("says the Corporeal Beast's pick in the assumptions as one of untracked kills", function()
-    local boss = require("src/bosses/corp")
-    assert.are.equal("Untracked kills prior to July 2026 sigil drop rate change: 70%",
-        choices.Assumptions(boss, { before = 70 })[2])
-end)
-
-it("mixes Raksha's old and new rates for untracked kills, solo and duo alike", function()
-    local boss = require("src/bosses/raksha")
-    -- Half of all kills untracked, all of those before the change: half old.
-    local picks = { before = 100, untracked = 0.5 }
-    for _, mode in ipairs(boss.modes) do
-        local chances = luck.ItemChances(stats.Rolls(mode, picks))
-        assert.are.near(0.5 / 230 + 0.5 / 130, chances[51082], 1e-12)
-        assert.are.near(0.5 / 575 + 0.5 / 325, chances[51086], 1e-12)
-    end
-    assert.are.same({ "Untracked kills prior to July 2025 drop table change: 100%" },
-        choices.Assumptions(boss, { before = 100 }))
 end)
 
 describe("Barrows", function()
@@ -275,23 +240,6 @@ describe("Barrows", function()
         values.killedCount = #originals + (akrisae and 1 or 0) + values.linzaKilled
         return boss.killEvents[1].mode(values)
     end
-
-    it("mixes chests without Boss RNG by the player's shares", function()
-        local chances = luck.ItemChances(stats.Rolls(boss.modes[1], { akrisae = 0, linza = 0, linzaBefore = 0 }))
-        assert.are.near(7 / 102 / 6 / 4, chances[4716], 1e-12) -- six brothers: 7 rolls at 1/102
-        assert.is_nil(chances[21744]) -- no Akrisae
-        assert.is_nil(chances[37449]) -- no Linza
-    end)
-
-    it("rolls Linza at 1/192 for the share of chests before July 2026", function()
-        local function linza(before)
-            local picks = { akrisae = 100, linza = 100, linzaBefore = before }
-            return luck.ItemChances(stats.Rolls(boss.modes[1], picks))[37449]
-        end
-        assert.are.near(1 / 96 / 5, linza(0), 1e-12)
-        assert.are.near(1 / 192 / 5, linza(100), 1e-12)
-        assert.are.near((1 / 192 + 1 / 96) / 2 / 5, linza(50), 1e-12)
-    end)
 
     it("names a tracked chest by the brothers killed, Akrisae from the count", function()
         assert.are.equal("Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza", opened(SIX, true, true))
@@ -319,26 +267,34 @@ describe("Barrows", function()
         assert.is_nil(chances[37449]) -- no Linza
     end)
 
-    it("only assumes old partial chests aren't counted when there are chests without Boss RNG", function()
-        assert.are.equal(3, #choices.Assumptions(boss, { akrisae = 100, linza = 100, linzaBefore = 0 }))
-        local notes = choices.Assumptions(boss, { akrisae = 70, linza = 100, linzaBefore = 0, untrackedKills = 280 })
-        assert.are.equal("Untracked partial chests not counted", notes[1])
-        assert.are.equal("Untracked chests with Akrisae killed: 70%", notes[2])
-        assert.are.equal("Untracked chests prior to July 2026 Linza drop rate change: 0%", notes[4])
-    end)
+end)
+
+it("counts each tracked Amascut enrage kill at the tier of its enrage", function()
+    local boss = require("src/bosses/amascut")
+    local event = boss.killEvents[1]
+    assert.are.equal("BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", event.var)
+    assert.are.equal("Enrage 100%", event.mode({ enrage = 50 }))
+    assert.are.equal("Enrage 500%", event.mode({ enrage = 749 }))
+    assert.are.equal("Enrage 2,000%+", event.mode({ enrage = 4000 }))
+    assert.are.equal("BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", boss.modeFor("Enrage 750%").kc)
 end)
 
 -- Nakatra's rolls, normal then hard mode.
 describe("sanctum's Nakatra", function()
     local modes = require("src/bosses/sanctum").modes
+    local function chances(mode)
+        return luck.ItemChances(stats.Rolls(mode, {}))
+    end
+
     it("has the wiki rates", function()
-        local normal, hard = luck.ItemChances(modes[5].rolls), luck.ItemChances(modes[6].rolls)
+        local normal, hard = chances(modes[5]), chances(modes[6])
         assert.are.near(1 / 250, normal[57124], 1e-12)
         assert.are.near(1 / 150, normal[57162], 1e-12)
         assert.is_nil(normal[57128])
         assert.are.near(1 / 120, hard[57158], 1e-12)
         assert.are.near(1 / 75, hard[57128], 1e-12)
     end)
+
 end)
 
 it("pools the Shard of Genesis Essence between Amascut and the Sanctum", function()

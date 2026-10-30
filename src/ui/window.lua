@@ -1,9 +1,9 @@
--- The Details window, from widest to narrowest: luck over all bosses, then the
--- boss dropdown and a headline for the picked boss (its luck as a sentence and a
--- wide bar, its dry streak, its totals, an average player's and a dropdown for
--- each of its choices), then a table
--- with one row per unique (item, luck, dry). It fits its contents, showing at
--- most MAX_ROWS rows; the rest scroll with the mouse wheel.
+-- The details window, from the top: the boss dropdown and a headline for the
+-- picked boss (its luck as a sentence, a wide bar once there's enough to show
+-- it, its dry streak, its tracked totals, an average player's, the game's
+-- all-time totals and a dropdown for each of its choices), then a table with one
+-- row per unique (item, luck, dry). It fits its contents, showing at most
+-- MAX_ROWS rows; the rest scroll with the mouse wheel.
 
 local choices = require("src/choices")
 local format = require("src/format")
@@ -41,6 +41,7 @@ local DRY_WIDTH = ROW_WIDTH - 8 - DRY_X
 local ROW = Vector4.new(1.0, 1.0, 1.0, 0.06)
 local HEADER = Vector4.new(0.0, 0.0, 0.0, 0.35) -- the band behind the column names
 local ACCENT = Vector4.new(0.85, 0.7, 0.35, 0.8) -- the line beside the headline
+local MUTED = Vector4.new(0.6, 0.6, 0.6, 1.0) -- facts beside the luck: the game's all-time totals
 
 local box = nil -- the window while it's open; destroying it removes its contents
 local position = { x = 200, y = 120 } -- kept while the plugin runs, so it reopens in place
@@ -81,10 +82,10 @@ local function sortedItems(result)
     return rows
 end
 
--- Grey text in SMALL_FONT.
-local function addGreyText(parent, content, x, y, width)
+-- Text in SMALL_FONT and colour, grey by default.
+local function addGreyText(parent, content, x, y, width, colour)
     local text = widgets.AddText(parent, content, x, y, width, widgets.SMALL_FONT)
-    text.colour = widgets.GREY
+    text.colour = colour or widgets.GREY
     return text
 end
 
@@ -103,41 +104,11 @@ local function centerInDropdownRow(text, width)
     text.alignVertical = ui.AlignMode.CENTRE
 end
 
--- One line of luck over every boss with kills. It sits above the dropdown since
--- the dropdown doesn't change it. Returns the y below it.
-local function addOverall(parent, state, y)
-    -- Uniques and an average player's are added up over every boss, so bosses
-    -- with more kills count for more.
-    widgets.AddText(parent, "All bosses combined", PAD, y, 132, widgets.ROW_FONT).colour = widgets.YELLOW
-    local luckX = PAD + 136
-    widgets.AddLuckLine(parent, luckX, y, TABLE_WIDTH - luckX, state.overall)
-    return y + LINE_HEIGHT + 8
-end
-
-local drops = pickers.Drops
-
--- The picked boss's assumptions: its own and its picks (see choices.Assumptions),
--- and for each pooled unique (see stats.Pools) the player's split of untracked
--- drops, or, if not split, that it's left out until it is.
-local function assumptions(state, entry)
-    local notes = choices.Assumptions(entry.boss, entry.picks)
-    for itemID, item in pairs(entry.boss.items) do
-        local pool = state.pools[itemID]
-        if pool and pool.split then
-            local share = pool.split[entry.boss.key]
-            table.insert(notes, "Untracked " .. drops(itemID, item) .. " from this boss: " .. share .. " of " .. pool.untracked)
-        elseif pool and pool.untracked and not pool.received then
-            table.insert(notes, drops(itemID, item) .. " left out until untracked ones are split")
-        end
-    end
-    return notes
-end
-
--- A line per Details dropdown of the picked boss (see pickers.ForDetails): its
+-- A line per dropdown of the picked boss (see pickers.For): its
 -- label, and the dropdown, queued in dropdowns (see window.Draw). A divider sets
 -- them apart from the lines of text above. Returns the y below them.
 local function addPickers(parent, state, y, dropdowns)
-    local list = pickers.ForDetails(state.list[state.selected], state.onChoose)
+    local list = pickers.For(state.list[state.selected], state.onChoose)
     if #list == 0 then
         return y
     end
@@ -157,55 +128,70 @@ local function addPickers(parent, state, y, dropdowns)
     return y
 end
 
+-- Adds lines of grey text at x, y, skipping empty ones, each { text, colour? }.
+-- Returns the y below them.
+local function addLines(parent, lines, x, y, width)
+    for _, line in ipairs(lines) do
+        if line[1] ~= "" then
+            addGreyText(parent, line[1], x, y, width, line[2])
+            y = y + LINE_HEIGHT
+        end
+    end
+    return y
+end
+
 -- The headline for the picked boss, below room left for the boss dropdown: its
--- luck as a sentence with an "i" for its assumptions, a full width bar, then its
--- dry streak, its totals, what an average player would have and its dropdowns.
--- Returns the y below it.
+-- luck as a sentence with an "i" for its assumptions and a full width bar once
+-- luck shows, then its dry streak, tracked totals, what an average player
+-- would have, the game's all-time totals and its dropdowns. Returns the y below it.
 local function addHeadline(parent, state, y, dropdowns)
     local entry = state.list[state.selected]
     local result = entry.stats
     y = y + 34
 
     local headlineY = y
-    widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 30, result)
-    local notes = assumptions(state, entry)
-    -- Where to change picks on the settings page, as the box's footer.
-    local where = pickers.WhereToChange(entry, state.pools)
-    if #notes > 0 or where then
-        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes, where)
+    local notes = choices.Assumptions(entry.boss, entry.picks)
+    if #notes > 0 then
+        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes)
     end
-    y = y + 24
+    y = widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 30, result) + 2
     if result.luck then
         widgets.AddLuckBar(parent, PAD + 8, y, result.luck, TABLE_WIDTH - 8)
         y = y + widgets.BAR_HEIGHT + 6
     end
-    addGreyText(parent, format.Dry(result), PAD + 8, y, TABLE_WIDTH - 8)
-    y = y + LINE_HEIGHT
-    addGreyText(parent, format.Totals(result), PAD + 8, y, TABLE_WIDTH - 8)
-    y = y + LINE_HEIGHT
-    local extra = format.Extra(result)
-    if extra ~= "" then
-        addGreyText(parent, extra, PAD + 8, y, TABLE_WIDTH - 8)
-        y = y + LINE_HEIGHT
+    y = addLines(parent, {
+        { format.Dry(result) },
+        { format.Tracked(result) },
+        { format.Average(result) },
+    }, PAD + 8, y, TABLE_WIDTH - 8)
+    -- The game's totals aren't tracked, so a divider sets them apart.
+    local allTime = format.AllTime(result)
+    if allTime ~= "" then
+        widgets.AddSeparator(parent, PAD + 8, y + 3, TABLE_WIDTH - 8)
+        y = addLines(parent, { { allTime, MUTED } }, PAD + 8, y + 8, TABLE_WIDTH - 8)
     end
-    addGreyText(parent, format.Average(result), PAD + 8, y, TABLE_WIDTH - 8)
-    y = addPickers(parent, state, y + LINE_HEIGHT, dropdowns)
+    y = addPickers(parent, state, y, dropdowns)
     widgets.AddRect(parent, PAD, headlineY, 2, y - headlineY, ACCENT)
     return y + 8
 end
 
--- A row for a unique: a faint background, its slot (dimmed if not received
--- yet), then its name, its luck column (a short luck bar with its group, "top
--- 3%", or its counts, "12 · avg 19.4") and its dry streak, each in its column.
-local function addItemRow(view, row, y, width)
+-- A row for a unique: a faint background, its slot with the game's own count on
+-- it, like the boss log (dimmed until one is tracked), then its name, its luck
+-- column (a short luck bar with its group, "top 3%", once there's enough to show
+-- it, or its tracked counts, "12 · avg 19.4") and its dry streak, each in its
+-- column. Until the boss has tracked kills (tracked false), the luck column says
+-- so and the dry column is left empty.
+local function addItemRow(view, row, y, width, tracked)
     widgets.AddRect(view, 0, y, width, ROW_HEIGHT, ROW)
     local slotY = y + (ROW_HEIGHT - SLOT_SIZE) // 2
     widgets.AddSprite(view, "RS3_INV_ICON_SLOT", SLOT_X, slotY, SLOT_SIZE, SLOT_SIZE)
     local icon = ui.Sprite.new(view)
+    -- Tracked drops only, matching the luck beside it; the game's all-time
+    -- totals are in the headline lines.
     local received = row.item.received
     -- The game only accepts whole numbers here, and saved ids can load back as
     -- decimals (1.0), so convert. With the count as the quantity, the game draws
-    -- its own yellow number on the icon, like the boss log, once one is received.
+    -- its own yellow number on the icon, like the boss log, once one is tracked.
     -- (The optional quantity argument of SetAssociatedObject is rejected in game,
     -- so the quantity is set on its own.)
     icon:SetAssociatedObject(math.tointeger(row.id))
@@ -220,7 +206,10 @@ local function addItemRow(view, row, y, width)
     local nameWidth = LUCK_X - NAME_X - 6
     local name = widgets.Fit(row.name, widgets.ROW_FONT, nameWidth)
     widgets.AddText(view, name, NAME_X, textY, nameWidth, widgets.ROW_FONT)
-    if luckColumn == "totals" then
+    if not tracked then
+        addGreyText(view, "not tracked yet", LUCK_X, textY, DRY_X - LUCK_X)
+        return
+    elseif luckColumn == "totals" then
         widgets.AddText(view, format.CountShort(row.item), LUCK_X, textY, DRY_X - LUCK_X, widgets.SMALL_FONT)
     else
         if row.item.luck then
@@ -271,9 +260,7 @@ function window.Draw(state)
     -- open list comes after everything it covers.
     local dropdowns = {}
 
-    local y = addOverall(box, state, TITLE_HEIGHT + 8)
-    widgets.AddSeparator(box, PAD, y - 4, TABLE_WIDTH)
-    local pickerY = y + 4
+    local pickerY = TITLE_HEIGHT + 8
     table.insert(dropdowns, function() widgets.AddBossPicker(box, state, PAD, pickerY, TABLE_WIDTH) end)
     y = addHeadline(box, state, pickerY, dropdowns)
     widgets.AddSeparator(box, PAD, y, TABLE_WIDTH)
@@ -282,11 +269,13 @@ function window.Draw(state)
     y = headerY + widgets.DROPDOWN_HEIGHT + 3
 
     -- The uniques, in a scrolling view.
-    local rows = sortedItems(state.list[state.selected].stats)
+    local result = state.list[state.selected].stats
+    local tracked = result.kills + result.extraKills > 0
+    local rows = sortedItems(result)
     local viewHeight = rowsHeight(math.min(#rows, MAX_ROWS))
     local view = frame.AddScrollView(box, PAD, y, TABLE_WIDTH, viewHeight, rowsHeight(#rows))
     for i, row in ipairs(rows) do
-        addItemRow(view, row, (i - 1) * ROW_STEP, ROW_WIDTH)
+        addItemRow(view, row, (i - 1) * ROW_STEP, ROW_WIDTH, tracked)
     end
     y = y + viewHeight
 
