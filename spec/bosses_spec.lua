@@ -114,6 +114,9 @@ local CASES = {
     { file = "dragonkin", items = 7, rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
     -- Before the game is read: every kill at today's rates.
     { file = "corp", items = 7, rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 } },
+    -- Solo, then duo: the same rates.
+    { file = "raksha", items = 6, rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
+        hard = { [51082] = 1 / 130, [51094] = 1 / 325 } },
     -- Every unique is 1/640: a 1/320 weapon roll and a 1/128 armor roll.
     { file = "rasial", items = 8,
         rates = { [55480] = 1 / 640, [55482] = 1 / 640, [55488] = 1 / 640, [55496] = 1 / 640 } },
@@ -219,6 +222,18 @@ it("says the Corporeal Beast's pick in full in the assumptions, with the kills i
         choices.Assumptions(boss, { before = 70 })[2])
     assert.are.equal("Of your 5,000 kills without Boss RNG, share before the July 2026 sigil rate change: 70%",
         choices.Assumptions(boss, { before = 70, untrackedKills = 5000 })[2])
+end)
+
+it("mixes Raksha's old and new rates for untracked kills, solo and duo alike", function()
+    local boss = require("src/bosses/raksha")
+    -- Half of all kills untracked, all of those before the change: half old.
+    local picks = { before = 100, untracked = 0.5 }
+    for _, mode in ipairs(boss.modes) do
+        local chances = luck.ItemChances(stats.Rolls(mode, picks))
+        assert.are.near(0.5 / 230 + 0.5 / 130, chances[51082], 1e-12)
+        assert.are.near(0.5 / 575 + 0.5 / 325, chances[51086], 1e-12)
+    end
+    assert.are.same({ "Kills prior to July 2025 drop table change: 100%" }, choices.Assumptions(boss, { before = 100 }))
 end)
 
 describe("Barrows", function()

@@ -48,7 +48,7 @@ local BOSS_FILES = {
     "araxxi", "barrows", "rots", "solak",
     "croesus", "kerapac", "zuk", -- Elder God Wars Dungeon
     "dragonkin", -- elite dungeons
-    "corp", "rasial",
+    "corp", "raksha", "rasial",
 }
 
 local bosses = {}

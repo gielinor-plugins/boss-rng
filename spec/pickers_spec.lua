@@ -25,6 +25,7 @@ describe("pickers", function()
         assert.are.equal(1, #pickers.ForSettings(entry("amascut", { enrage = 100 }), {}, noop, noop))
         assert.are.equal(0, #pickers.ForDetails(entry("amascut", { enrage = 100 }), noop))
         assert.are.equal(1, #pickers.ForSettings(entry("corp", { before = 100 }), {}, noop, noop))
+        assert.are.equal(1, #pickers.ForSettings(entry("raksha", { before = 0 }), {}, noop, noop))
     end)
 
     it("keeps the other picks in the Details window", function()

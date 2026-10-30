@@ -24,6 +24,22 @@ function common.Percentages(values)
     return options
 end
 
+-- 0% to 100% in steps of 10.
+common.TENTHS = common.Percentages({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 })
+
+-- A choice of the share of untracked kills from before a drop rate change. Boss
+-- RNG came out after these changes, so tracked kills are all after them. Its key
+-- is saved data: "before".
+function common.Before(label, default)
+    return { key = "before", label = label, default = default, options = common.TENTHS, untrackedOnly = true }
+end
+
+-- The share of all kills from before a change, from the Before pick and the
+-- untracked share of kills.
+function common.OldShare(picks)
+    return picks.before / 100 * (picks.untracked or 0)
+end
+
 -- Team options for a choice of who a boss's kills were done with: each option's
 -- label, its note if the label is shortened, and its shares of solo, duo and trio
 -- kills. Mixes are even splits. Values are saved data: never change them.
