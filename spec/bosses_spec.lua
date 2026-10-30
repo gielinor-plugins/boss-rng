@@ -253,10 +253,20 @@ describe("Barrows", function()
     end
 
     it("mixes chests without Boss RNG by the player's shares", function()
-        local chances = luck.ItemChances(stats.Rolls(boss.modes[1], { akrisae = 0, linza = 0 }))
+        local chances = luck.ItemChances(stats.Rolls(boss.modes[1], { akrisae = 0, linza = 0, linzaBefore = 0 }))
         assert.are.near(7 / 102 / 6 / 4, chances[4716], 1e-12) -- six brothers: 7 rolls at 1/102
         assert.is_nil(chances[21744]) -- no Akrisae
         assert.is_nil(chances[37449]) -- no Linza
+    end)
+
+    it("rolls Linza at 1/192 for the share of chests before July 2026", function()
+        local function linza(before)
+            local picks = { akrisae = 100, linza = 100, linzaBefore = before }
+            return luck.ItemChances(stats.Rolls(boss.modes[1], picks))[37449]
+        end
+        assert.are.near(1 / 96 / 5, linza(0), 1e-12)
+        assert.are.near(1 / 192 / 5, linza(100), 1e-12)
+        assert.are.near((1 / 192 + 1 / 96) / 2 / 5, linza(50), 1e-12)
     end)
 
     it("names a tracked chest by the brothers killed, Akrisae from the count", function()
@@ -286,10 +296,11 @@ describe("Barrows", function()
     end)
 
     it("only assumes old partial chests aren't counted when there are chests without Boss RNG", function()
-        assert.are.equal(2, #choices.Assumptions(boss, { akrisae = 100, linza = 100 }))
-        local notes = choices.Assumptions(boss, { akrisae = 70, linza = 100, untrackedKills = 280 })
-        assert.are.equal("Partial chests before Boss RNG not counted (they rarely drop pieces)", notes[1])
+        assert.are.equal(3, #choices.Assumptions(boss, { akrisae = 100, linza = 100, linzaBefore = 0 }))
+        local notes = choices.Assumptions(boss, { akrisae = 70, linza = 100, linzaBefore = 0, untrackedKills = 280 })
+        assert.are.equal("Untracked partial chests not counted", notes[1])
         assert.are.equal("Chests with Akrisae killed: 70%", notes[2])
+        assert.are.equal("Chests prior to July 2026 Linza drop rate change: 0%", notes[4])
     end)
 end)
 

@@ -5,14 +5,14 @@
 -- killed (Linza not counted), a chest makes min(n + 1, 7) rolls, each a
 -- 1/max(450 - 58n, 73) chance of Barrows equipment: one of the killed brothers
 -- evenly, then one of their items evenly. Linza, if killed, adds one roll at
--- 1/96 for one of her five items.
+-- 1/96 for one of her five items (1/192 before 20 July 2026).
 --
 -- Each tracked chest is counted as it's looted, for a mode named by the brothers
 -- killed, so it's exact. The kill count only counts chests with 6 or more
 -- brothers (Akrisae counts, Linza doesn't); partial chests, with fewer, are
 -- outside it. The kill count's chests without Boss RNG use the player's Akrisae
 -- and Linza picks, and their partial chests aren't counted (they rarely drop
--- pieces).
+-- pieces). Tracked chests are all after the Linza change.
 
 local common = require("src/bosses/common")
 
@@ -84,10 +84,10 @@ local function addChest(rolls, brothers, share)
     end
 end
 
--- Adds Linza's roll to rolls, scaled by share.
-local function addLinza(rolls, share)
+-- Adds Linza's roll to rolls, scaled by share, at chance (1/96 by default).
+local function addLinza(rolls, share, chance)
     if share > 0 then
-        table.insert(rolls, { chance = share / 96, items = weights({ LINZA }) })
+        table.insert(rolls, { chance = share * (chance or 1 / 96), items = weights({ LINZA }) })
     end
 end
 
@@ -152,9 +152,8 @@ end
 
 -- The picks for the kill count's chests without Boss RNG. Keys are saved data
 -- keys: never change them.
-local function share(key, label)
-    return { key = key, label = label, default = 100, untrackedOnly = true,
-        options = common.Percentages({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }) }
+local function share(key, label, default)
+    return { key = key, label = label, default = default, untrackedOnly = true, options = common.TENTHS }
 end
 
 -- Every item on the boss log page, with its log count varbit and kind (see
@@ -177,9 +176,14 @@ return {
         if (picks.untrackedKills or 0) == 0 then
             return {}
         end
-        return { "Partial chests before Boss RNG not counted (they rarely drop pieces)" }
+        return { "Untracked partial chests not counted" }
     end,
-    choices = { share("akrisae", "Chests with Akrisae killed"), share("linza", "Chests with Linza killed") },
+    choices = {
+        share("akrisae", "Chests with Akrisae killed", 100),
+        share("linza", "Chests with Linza killed", 100),
+        -- Boss RNG came out after July 2026, so only chests without it can be before it.
+        share("linzaBefore", "Chests prior to July 2026 Linza drop rate change", 0),
+    },
 
     -- Mode names are saved with the player's data: never change them. Normal gets
     -- the kill count's chests without Boss RNG; tracked chests get modes of their
@@ -189,7 +193,8 @@ return {
             local akrisae, rolls = picks.akrisae / 100, {}
             addChest(rolls, WITH_AKRISAE, akrisae)
             addChest(rolls, ORIGINALS, 1 - akrisae)
-            addLinza(rolls, picks.linza / 100)
+            local before = picks.linzaBefore / 100
+            addLinza(rolls, picks.linza / 100, before / 192 + (1 - before) / 96)
             return rolls
         end },
     },

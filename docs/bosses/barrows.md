@@ -25,7 +25,7 @@ With n brothers killed (Linza not counted), the chest makes min(n + 1, 7) rolls.
 Each roll has a 1 in max(450 - 58n, 73) chance of a Barrows piece. A piece comes
 from one of the brothers you killed, picked evenly, then one of their items,
 picked evenly. Linza, if you killed her, adds one roll at 1 in 96 for one of her
-five items.
+five items. Before the 20 July 2026 update, that roll was 1 in 192.
 
 ## What Boss RNG reads
 
@@ -46,13 +46,23 @@ is dead, so Boss RNG doesn't use it.
 
 ## How Boss RNG counts your chests
 
-- **Chests Boss RNG sees:** when you loot, it reads which brothers you killed
+- **Tracked chests:** when you loot, it reads which brothers you killed
   and counts the chest with exactly their drop chances. Partial chests count
   too, and show as their own line ("+ 2 partial chests") next to your kill
   count.
-- **Chests from before Boss RNG:** your kill count can't say which of them had
-  Akrisae or Linza, so you choose those shares on the settings page. Partial
-  chests from back then aren't counted, since they rarely drop pieces.
+- **Untracked chests** (ones Boss RNG didn't record): your kill count can't say
+  which of them had Akrisae or Linza, so you choose those shares on the settings
+  page. You also choose the share from before the July 2026 Linza change (0% by
+  default), so those chests use her old rate. Untracked partial chests aren't
+  counted, since they rarely drop pieces.
+
+## Dry streaks
+
+A chest can only give pieces from brothers you killed that run. So an item's
+dry count only counts chests where that brother was killed. For example, if you
+got Ahrim's robe top and then looted two chests without Ahrim, the robe top
+still shows 0 dry: neither chest could have given it. The headline's dry streak
+counts every chest since your last unique.
 
 ## Not counted
 

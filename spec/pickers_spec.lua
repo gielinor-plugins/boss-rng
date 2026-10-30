@@ -10,8 +10,8 @@ local function noop() end
 
 describe("pickers", function()
     it("puts picks of kills without Boss RNG on the settings page", function()
-        local barrows = entry("barrows", { akrisae = 100, linza = 100 })
-        assert.are.equal(2, #pickers.ForSettings(barrows, {}, noop, noop))
+        local barrows = entry("barrows", { akrisae = 100, linza = 100, linzaBefore = 0 })
+        assert.are.equal(3, #pickers.ForSettings(barrows, {}, noop, noop))
         assert.are.equal(0, #pickers.ForDetails(barrows, noop))
     end)
 
@@ -39,7 +39,7 @@ describe("pickers", function()
 
     it("saves a pick through onChoose", function()
         local saved = nil
-        local barrows = entry("barrows", { akrisae = 100, linza = 100 })
+        local barrows = entry("barrows", { akrisae = 100, linza = 100, linzaBefore = 0 })
         pickers.ForSettings(barrows, {}, function(boss, choice, value)
             saved = { boss.key, choice.key, value }
         end, noop)[1].onPick(70)
@@ -48,7 +48,7 @@ describe("pickers", function()
 
     it("says where to change settings page picks", function()
         assert.are.equal("Change these in Plugin Hub > Manage > Boss RNG settings",
-            pickers.WhereToChange(entry("barrows", { akrisae = 100, linza = 100 }), {}))
+            pickers.WhereToChange(entry("barrows", { akrisae = 100, linza = 100, linzaBefore = 0 }), {}))
     end)
 
     describe("splits of pooled uniques", function()
