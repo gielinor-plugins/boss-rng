@@ -6,9 +6,10 @@
 -- A boss file can declare choices (see src/bosses/amascut.lua), each with:
 --   key      saved data key: never change it
 --   label    shown before its dropdown, and with the pick in the assumptions
---   note     optional: said in the assumptions instead of the label, when the
---            label is shortened to fit beside its dropdown; text, or a function
---            of the picks (see src/bosses.lua) giving it
+--            ("Untracked " and the label, for untrackedOnly: start it with a
+--            plain word, "Chests with Akrisae killed")
+--   note     optional: said in the assumptions instead, when that doesn't read
+--            well ("Average enrage of untracked kills")
 --   default  the value until the player picks one
 --   options  { { value = 100, label = "100%" }, ... }, in the order to list them;
 --            an option can add a note, saying it in full in the assumptions when
@@ -71,8 +72,18 @@ function choices.For(boss)
     return values
 end
 
+-- How a choice is said in the assumptions: its note, or for a pick of untracked
+-- kills "Untracked chests with Akrisae killed", so it doesn't read as all kills.
+local function assumptionOf(choice)
+    if choice.note then
+        return choice.note
+    end
+    return choice.untrackedOnly and "Untracked " .. choice.label:sub(1, 1):lower() .. choice.label:sub(2)
+        or choice.label
+end
+
 -- A boss's assumptions for these picks: its own (a list, or a function of the
--- picks), then each choice's pick ("Enrage of kills without Boss RNG: 500%").
+-- picks), then each choice's pick ("Untracked chests with Akrisae killed: 70%").
 function choices.Assumptions(boss, picks)
     local notes = {}
     local own = boss.assumptions
@@ -81,8 +92,7 @@ function choices.Assumptions(boss, picks)
     end
     for _, choice in ipairs(boss.choices or {}) do
         local option = choices.Option(choice, picks[choice.key])
-        local note = type(choice.note) == "function" and choice.note(picks) or choice.note or choice.label
-        table.insert(notes, note .. ": " .. (option.note or option.label))
+        table.insert(notes, assumptionOf(choice) .. ": " .. (option.note or option.label))
     end
     return notes
 end

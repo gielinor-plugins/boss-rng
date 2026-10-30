@@ -117,23 +117,18 @@ end
 local drops = pickers.Drops
 
 -- The picked boss's assumptions: its own and its picks (see choices.Assumptions),
--- for each pooled unique (see stats.Pools) the player's split of untracked
--- drops, or, if not split, that it's left out until it is, and where to change
--- picks that are on the settings page.
+-- and for each pooled unique (see stats.Pools) the player's split of untracked
+-- drops, or, if not split, that it's left out until it is.
 local function assumptions(state, entry)
     local notes = choices.Assumptions(entry.boss, entry.picks)
     for itemID, item in pairs(entry.boss.items) do
         local pool = state.pools[itemID]
         if pool and pool.split then
             local share = pool.split[entry.boss.key]
-            table.insert(notes, drops(itemID, item) .. " without Boss RNG from this boss: " .. share .. " of " .. pool.untracked)
+            table.insert(notes, "Untracked " .. drops(itemID, item) .. " from this boss: " .. share .. " of " .. pool.untracked)
         elseif pool and pool.untracked and not pool.received then
-            table.insert(notes, drops(itemID, item) .. " left out until those without Boss RNG are split")
+            table.insert(notes, drops(itemID, item) .. " left out until untracked ones are split")
         end
-    end
-    local where = pickers.WhereToChange(entry, state.pools)
-    if where then
-        table.insert(notes, where)
     end
     return notes
 end
@@ -174,8 +169,10 @@ local function addHeadline(parent, state, y, dropdowns)
     local headlineY = y
     widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 30, result)
     local notes = assumptions(state, entry)
-    if #notes > 0 then
-        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes)
+    -- Where to change picks on the settings page, as the box's footer.
+    local where = pickers.WhereToChange(entry, state.pools)
+    if #notes > 0 or where then
+        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes, where)
     end
     y = y + 24
     if result.luck then

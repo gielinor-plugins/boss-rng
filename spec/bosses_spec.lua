@@ -216,12 +216,10 @@ it("mixes the Corporeal Beast's old and new sigil rates for untracked kills", fu
     assert.are.near(0.25 / 2560 + 0.75 / 1024, chances[13746], 1e-12)
 end)
 
-it("says the Corporeal Beast's pick in full in the assumptions, with the kills it's for", function()
+it("says the Corporeal Beast's pick in the assumptions as one of untracked kills", function()
     local boss = require("src/bosses/corp")
-    assert.are.equal("Of your kills without Boss RNG, share before the July 2026 sigil rate change: 70%",
+    assert.are.equal("Untracked kills prior to July 2026 sigil drop rate change: 70%",
         choices.Assumptions(boss, { before = 70 })[2])
-    assert.are.equal("Of your 5,000 kills without Boss RNG, share before the July 2026 sigil rate change: 70%",
-        choices.Assumptions(boss, { before = 70, untrackedKills = 5000 })[2])
 end)
 
 it("mixes Raksha's old and new rates for untracked kills, solo and duo alike", function()
@@ -233,7 +231,8 @@ it("mixes Raksha's old and new rates for untracked kills, solo and duo alike", f
         assert.are.near(0.5 / 230 + 0.5 / 130, chances[51082], 1e-12)
         assert.are.near(0.5 / 575 + 0.5 / 325, chances[51086], 1e-12)
     end
-    assert.are.same({ "Kills prior to July 2025 drop table change: 100%" }, choices.Assumptions(boss, { before = 100 }))
+    assert.are.same({ "Untracked kills prior to July 2025 drop table change: 100%" },
+        choices.Assumptions(boss, { before = 100 }))
 end)
 
 describe("Barrows", function()
@@ -299,8 +298,8 @@ describe("Barrows", function()
         assert.are.equal(3, #choices.Assumptions(boss, { akrisae = 100, linza = 100, linzaBefore = 0 }))
         local notes = choices.Assumptions(boss, { akrisae = 70, linza = 100, linzaBefore = 0, untrackedKills = 280 })
         assert.are.equal("Untracked partial chests not counted", notes[1])
-        assert.are.equal("Chests with Akrisae killed: 70%", notes[2])
-        assert.are.equal("Chests prior to July 2026 Linza drop rate change: 0%", notes[4])
+        assert.are.equal("Untracked chests with Akrisae killed: 70%", notes[2])
+        assert.are.equal("Untracked chests prior to July 2026 Linza drop rate change: 0%", notes[4])
     end)
 end)
 

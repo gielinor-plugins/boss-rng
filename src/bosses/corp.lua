@@ -10,25 +10,11 @@
 -- the share that were before it, by month: few players know the date.
 
 local common = require("src/bosses/common")
-local format = require("src/format")
 
 local SPECTRAL, ARCANE, ELYSIAN, DIVINE = 13752, 13746, 13750, 13748
 local ELIXIR = 13754
 
-local BEFORE = {
-    key = "before", -- saved data key: never change it
-    -- Boss RNG came out after July 2026, so only kills without it can be before it.
-    label = "Kills prior to July 2026 sigil drop rate change",
-    note = function(picks)
-        local kills = picks.untrackedKills
-        local which = kills and ("Of your " .. format.Number(kills) .. (kills == 1 and " kill" or " kills"))
-            or "Of your kills"
-        return which .. " without Boss RNG, share before the July 2026 sigil rate change"
-    end,
-    default = 100,
-    options = common.Percentages({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }),
-    untrackedOnly = true, -- tracked kills are all after July 2026
-}
+local BEFORE = common.Before("Kills prior to July 2026 sigil drop rate change", 100)
 
 local LOG = "ITEMLOG_ITEM_CORP_"
 
@@ -42,7 +28,7 @@ return {
     -- Mode names are saved with the player's data: never change them.
     modes = {
         { name = "Normal", kc = "BSLAY_KILLS_CORPBEAST", rolls = function(picks)
-            local old = picks.before / 100 * (picks.untracked or 0) -- share of all kills before the change
+            local old = common.OldShare(picks)
             return {
                 { chance = old / 512, items = { [SPECTRAL] = 2, [ARCANE] = 1, [ELYSIAN] = 1, [DIVINE] = 1 } },
                 { chance = (1 - old) / 256, items = common.Even({ SPECTRAL, ARCANE, ELYSIAN, DIVINE }) },

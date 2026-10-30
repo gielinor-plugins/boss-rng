@@ -94,14 +94,14 @@ function pickers.ForDetails(entry, onChoose)
     return list
 end
 
--- The assumptions' last line for a boss with picks on the settings page: where
--- to change them. Nil for a boss without.
+-- The assumptions' footer for a boss with picks on the settings page: what
+-- untracked means, and where to change them. Nil for a boss without.
 function pickers.WhereToChange(entry, pools)
     local function noop() end
     if #pickers.ForSettings(entry, pools, noop, noop) == 0 then
         return nil
     end
-    return "Change these in " .. SETTINGS_PATH
+    return "Untracked: not recorded by the plugin. Change these in " .. SETTINGS_PATH
 end
 
 return pickers

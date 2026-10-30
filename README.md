@@ -27,7 +27,8 @@ Boss RNG only uses information the game has already shown you:
   dry streaks, and which boss a shared drop came from. Changes in the first
   seconds after logging in are ignored, so the login sync isn't mistaken for kills.
 - **Amascut's enrage** for each kill, from the enrage you chose for the instance.
-  For kills without Boss RNG, you pick the enrage in the Details window.
+  For untracked kills (ones Boss RNG didn't record), you pick the enrage on
+  the settings page (Plugin Hub > Manage > Boss RNG settings).
 
 It never reads hidden values such as bad luck mitigation, and it never interacts
 with the game for you.

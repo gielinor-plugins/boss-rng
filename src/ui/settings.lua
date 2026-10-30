@@ -13,7 +13,7 @@ local settings = {}
 local PAD = 10
 local PICKER_WIDTH = 140
 local LINE_HEIGHT = 18 -- between lines of small text
-local INTRO = "Used to calculate luck for untracked kills: those the plugin didn't record."
+local INTRO = "Used to calculate luck for untracked kills: those the plugin didn't record (before install, while disabled, or on another device)."
 local NOTHING = "Nothing to pick yet: bosses you've killed that need a pick show here."
 
 local layer = nil -- the game's settings layer, while the page is open
@@ -93,8 +93,9 @@ function settings.Draw(state)
     content.clickthrough = true
     local width, height = layer.width, layer.height
 
-    addGreyText(content, INTRO, PAD, PAD, width - 2 * PAD)
-    local top = PAD + LINE_HEIGHT + 8
+    local introBottom = widgets.AddWrapped(content, INTRO, PAD, PAD, width - 2 * PAD, widgets.SMALL_FONT,
+        LINE_HEIGHT, widgets.GREY)
+    local top = introBottom + 8
     widgets.AddSeparator(content, PAD, top - 4, width - 2 * PAD)
 
     local list = sections(state)

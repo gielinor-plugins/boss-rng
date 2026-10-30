@@ -21,7 +21,7 @@ describe("pickers", function()
         assert.are.equal("Untracked kills not read yet", pickers.UntrackedKills(entry("corp", {})))
     end)
 
-    it("moves Amascut's enrage and Corp's July 2026 share to the settings page", function()
+    it("moves Amascut's enrage and the rate change shares to the settings page", function()
         assert.are.equal(1, #pickers.ForSettings(entry("amascut", { enrage = 100 }), {}, noop, noop))
         assert.are.equal(0, #pickers.ForDetails(entry("amascut", { enrage = 100 }), noop))
         assert.are.equal(1, #pickers.ForSettings(entry("corp", { before = 100 }), {}, noop, noop))
@@ -47,7 +47,7 @@ describe("pickers", function()
     end)
 
     it("says where to change settings page picks", function()
-        assert.are.equal("Change these in Plugin Hub > Manage > Boss RNG settings",
+        assert.are.equal("Untracked: not recorded by the plugin. Change these in Plugin Hub > Manage > Boss RNG settings",
             pickers.WhereToChange(entry("barrows", { akrisae = 100, linza = 100, linzaBefore = 0 }), {}))
     end)
 

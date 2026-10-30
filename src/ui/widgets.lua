@@ -99,6 +99,16 @@ function widgets.Wrap(content, font, width)
     return lines
 end
 
+-- Adds content wrapped to width at x, y in parent, a line every lineHeight
+-- pixels, in font and colour. Returns the y below it.
+function widgets.AddWrapped(parent, content, x, y, width, font, lineHeight, colour)
+    for _, line in ipairs(widgets.Wrap(content, font, width)) do
+        widgets.AddText(parent, line, x, y, width, font).colour = colour
+        y = y + lineHeight
+    end
+    return y
+end
+
 -- Centers text in its box, across and down.
 function widgets.Center(text)
     text:AlignTo(ui.AlignMode.CENTRE)
