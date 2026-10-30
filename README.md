@@ -6,8 +6,9 @@ shows where you stand, never drop rates.
 
 Luck comes from the kills Boss RNG tracks, from the day you install it: each
 kill at the drop rates of its day, so rate changes never blur your numbers. It
-shows once an average player would have had about one unique; until then, it
-says how many more kills that takes. Your all-time kill counts and boss log
+shows as soon as you get a unique, or once an average player would have had
+about one. Until then, each unique shows how many players would still be dry
+after the same kills. Your all-time kill counts and boss log
 counts are shown next to it, as facts from the game.
 
 Supported bosses:

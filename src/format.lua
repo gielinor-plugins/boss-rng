@@ -60,13 +60,19 @@ function format.Date(day)
 end
 
 -- Luck in a few words, for a column headed "luck": "top 3%", "average",
--- "bottom 12%", "no kills", or "too early" until there are enough to rate it
--- (see stats.MIN_EXPECTED). Luck is the share of players with fewer uniques,
--- so the top group is everyone luckier than that share and the bottom group is
--- that share.
+-- "bottom 12%", "no kills"; or before it's rated (see stats.MIN_EXPECTED), the
+-- share of players who would still be dry, "91% are still dry", or "too early"
+-- when none of the kills could drop it. Luck is the share of players with
+-- fewer uniques, so the top group is everyone luckier than that share and the
+-- bottom group is that share.
 function format.LuckShort(result)
     if result.luck == nil then
-        return result.kills == 0 and "no kills" or "too early"
+        if result.kills == 0 then
+            return "no kills"
+        elseif result.dryShare and result.expected > 0 then
+            return format.Percent(1 - result.dryShare) .. " are still dry"
+        end
+        return "too early"
     elseif result.luck > AVERAGE_HIGH then
         return "top " .. groupPercent(1 - result.luck)
     elseif result.luck < AVERAGE_LOW then
@@ -110,7 +116,8 @@ function format.Dry(result)
         return "unique on your last " .. unit(result)
     end
     local plural = (result.dryKills == 1 and not result.dryAtLeast) and "" or "s"
-    return format.DryCount(result) .. " " .. unit(result) .. plural .. " dry · " .. format.Percent(1 - result.dryShare) .. " go this long"
+    local kills = format.DryCount(result) .. " " .. unit(result) .. plural
+    return kills .. " dry · " .. format.Percent(1 - result.dryShare) .. " go this long"
 end
 
 -- Tracked kills, as count(n, word), with any kills outside the kill count

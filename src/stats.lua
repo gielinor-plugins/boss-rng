@@ -10,8 +10,8 @@ local tracker = require("src/tracker")
 local stats = {}
 
 -- Luck is shown once an average player would have at least this many uniques
--- after the same kills. Before that, any result is a coin flip that reads as
--- precise (one early drop would show as "top 1%").
+-- after the same kills, or from the first unique received. Before either, a
+-- dry streak is normal, so it shows how many players would still be dry.
 stats.MIN_EXPECTED = 1
 
 local NO_RATES = {} -- the rate values of a boss without any
@@ -117,9 +117,13 @@ local function dryShare(modes, rates, byMode, counted)
     return 1 - missAll
 end
 
--- Luck for expected and received uniques, or nil until expected is enough.
+-- Luck for expected and received uniques, or nil until expected reaches
+-- MIN_EXPECTED or a unique is received.
 local function luckOf(expected, received)
-    return expected >= stats.MIN_EXPECTED and luck.Percentile(expected, received) or nil
+    if expected > 0 and (expected >= stats.MIN_EXPECTED or received > 0) then
+        return luck.Percentile(expected, received)
+    end
+    return nil
 end
 
 -- More kills before an average player would have MIN_EXPECTED uniques, given
@@ -134,8 +138,9 @@ end
 
 -- Uniques sharing a group (see src/bosses.lua) become one row, under the group's
 -- lowest item id, with the group: counts add up, and the dry streak is the
--- shortest of its items' (a drop of any of them ends it).
-local function grouped(boss, items)
+-- shortest of its items' (a drop of any of them ends it). shareOf(itemID,
+-- counted) gives the dry share over an item's streak for a set of item ids.
+local function grouped(boss, items, shareOf)
     local members = {} -- [group] = item ids
     for itemID in pairs(items) do
         local group = boss.items[itemID].group
@@ -147,18 +152,21 @@ local function grouped(boss, items)
     for group, ids in pairs(members) do
         table.sort(ids)
         local row = { group = group, expected = 0, received = 0, allTime = 0 }
+        local streak, counted = nil, {} -- the item whose streak is the row's
         for _, itemID in ipairs(ids) do
+            counted[itemID] = true
             local item = items[itemID]
             row.expected = row.expected + item.expected
             row.received = row.received + item.received
             row.allTime = item.allTime and row.allTime and row.allTime + item.allTime
             if row.dryKills == nil or item.dryKills < row.dryKills
                 or (item.dryKills == row.dryKills and not item.dryAtLeast) then
-                row.dryKills, row.dryAtLeast = item.dryKills, item.dryAtLeast
+                row.dryKills, row.dryAtLeast, streak = item.dryKills, item.dryAtLeast, itemID
             end
             items[itemID] = nil
         end
         row.luck = luckOf(row.expected, row.received)
+        row.dryShare = shareOf(streak, counted)
         items[ids[1]] = row
     end
 end
@@ -200,7 +208,7 @@ end
 --   expected     uniques an average player would have after the tracked kills
 --   received     uniques tracked
 --   luck         share of players with fewer uniques, from 0 to 1, or nil until
---                expected reaches MIN_EXPECTED
+--                expected reaches MIN_EXPECTED or a unique is received
 --   killsToLuck  tracked kills until luck shows, while it doesn't
 --   dryKills     tracked kills since the last unique
 --   dryAtLeast   true if the streak may be longer: no unique tracked yet, and
@@ -209,7 +217,8 @@ end
 --   allTime      { kills, received, stacks } from the game, or nil until read
 --   unit         what the boss's kills are ("chest"), or nil for kills
 --   items        { [itemID] = { expected, received, luck, dryKills, dryAtLeast,
---                allTime } } per unique, or per group of uniques (with its group)
+--                dryShare, allTime } } per unique, or per group of uniques (with
+--                its group)
 function stats.ForBoss(entry)
     local boss, tallies, allTime = entry.boss, entry.tallies, entry.allTime
     if tallies == nil then
@@ -242,6 +251,10 @@ function stats.ForBoss(entry)
 
     result.expected, result.received = 0, 0
     local counted = {} -- the uniques in the boss's dry streak
+    -- The dry share over an item's dry streak, for a set of item ids.
+    local function shareOf(itemID, ids)
+        return dryShare(modes, rates, tallies.dry[tostring(itemID)] or {}, ids)
+    end
     for itemID, item in pairs(boss.items) do
         if item.kind == "unique" then
             local key = tostring(itemID)
@@ -253,6 +266,7 @@ function stats.ForBoss(entry)
                 allTime = allTime and not item.stack and allTime.items[key] or nil,
             }
             row.luck = luckOf(row.expected, row.received)
+            row.dryShare = shareOf(itemID, { [itemID] = true })
             result.items[itemID] = row
             result.expected = result.expected + row.expected
             result.received = result.received + row.received
@@ -272,7 +286,7 @@ function stats.ForBoss(entry)
     result.dryKills = tracker.Total(dry)
     result.dryAtLeast = result.received == 0 and mayHaveEarlier
     result.dryShare = dryShare(modes, rates, dry, counted)
-    grouped(boss, result.items)
+    grouped(boss, result.items, shareOf)
     return result
 end
 

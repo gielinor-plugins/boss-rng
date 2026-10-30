@@ -66,12 +66,20 @@ describe("stats.ForBoss", function()
         assert.are.near(luck.Percentile(1, 1), result.items[1].luck, 1e-12)
     end)
 
-    it("shows luck only once an average player would have a unique", function()
-        local result = forBoss(BOSS, tallies({ Normal = 20 }, { ["2"] = 1 })) -- 0.6 expected
+    it("shows luck once an average player would have a unique", function()
+        local result = forBoss(BOSS, tallies({ Normal = 20 })) -- 0.6 expected, none received
         assert.is_nil(result.luck)
         assert.are.equal(14, result.killsToLuck) -- 0.4 more at 0.03 a kill
         assert.is_nil(result.items[2].luck) -- 0.4 expected
+        assert.are.near(luck.DryPercentile(1 / 50, 20), result.items[2].dryShare, 1e-12)
         assert.is_true(forBoss(BOSS, tallies({ Normal = 34 })).luck ~= nil) -- 1.02 expected
+    end)
+
+    it("shows luck from the first unique received, however early", function()
+        local result = forBoss(BOSS, tallies({ Normal = 20 }, { ["2"] = 1 })) -- 0.6 expected
+        assert.are.near(luck.Percentile(0.6, 1), result.luck, 1e-12)
+        assert.are.near(luck.Percentile(0.4, 1), result.items[2].luck, 1e-12)
+        assert.is_nil(result.items[1].luck) -- none of item 1 yet
     end)
 
     it("counts the dry streaks the tracker kept", function()

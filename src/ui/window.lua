@@ -212,11 +212,12 @@ local function addItemRow(view, row, y, width, tracked)
     elseif luckColumn == "totals" then
         widgets.AddText(view, format.CountShort(row.item), LUCK_X, textY, DRY_X - LUCK_X, widgets.SMALL_FONT)
     else
+        local labelX = LUCK_X -- the whole column, until there's a bar
         if row.item.luck then
             local barY = y + (ROW_HEIGHT - widgets.BAR_HEIGHT) // 2
             widgets.AddLuckBar(view, LUCK_X, barY, row.item.luck, ROW_BAR_WIDTH)
+            labelX = LUCK_X + ROW_BAR_WIDTH + 6
         end
-        local labelX = LUCK_X + ROW_BAR_WIDTH + 6
         widgets.AddText(view, format.LuckShort(row.item), labelX, textY, DRY_X - labelX, widgets.SMALL_FONT)
     end
     addDryText(view, format.DryCount(row.item), DRY_X, textY)
