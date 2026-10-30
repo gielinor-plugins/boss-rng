@@ -5,44 +5,24 @@
 -- one table for a dormant anima core piece, its crest or its weapons, every item
 -- at the same rate: 1/256 in normal mode (1/255 at Vindicta) and 1/179 in hard
 -- mode. Only if that misses, a 1/64 (hard mode 1/44) roll for its essence.
--- Jagex's Late-Game Rebalance raises the crests to 1/128.
+-- Jagex's Late-Game Rebalance raises the crests to 1/128 (src/rates/).
 --
 -- The anima core pieces' boss log counts are shared by all four bosses, so they
 -- aren't counted, but they still take up the table's chance. Nothing here can
 -- drop together, so the counted items share one roll, each weighted by its
 -- chance per kill.
 
-local rates = require("src/rates")
-local updates = require("src/updates")
 local common = require("src/bosses/common")
 
 local godwars2 = {}
 
 local ANIMA_PIECES = 3 -- dormant anima core helm, body and legs
 
--- Each mode's rate for every table item, its crest's and its essence roll's.
-local BASE = { normal = 1 / 256, normalEssence = 1 / 64, hard = 1 / 179, hardEssence = 1 / 44 }
-
--- A boss's rate history: BASE with own written over it (Vindicta's normal rate),
--- then the Late-Game Rebalance's crests at 1/128. The post only gives normal
--- mode's; hard mode's is assumed to change the same.
-function godwars2.Rates(own)
-    local before = {}
-    for _, source in ipairs({ BASE, own or {} }) do
-        for key, value in pairs(source) do
-            before[key] = value
-        end
-    end
-    before.normalCrest, before.hardCrest = before.normal, before.hard
-    local after = { since = updates.LATE_GAME_REBALANCE, normalCrest = 1 / 128, hardCrest = 1 / 128 }
-    return rates.History({ before, after })
-end
-
--- The rolls for a mode ("normal" or "hard"), as a function of the rate values:
--- the boss's crest, its weapons and its essence. Nothing here can drop
+-- The rolls for a mode ("normal" or "hard"), as a function of the rate values
+-- (see src/rates/base.lua): the boss's crest, its weapons and its essence. Nothing here can drop
 -- together, so it's one roll; the essence is only rolled if the table misses.
 function godwars2.Rolls(mode, crest, weapons, essence)
-    return function(_, r)
+    return function(r)
         local items = common.Each(weapons, r[mode], { [crest] = r[mode .. "Crest"] })
         local tableChance = items[crest] + r[mode] * (#weapons + ANIMA_PIECES)
         items[essence] = (1 - tableChance) * r[mode .. "Essence"]

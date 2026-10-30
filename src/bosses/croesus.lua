@@ -4,10 +4,8 @@
 -- has a 1/600 chance of a unique, one of nine evenly (1/5,400 each). Rolls go up
 -- with contribution, to 12 at full contribution. Every player gets their own rolls.
 -- Jagex's Late-Game Rebalance raises each roll's weapons, spore sack and
--- scripture to 1/2,500 each and Cryptbloom pieces to 1/3,000 each.
+-- scripture to 1/2,500 each and Cryptbloom pieces to 1/3,000 each (src/rates/).
 
-local rates = require("src/rates")
-local updates = require("src/updates")
 local common = require("src/bosses/common")
 
 local VARS = {
@@ -19,17 +17,12 @@ local HELM, TOP, BOTTOMS, GLOVES, BOOTS = 52250, 52256, 52258, 52252, 52254 -- C
 local SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE = 52244, 52248, 52213, 52345
 local ARMOR = { HELM, TOP, BOTTOMS, GLOVES, BOOTS }
 local OTHERS = { SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE }
-local LOOT_ROLLS = 12 -- at full contribution
 
--- Each item's chance per loot roll, before and after the Late-Game Rebalance.
-local RATES = rates.History({
-    { armor = 1 / 5400, other = 1 / 5400 },
-    { since = updates.LATE_GAME_REBALANCE, armor = 1 / 3000, other = 1 / 2500 },
-})
-
-local function rolls(_, r)
+-- A kill's rolls at rate values r: each item's chance per loot roll (see
+-- src/rates/base.lua).
+local function rolls(r)
     local unique = common.OneOf(common.Each(ARMOR, r.armor, common.Each(OTHERS, r.other)))
-    return common.Repeat({}, LOOT_ROLLS, unique)
+    return common.Repeat({}, r.lootRolls, unique)
 end
 
 return {
@@ -38,7 +31,6 @@ return {
     logPage = "COLLECTION_BOSS_EGWD_BIK_BOSS", -- the boss log page's database row
     -- Kill counts don't say how much a player contributed.
     assumptions = { "Full contribution (12 rolls)" },
-    rates = RATES,
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

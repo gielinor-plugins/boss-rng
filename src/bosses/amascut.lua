@@ -25,29 +25,37 @@ local VARS = {
 local MASK, TOP, BOTTOM, GLOVES, BOOTS = 59344, 59336, 59346, 59342, 59340
 local LIGHT, GUARD, NEXUS = 59350, 59354, 59358
 
--- Each armor piece is 3/4 / 5 = 6/40 of the table, each weapon 1/4 / 2 = 5/40.
-local GEAR = { [MASK] = 6, [TOP] = 6, [BOTTOM] = 6, [GLOVES] = 6, [BOOTS] = 6, [LIGHT] = 5, [GUARD] = 5 }
+local ARMOR, WEAPONS = { MASK, TOP, BOTTOM, GLOVES, BOOTS }, { LIGHT, GUARD }
 
--- The rolls, from 1 in gear for weapons and armor, 1 in nexus for the Nexus and
--- 1 in shard for the Shard (normal mode has no Shard roll).
-local function rolls(gear, nexus, shard)
-    local list = {
-        { chance = 1 / gear, items = GEAR },
-        { chance = 1 / nexus, items = { [NEXUS] = 1 } },
-    }
-    if shard then
-        table.insert(list, { chance = 1 / shard, items = { [common.SHARD] = 1 } })
+-- The gear roll's items, by their share of it: armor's share split over its
+-- pieces, and the rest over the weapons.
+local function gear(r)
+    return common.Each(ARMOR, r.armorShare / #ARMOR, common.Each(WEAPONS, (1 - r.armorShare) / #WEAPONS))
+end
+
+-- The rolls at rate values r (see src/rates/base.lua), by the names of the
+-- rates for weapons and armor, the Nexus and the Shard (normal mode has no
+-- Shard roll).
+local function rolls(gearRate, nexus, shard)
+    return function(r)
+        local list = {
+            { chance = r[gearRate], items = gear(r) },
+            { chance = r[nexus], items = { [NEXUS] = 1 } },
+        }
+        if shard then
+            table.insert(list, { chance = r[shard], items = { [common.SHARD] = 1 } })
+        end
+        return list
     end
-    return list
 end
 
 -- The enrage tiers. Their Nexus and Shard rates are the same.
 local TIERS = {
-    { enrage = 100, label = "100%", gear = 70, nexus = 280 },
-    { enrage = 500, label = "500%", gear = 60, nexus = 240 },
-    { enrage = 750, label = "750%", gear = 50, nexus = 200 },
-    { enrage = 1000, label = "1,000%", gear = 35, nexus = 140 },
-    { enrage = 2000, label = "2,000%+", gear = 25, nexus = 100 },
+    { enrage = 100, label = "100%" },
+    { enrage = 500, label = "500%" },
+    { enrage = 750, label = "750%" },
+    { enrage = 1000, label = "1,000%" },
+    { enrage = 2000, label = "2,000%+" },
 }
 
 -- Each tier's mode, by name. Mode names are saved with the player's data: never
@@ -55,7 +63,8 @@ local TIERS = {
 local TIER_MODES = {}
 for _, tier in ipairs(TIERS) do
     local name = "Enrage " .. tier.label
-    TIER_MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls(tier.gear, tier.nexus, tier.nexus) }
+    local nexus = "nexus" .. tier.enrage -- the Shard's rate too
+    TIER_MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls("gear" .. tier.enrage, nexus, nexus) }
 end
 
 -- The mode name of the tier an enrage falls in: the highest tier at or below it,
@@ -79,7 +88,7 @@ return {
     -- Mode names are saved with the player's data: never change them. The enrage
     -- kill count's mode is counted only through its kill event (a tier's mode).
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = rolls(600, 750) },
+        { name = "Normal", kc = VARS.kc, rolls = rolls("gear", "nexus") },
         { name = "Enrage", kc = VARS.kcEnrage, byEvent = true },
     },
     killEvents = { { var = VARS.kcEnrage, reads = { enrage = VARS.enrage }, mode = function(values)

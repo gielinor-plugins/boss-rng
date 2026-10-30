@@ -5,10 +5,8 @@
 -- crossbow, main-hand or off-hand (1/400 each). Merethiel's stave and the purple
 -- mushroom are 1/500 each, on their own rolls. Every player in the team gets
 -- their own rolls, at the same rates for any team size. Jagex's Late-Game
--- Rebalance raises each crossbow to 1/200.
+-- Rebalance raises each crossbow to 1/200 (src/rates/).
 
-local rates = require("src/rates")
-local updates = require("src/updates")
 local common = require("src/bosses/common")
 
 local VARS = {
@@ -19,13 +17,8 @@ local VARS = {
 local GRIMOIRE, CROSSBOW, OFFHAND = 42785, 42770, 42774
 local STAVE, MUSHROOM = 42767, 42782
 
--- Chances per kill, before and after the Late-Game Rebalance.
-local RATES = rates.History({
-    { grimoire = 1 / 200, crossbow = 1 / 400, stave = 1 / 500, mushroom = 1 / 500 },
-    { since = updates.LATE_GAME_REBALANCE, crossbow = 1 / 200 },
-})
-
-local function rolls(_, r)
+-- A kill's rolls at rate values r (see src/rates/base.lua).
+local function rolls(r)
     return {
         common.OneOf(common.Each({ CROSSBOW, OFFHAND }, r.crossbow, { [GRIMOIRE] = r.grimoire })),
         { chance = r.stave, items = { [STAVE] = 1 } },
@@ -38,7 +31,6 @@ return {
     name = "Solak",
     logPage = "COLLECTION_BOSS_SOLAK", -- the boss log page's database row
     assumptions = {},
-    rates = RATES,
 
     -- Mode names are saved with the player's data: never change them.
     modes = {

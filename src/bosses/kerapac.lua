@@ -26,18 +26,31 @@ local STAFF = { name = "Staff pieces" }
 
 local TEAMS = { "solo", "duo", "trio", "soloDuo", "duoTrio", "mixed" }
 
--- A kill's rolls: a pile's rolls for each of the three piles, scaled to the
--- share of them a player averages for their team (3 solo, 1.5 duo, 1 trio).
-local function piles(pick, pile)
-    local share = common.TeamMix(pick, 3, 1.5, 1) / 3
+-- A kill's rolls at rate values r: a pile's rolls for each loot pile, scaled
+-- to the share of them a player averages for their team (all solo, half in a
+-- duo, a third in a trio).
+local function piles(pick, pile, r)
+    local share = common.TeamMix(pick, 1, 1 / 2, 1 / 3)
     local rolls = {}
     for _, roll in ipairs(pile) do
-        common.Repeat(rolls, 3, { chance = roll.chance * share, items = roll.items })
+        common.Repeat(rolls, r.piles, { chance = roll.chance * share, items = roll.items })
     end
     return rolls
 end
 
 local OTHERS = common.Even({ WRAPS, CODEX, SCRIPTURE })
+
+-- Each mode's pile at rate values r, per loot pile (see src/rates/base.lua).
+local function normalPile(r)
+    return { { chance = r.normal, items = OTHERS } }
+end
+
+local function hardPile(r)
+    return {
+        { chance = r.hardStaff, items = common.Even({ SYMBOL, GEM, SHAFT }) },
+        { chance = (1 - r.hardStaff) * r.hard, items = OTHERS },
+    }
+end
 
 return {
     key = "kerapac", -- saved data key: never change it
@@ -57,14 +70,11 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = function(picks)
-            return piles(picks.normalTeam, { { chance = 1 / 256, items = OTHERS } })
+        { name = "Normal", kc = VARS.kc, rolls = function(r, picks)
+            return piles(picks.normalTeam, normalPile(r), r)
         end },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = function(picks)
-            return piles(picks.hardTeam, {
-                { chance = 1 / 400, items = common.Even({ SYMBOL, GEM, SHAFT }) },
-                { chance = 399 / 400 / 180, items = OTHERS },
-            })
+        { name = "Hard mode", kc = VARS.kcHard, rolls = function(r, picks)
+            return piles(picks.hardTeam, hardPile(r), r)
         end },
     },
 

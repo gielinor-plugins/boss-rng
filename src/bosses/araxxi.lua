@@ -22,19 +22,22 @@ local FANG, EYE, WEB = 31722, 31723, 31724
 local LEGS = { name = "Leg pieces" }
 local ADD_ONS = { name = "Noxious add-ons" }
 
--- A kill's rolls: a leg at 1 in legs, and an add-on at 1 in addOns.
-local function rolls(legs, addOns)
-    return {
-        { chance = 1 / legs, items = common.Even({ LEG_TOP, LEG_MIDDLE, LEG_BOTTOM }) },
-        { chance = 1 / addOns, items = common.Even({ FANG, EYE, WEB }) },
-    }
+-- A kill's rolls for a team ("solo" or "duo") at rate values r (see
+-- src/rates/base.lua): a leg and an add-on.
+local function rolls(team)
+    return function(r)
+        return {
+            { chance = r[team .. "Legs"], items = common.Even({ LEG_TOP, LEG_MIDDLE, LEG_BOTTOM }) },
+            { chance = r[team .. "AddOns"], items = common.Even({ FANG, EYE, WEB }) },
+        }
+    end
 end
 
 -- Tracked kills' modes, by name. Mode names are saved with the player's data:
 -- never change them.
 local TRACKED = {
-    Solo = { name = "Solo", kc = VARS.kc, rolls = rolls(40, 120) },
-    Duo = { name = "Duo", kc = VARS.kc, rolls = rolls(70, 200) },
+    Solo = { name = "Solo", kc = VARS.kc, rolls = rolls("solo") },
+    Duo = { name = "Duo", kc = VARS.kc, rolls = rolls("duo") },
 }
 
 return {

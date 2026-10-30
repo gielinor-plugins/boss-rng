@@ -14,6 +14,15 @@ local VARS = {
 
 local SPECTRAL, ARCANE, ELYSIAN, DIVINE = 13752, 13746, 13750, 13748
 local ELIXIR = 13754
+local SIGILS = common.Even({ SPECTRAL, ARCANE, ELYSIAN, DIVINE })
+
+-- A kill's rolls at rate values r (see src/rates/base.lua).
+local function rolls(r)
+    return {
+        { chance = r.sigil, items = SIGILS },
+        { chance = r.elixir, items = { [ELIXIR] = 1 } },
+    }
+end
 
 return {
     key = "corp", -- saved data key: never change it
@@ -23,10 +32,7 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = {
-            { chance = 1 / 256, items = common.Even({ SPECTRAL, ARCANE, ELYSIAN, DIVINE }) },
-            { chance = 3 / 512, items = { [ELIXIR] = 1 } },
-        } },
+        { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

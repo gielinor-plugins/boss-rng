@@ -39,9 +39,11 @@ return {
     -- counted through its chest opened, not its kill count.
     modes = {
         { name = "Normal", kc = VARS.kc, byEvent = true,
-            rolls = { common.OneOf({ [SPIKE] = 1 / 45, [CODEX] = 1 / 249 }) } },
+            rolls = function(r) return { common.OneOf({ [SPIKE] = r.spike, [CODEX] = r.codex }) } end },
         { name = "Hard mode", kc = VARS.kcHard, byEvent = true,
-            rolls = { common.OneOf({ [SPIKE] = 1 / 15, [CODEX] = 1 / 150, [SCALE] = 1 / 150 }) } },
+            rolls = function(r)
+                return { common.OneOf({ [SPIKE] = r.hardSpike, [CODEX] = r.hardCodex, [SCALE] = r.hardScale }) }
+            end },
     },
     containers = {
         [CHEST] = { mode = "Normal", window = REWARD_WINDOW },

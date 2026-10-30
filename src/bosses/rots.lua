@@ -13,7 +13,12 @@ local VARS = {
 }
 
 local MALEVOLENT, MERCILESS, VENGEFUL = 30014, 30022, 30018 -- magic, melee and ranged
-local ROLLS = { { chance = 1 / 80, items = common.Even({ MALEVOLENT, MERCILESS, VENGEFUL }) } }
+local UNIQUES = common.Even({ MALEVOLENT, MERCILESS, VENGEFUL })
+
+-- A chest's rolls at rate values r (see src/rates/base.lua).
+local function rolls(r)
+    return { { chance = r.table, items = UNIQUES } }
+end
 
 return {
     key = "rots", -- saved data key: never change it
@@ -24,7 +29,7 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = ROLLS },
+        { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

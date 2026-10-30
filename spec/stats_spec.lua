@@ -148,7 +148,7 @@ describe("stats.ForBoss", function()
 
     it("uses rolls that depend on the player's picks", function()
         local boss = { items = { [1] = { kind = "unique" } }, modes = { { name = "Normal", kc = "KC",
-            rolls = function(picks) return { { chance = 1 / picks.rate, items = { [1] = 1 } } } end } } }
+            rolls = function(_, picks) return { { chance = 1 / picks.rate, items = { [1] = 1 } } } end } } }
         assert.are.near(2, forBoss(boss, tallies({ Normal = 100 }), nil, { rate = 50 }).expected, 1e-9)
     end)
 
@@ -175,8 +175,8 @@ describe("stats with rates that changed", function()
     local CHANGE = DAY + 10
     -- Item 1 at 1/10 before CHANGE, 1/5 from it.
     local CHANGED = {
-        rates = rates.History({ { item = 1 / 10 }, { since = CHANGE, item = 1 / 5 } }),
-        modes = { { name = "Normal", kc = "KC", rolls = function(_, r)
+        rates = rates.History({ { values = { item = 1 / 10 } }, { since = CHANGE, values = { item = 1 / 5 } } }),
+        modes = { { name = "Normal", kc = "KC", rolls = function(r)
             return { { chance = r.item, items = { [1] = 1 } } }
         end } },
         items = { [1] = { kind = "unique" } },

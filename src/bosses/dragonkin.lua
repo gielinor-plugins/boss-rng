@@ -14,11 +14,14 @@ local VARS = {
 
 local FLURRY, FURY, BARGE = 43391, 43389, 43393
 
--- A codex roll at 1/83 solo, 1/166 duo or 1/250 trio, by players at the kill.
-local CHANCES = { 1 / 83, 1 / 166, 1 / 250 }
+-- The codex's rate names by players at the kill (see src/rates/base.lua).
+local TEAMS = { "solo", "duo", "trio" }
 
-local function codex(chance, item)
-    return { { chance = chance, items = { [item] = 1 } } }
+-- A kill's codex roll at rate values r, for its team's rate name.
+local function codex(team, item)
+    return function(r)
+        return { { chance = r[team], items = { [item] = 1 } } }
+    end
 end
 
 -- Tracked group kills' modes, by name ("Astellarn, 2 players"). Mode names are
@@ -31,7 +34,7 @@ local function playersMode(name, players)
     if players < 1 then
         return nil
     end
-    players = math.min(players, #CHANCES)
+    players = math.min(players, #TEAMS)
     return name .. ", " .. players .. (players == 1 and " player" or " players")
 end
 
@@ -40,11 +43,11 @@ local modes, killEvents = {}, {}
 -- Adds a boss's solo and group modes, for its number and codex.
 local function boss(name, number, item)
     local kc = VARS.kc .. number
-    table.insert(modes, { name = name .. ", solo", kc = kc .. "_SOLO", rolls = codex(CHANCES[1], item) })
+    table.insert(modes, { name = name .. ", solo", kc = kc .. "_SOLO", rolls = codex(TEAMS[1], item) })
     table.insert(modes, { name = name .. ", group", kc = kc, byEvent = true })
-    for players, chance in ipairs(CHANCES) do
+    for players, team in ipairs(TEAMS) do
         local modeName = playersMode(name, players)
-        tracked[modeName] = { name = modeName, kc = kc, rolls = codex(chance, item) }
+        tracked[modeName] = { name = modeName, kc = kc, rolls = codex(team, item) }
     end
     table.insert(killEvents, { var = kc, reads = { players = VARS.players }, mode = function(values)
         return playersMode(name, values.players)

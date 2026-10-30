@@ -44,6 +44,23 @@ local function unclear(picks)
     return fewest < most and picks.stones < picks.normalKills + picks.hardKills
 end
 
+-- The codex and the scripture, each on its own roll at chance.
+local function books(chance)
+    return { { chance = chance, items = { [CODEX] = 1 } }, { chance = chance, items = { [SCRIPTURE] = 1 } } }
+end
+
+-- A hard mode kill's rolls at rate values r (see src/rates/base.lua): a sword
+-- piece, at the share of runs without checkpoints read from the picks, then the books.
+local function hardRolls(r, picks)
+    local share = noCheckpointShare(picks)
+    local rolls = books(r.hard)
+    table.insert(rolls, 1, {
+        chance = share * r.swordNoCheckpoints + (1 - share) * r.sword,
+        items = common.Even({ BLADE, CORE, HILT }),
+    })
+    return rolls
+end
+
 return {
     key = "zuk", -- saved data key: never change it
     name = "TzKal-Zuk",
@@ -53,19 +70,7 @@ return {
         return unclear(picks) and { "Checkpoints used as often in both modes" } or {}
     end,
 
-    -- Mode names are saved with the player's data: never change them.
-    modes = {
-        { name = "Normal", kc = VARS.kc,
-            rolls = { { chance = 1 / 100, items = { [CODEX] = 1 } }, { chance = 1 / 100, items = { [SCRIPTURE] = 1 } } } },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = function(picks)
-            local share = noCheckpointShare(picks)
-            return {
-                { chance = share / 27 + (1 - share) / 30, items = common.Even({ BLADE, CORE, HILT }) },
-                { chance = 1 / 50, items = { [CODEX] = 1 } },
-                { chance = 1 / 50, items = { [SCRIPTURE] = 1 } },
-            }
-        end },
-    },
+    modes = common.Modes(VARS, function(r) return books(r.normal) end, hardRolls),
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).

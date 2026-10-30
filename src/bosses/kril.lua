@@ -19,12 +19,8 @@ local HOOD, GARB, GOWN, GLOVES, BOOTS, WARD = 24992, 24995, 24998, 25007, 25004,
 local SPEAR, STAFF, HILT = 11716, 11736, 11708
 
 local ARMOR = { HOOD, GARB, GOWN, GLOVES, BOOTS, WARD }
--- Chances per kill, before and after the Late-Game Rebalance.
-local RATES = godwars.Rates(
-    { armor = 1 / 512, spear = 1 / 512, staff = 1 / 512 },
-    { armor = 1 / 320, spear = 1 / 384, staff = 1 / 64 })
-
-local function rolls(_, r)
+-- A kill's rolls at rate values r (see src/rates/base.lua).
+local function rolls(r)
     return godwars.Rolls(common.Each(ARMOR, r.armor, { [SPEAR] = r.spear, [STAFF] = r.staff }), HILT, r)
 end
 
@@ -33,13 +29,8 @@ return {
     name = "K'ril Tsutsaroth",
     logPage = "COLLECTION_BOSS_KRIL", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
-    rates = RATES,
 
-    -- Mode names are saved with the player's data: never change them.
-    modes = {
-        { name = "Normal", kc = VARS.kc, rolls = rolls },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = rolls },
-    },
+    modes = common.Modes(VARS, rolls),
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).

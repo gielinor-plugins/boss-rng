@@ -4,6 +4,7 @@
 -- Plain Lua, so it can be tested offline.
 
 local luck = require("src/luck")
+local rates = require("src/rates")
 local tracker = require("src/tracker")
 
 local stats = {}
@@ -13,15 +14,22 @@ local stats = {}
 -- precise (one early drop would show as "top 1%").
 stats.MIN_EXPECTED = 1
 
-local NO_RATES = {} -- the rate values of a boss without a history
+local NO_RATES = {} -- the rate values of a boss without any
+
+-- A boss's rate values on a day (see src/rates.lua): from boss.rates, a test
+-- boss's own history, or its key's.
+local function valuesOn(boss, day)
+    local history = boss.rates or rates.For(boss.key)
+    return history and history:On(day) or NO_RATES
+end
 
 -- A boss's mode's rolls on a day (nil or 0: today's), for the player's picks:
--- a table, or a function of the picks and the boss's rate values that day (see
--- src/rates.lua). None for a mode counted only through its kill events.
+-- a table, or a function of the boss's rate values that day and the picks.
+-- None for a mode counted only through its kill events.
 function stats.Rolls(boss, mode, picks, day)
     local rolls = mode.rolls or {}
     if type(rolls) == "function" then
-        return rolls(picks, boss.rates and boss.rates:On(day) or NO_RATES)
+        return rolls(valuesOn(boss, day), picks)
     end
     return rolls
 end
@@ -34,7 +42,7 @@ local function ratesTable(boss, picks)
     local lookup = {}
     -- The cache for a mode on a day: one per rate version.
     local function cache(store, mode, day)
-        local version = boss.rates and boss.rates:On(day) or NO_RATES
+        local version = valuesOn(boss, day)
         store[mode] = store[mode] or {}
         return store[mode], version
     end

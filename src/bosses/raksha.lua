@@ -6,6 +6,8 @@
 -- each other unique 2 (1/325). These rates date from 14 July 2025, before Boss
 -- RNG came out.
 
+local common = require("src/bosses/common")
+
 local VARS = {
     kc = "BSLAY_KILLS_DINO_BOSS_", -- by team size: SOLO or DUO
     log = "ITEMLOG_ITEM_", -- then each unique's log count name
@@ -13,7 +15,12 @@ local VARS = {
 
 local BOOTS, SPIKE = 51082, 51086
 local RICOCHET, CHAIN, DIVERT = 51094, 51096, 51098
-local ROLLS = { { chance = 1 / 50, items = { [BOOTS] = 5, [SPIKE] = 2, [RICOCHET] = 2, [CHAIN] = 2, [DIVERT] = 2 } } }
+local OTHERS = { SPIKE, RICOCHET, CHAIN, DIVERT }
+
+-- A kill's rolls at rate values r (see src/rates/base.lua): one table roll.
+local function rolls(r)
+    return { common.OneOf(common.Each(OTHERS, r.other, { [BOOTS] = r.boots })) }
+end
 
 return {
     key = "raksha", -- saved data key: never change it
@@ -23,8 +30,8 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Solo", kc = VARS.kc .. "SOLO", rolls = ROLLS },
-        { name = "Duo", kc = VARS.kc .. "DUO", rolls = ROLLS },
+        { name = "Solo", kc = VARS.kc .. "SOLO", rolls = rolls },
+        { name = "Duo", kc = VARS.kc .. "DUO", rolls = rolls },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

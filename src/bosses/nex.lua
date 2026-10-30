@@ -17,17 +17,17 @@ local PERNIX_COWL, PERNIX_BODY, PERNIX_CHAPS, PERNIX_GLOVES, PERNIX_BOOTS = 2014
 local VIRTUS_MASK, VIRTUS_TOP, VIRTUS_LEGS, VIRTUS_GLOVES, VIRTUS_BOOTS = 20159, 20163, 20167, 25062, 25066
 local VIRTUS_BOOK, VIRTUS_WAND, ZARYTE_BOW = 25664, 25654, 20171
 
-local ROLLS = {
-    {
-        chance = 6 / 128,
-        items = common.Even({
-            TORVA_HELM, TORVA_BODY, TORVA_LEGS, TORVA_GLOVES, TORVA_BOOTS,
-            PERNIX_COWL, PERNIX_BODY, PERNIX_CHAPS, PERNIX_GLOVES, PERNIX_BOOTS,
-            VIRTUS_MASK, VIRTUS_TOP, VIRTUS_LEGS, VIRTUS_GLOVES, VIRTUS_BOOTS,
-            VIRTUS_BOOK, VIRTUS_WAND, ZARYTE_BOW,
-        }),
-    },
-}
+local UNIQUES = common.Even({
+    TORVA_HELM, TORVA_BODY, TORVA_LEGS, TORVA_GLOVES, TORVA_BOOTS,
+    PERNIX_COWL, PERNIX_BODY, PERNIX_CHAPS, PERNIX_GLOVES, PERNIX_BOOTS,
+    VIRTUS_MASK, VIRTUS_TOP, VIRTUS_LEGS, VIRTUS_GLOVES, VIRTUS_BOOTS,
+    VIRTUS_BOOK, VIRTUS_WAND, ZARYTE_BOW,
+})
+
+-- A kill's rolls at rate values r (see src/rates/base.lua).
+local function rolls(r)
+    return { { chance = r.table, items = UNIQUES } }
+end
 
 return {
     key = "nex", -- saved data key: never change it
@@ -37,7 +37,7 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = ROLLS },
+        { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

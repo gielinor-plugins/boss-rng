@@ -18,22 +18,22 @@ local VARS = {
 
 local CODEX, SCRIPTURE, ROAR, ODE = 57156, 57124, 57162, 57158
 
--- Each table's rate as 1 in a number, by mode.
-local NORMAL = { books = 125, weapons = 75 }
-local HARD = { books = 100, weapons = 60, shard = 75 }
-
--- A boss's rolls for a mode's rates: a book, then for Nakatra a weapon and, in
--- hard mode, the Shard.
-local function rolls(rates, nakatra)
-    local list = { { chance = 1 / rates.books, items = common.Even({ CODEX, SCRIPTURE }) } }
-    if nakatra then
-        table.insert(list, { chance = 1 / rates.weapons, items = common.Even({ ROAR, ODE }) })
+-- A boss's rolls at rate values r (see src/rates/base.lua), by the names of
+-- its rates: a book, then for Nakatra a weapon and, in hard mode, the Shard.
+local function rolls(books, weapons, shard)
+    return function(r)
+        local list = { { chance = r[books], items = common.Even({ CODEX, SCRIPTURE }) } }
+        if weapons then
+            table.insert(list, { chance = r[weapons], items = common.Even({ ROAR, ODE }) })
+        end
+        if shard then
+            table.insert(list, { chance = r[shard], items = { [common.SHARD] = 1 } })
+        end
+        return list
     end
-    if nakatra and rates.shard then
-        table.insert(list, { chance = 1 / rates.shard, items = { [common.SHARD] = 1 } })
-    end
-    return list
 end
+
+local BOOKS, HARD_BOOKS = rolls("books"), rolls("hardBooks")
 
 return {
     key = "sanctum", -- saved data key: never change it
@@ -43,12 +43,13 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Vermyx", kc = VARS.kc .. "WYRM_BOSS", rolls = rolls(NORMAL) },
-        { name = "Vermyx hard mode", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = rolls(HARD) },
-        { name = "Kezalam", kc = VARS.kc .. "BEAST_BOSS", rolls = rolls(NORMAL) },
-        { name = "Kezalam hard mode", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = rolls(HARD) },
-        { name = "Nakatra", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls(NORMAL, true) },
-        { name = "Nakatra hard mode", kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE", rolls = rolls(HARD, true) },
+        { name = "Vermyx", kc = VARS.kc .. "WYRM_BOSS", rolls = BOOKS },
+        { name = "Vermyx hard mode", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = HARD_BOOKS },
+        { name = "Kezalam", kc = VARS.kc .. "BEAST_BOSS", rolls = BOOKS },
+        { name = "Kezalam hard mode", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = HARD_BOOKS },
+        { name = "Nakatra", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls("books", "weapons") },
+        { name = "Nakatra hard mode", kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE",
+            rolls = rolls("hardBooks", "hardWeapons", "hardShard") },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

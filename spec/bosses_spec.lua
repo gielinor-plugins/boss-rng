@@ -4,10 +4,9 @@ local bosses = require("src/bosses")
 local choices = require("src/choices")
 local luck = require("src/luck")
 local stats = require("src/stats")
-local updates = require("src/updates")
 
 -- A day before the Late-Game Rebalance (30 Oct 2026), and the day it went live.
-local BEFORE, AFTER = 20756, updates.LATE_GAME_REBALANCE
+local BEFORE, AFTER = 20756, require("src/rates/late_game_rebalance").day
 
 -- Each of a boss's choices at its default: { [choice key] = value }.
 local function defaults(boss)
@@ -201,9 +200,9 @@ it("counts each tracked Araxxi kill as solo or duo by the duo flag", function()
     assert.are.equal("BSLAY_KILLS_ARAXXI", event.var)
     assert.are.equal("Solo", event.mode({ duo = 0 }))
     assert.are.equal("Duo", event.mode({ duo = 1 }))
-    local duo = luck.ItemChances(boss.modeFor("Duo").rolls)
+    local duo = luck.ItemChances(stats.Rolls(boss, boss.modeFor("Duo"), {}))
     assert.are.near(1 / 70 / 3, duo[31718], 1e-12)
-    assert.are.near(1 / 120 / 3, luck.ItemChances(boss.modeFor("Solo").rolls)[31722], 1e-12)
+    assert.are.near(1 / 120 / 3, luck.ItemChances(stats.Rolls(boss, boss.modeFor("Solo"), {}))[31722], 1e-12)
     assert.are.equal("BSLAY_KILLS_ARAXXI", boss.modeFor("Duo").kc)
 end)
 
@@ -256,7 +255,7 @@ it("counts each tracked Dragonkin Laboratory group kill by the players at the ki
     local mode = boss.modeFor(event.mode({ players = 2 }))
     assert.are.equal("Black stone dragon, 2 players", mode.name)
     assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", mode.kc)
-    assert.are.near(1 / 166, luck.ItemChances(mode.rolls)[43393], 1e-12)
+    assert.are.near(1 / 166, luck.ItemChances(stats.Rolls(boss, mode, {}))[43393], 1e-12)
 end)
 
 describe("Barrows", function()

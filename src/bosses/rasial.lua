@@ -14,6 +14,16 @@ local VARS = {
 
 local GUARD, LANTERN = 55480, 55482
 local CROWN, TOP, BOTTOM, HANDS, FEET = 55488, 55490, 55492, 55494, 55496
+local WEAPONS = common.Even({ GUARD, LANTERN })
+local ARMOR = common.Even({ CROWN, TOP, BOTTOM, HANDS, FEET })
+
+-- A kill's rolls at rate values r (see src/rates/base.lua).
+local function rolls(r)
+    return {
+        { chance = r.weapon, items = WEAPONS },
+        { chance = r.armor, items = ARMOR },
+    }
+end
 
 return {
     key = "rasial", -- saved data key: never change it
@@ -23,10 +33,7 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = {
-            { chance = 1 / 320, items = common.Even({ GUARD, LANTERN }) },
-            { chance = 1 / 128, items = common.Even({ CROWN, TOP, BOTTOM, HANDS, FEET }) },
-        } },
+        { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

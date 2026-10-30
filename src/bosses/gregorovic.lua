@@ -11,20 +11,15 @@ local VARS = {
 
 local CREST, GLAIVE, OFFHAND_GLAIVE, ESSENCE = 37021, 37075, 37080, 37031
 local WEAPONS = { GLAIVE, OFFHAND_GLAIVE }
-local RATES = godwars2.Rates()
 
 return {
     key = "gregorovic", -- saved data key: never change it
     name = "Gregorovic",
     logPage = "COLLECTION_BOSS_SLISKE", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
-    rates = RATES,
 
-    -- Mode names are saved with the player's data: never change them.
-    modes = {
-        { name = "Normal", kc = VARS.kc, rolls = godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE) },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE) },
-    },
+    modes = common.Modes(VARS, godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),
+        godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)),
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).

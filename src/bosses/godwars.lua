@@ -9,19 +9,9 @@
 -- Jagex's Late-Game Rebalance raises armor (shields included) to 1/320, the
 -- hilts to 1/384 and some weapons; a kill still gives at most one.
 
-local rates = require("src/rates")
-local updates = require("src/updates")
 local common = require("src/bosses/common")
 
 local godwars = {}
-
--- A general's rate history from before, its own items' chances per kill by
--- name, and after, the ones the Late-Game Rebalance changed. The hilt is shared.
-function godwars.Rates(before, after)
-    before.hilt = (1 - 1 / 64) / 512
-    after.hilt, after.since = 1 / 384, updates.LATE_GAME_REBALANCE
-    return rates.History({ before, after })
-end
 
 -- A general's rolls: chances, its items' chances per kill, { [item id] = chance },
 -- with its hilt's from r, its rate values. One roll, since a kill gives at most one.

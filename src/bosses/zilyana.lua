@@ -17,10 +17,8 @@ local WHISPER, HISS, MURMUR, HUM, HILT = 25028, 25031, 25034, 61117, 11706
 
 local OTHERS = { SWORD, WHISPER, HISS, MURMUR }
 local CROSSBOWS = { CROSSBOW, OFFHAND_CROSSBOW }
--- Chances per kill, before and after the Late-Game Rebalance.
-local RATES = godwars.Rates({ other = 1 / 320, crossbow = 1 / 640 }, { crossbow = 1 / 320 })
-
-local function rolls(_, r)
+-- A kill's rolls at rate values r (see src/rates/base.lua).
+local function rolls(r)
     return godwars.Rolls(common.Each(CROSSBOWS, r.crossbow, common.Each(OTHERS, r.other)), HILT, r)
 end
 
@@ -29,13 +27,8 @@ return {
     name = "Commander Zilyana",
     logPage = "COLLECTION_BOSS_ZILYANA", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
-    rates = RATES,
 
-    -- Mode names are saved with the player's data: never change them.
-    modes = {
-        { name = "Normal", kc = VARS.kc, rolls = rolls },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = rolls },
-    },
+    modes = common.Modes(VARS, rolls),
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).

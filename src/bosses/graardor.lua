@@ -14,10 +14,8 @@ local HELMET, CHESTPLATE, TASSETS = 25022, 11724, 11726
 local GLOVES, BOOTS, WARSHIELD, HILT = 25025, 11728, 25019, 11704
 
 local ARMOR = { HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }
--- Chances per kill, before and after the Late-Game Rebalance.
-local RATES = godwars.Rates({ armor = 1 / 384 }, { armor = 1 / 320 })
-
-local function rolls(_, r)
+-- A kill's rolls at rate values r (see src/rates/base.lua).
+local function rolls(r)
     return godwars.Rolls(common.Each(ARMOR, r.armor), HILT, r)
 end
 
@@ -26,13 +24,8 @@ return {
     name = "General Graardor",
     logPage = "COLLECTION_BOSS_GRAARDOR", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
-    rates = RATES,
 
-    -- Mode names are saved with the player's data: never change them.
-    modes = {
-        { name = "Normal", kc = VARS.kc, rolls = rolls },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = rolls },
-    },
+    modes = common.Modes(VARS, rolls),
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).

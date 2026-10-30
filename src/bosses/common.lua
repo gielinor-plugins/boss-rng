@@ -54,6 +54,15 @@ function common.Repeat(rolls, n, roll)
     return rolls
 end
 
+-- A boss's normal and hard mode, by vars.kc and vars.kcHard, with their rolls
+-- (hard defaults to normal's). Mode names are saved data: never change them.
+function common.Modes(vars, normal, hard)
+    return {
+        { name = "Normal", kc = vars.kc, rolls = normal },
+        { name = "Hard mode", kc = vars.kcHard, rolls = hard or normal },
+    }
+end
+
 -- Each of ids at chance, { [item id] = chance }, added to into if given.
 function common.Each(ids, chance, into)
     local chances = into or {}
