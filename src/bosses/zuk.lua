@@ -11,13 +11,17 @@
 
 local common = require("src/bosses/common")
 
+local VARS = {
+    kc = "BSLAY_KILLS_EGWD_FUL_BOSS",
+    kcHard = "BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE",
+    log = "ITEMLOG_ITEM_EGWD_FUL_", -- each item's log count (TzKal-Zuk's internal name is Ful)
+    codex = "ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_MAGMA_TEMPEST",
+    stones = "ITEMLOG_ITEM_EGWD_FUL_BOSS_INFERNAL_STONE", -- Igneous stones: runs without checkpoints
+}
+
 local BLADE, CORE, HILT = 52505, 52507, 52509
 local CODEX, SCRIPTURE = 52530, 52492
 local SWORD = { name = "Sword pieces" }
-
-local LOG = "ITEMLOG_ITEM_EGWD_FUL_" -- TzKal-Zuk's internal name is Ful
-local KC_NORMAL, KC_HARD = "BSLAY_KILLS_EGWD_FUL_BOSS", "BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE"
-local STONES = LOG .. "BOSS_INFERNAL_STONE"
 
 -- The share of hard mode kills without checkpoints: the stones' share of all
 -- kills. Until the game is read, none are assumed to have used checkpoints.
@@ -44,16 +48,16 @@ return {
     key = "zuk", -- saved data key: never change it
     name = "TzKal-Zuk",
     logPage = "COLLECTION_BOSS_EGWD_FUL_BOSS", -- the boss log page's database row
-    reads = { stones = STONES, normalKills = KC_NORMAL, hardKills = KC_HARD },
+    reads = { stones = VARS.stones, normalKills = VARS.kc, hardKills = VARS.kcHard },
     assumptions = function(picks)
         return unclear(picks) and { "Checkpoints used as often in both modes" } or {}
     end,
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = KC_NORMAL,
+        { name = "Normal", kc = VARS.kc,
             rolls = { { chance = 1 / 100, items = { [CODEX] = 1 } }, { chance = 1 / 100, items = { [SCRIPTURE] = 1 } } } },
-        { name = "Hard mode", kc = KC_HARD, rolls = function(picks)
+        { name = "Hard mode", kc = VARS.kcHard, rolls = function(picks)
             local share = noCheckpointShare(picks)
             return {
                 { chance = share / 27 + (1 - share) / 30, items = common.Even({ BLADE, CORE, HILT }) },
@@ -66,12 +70,12 @@ return {
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = {
-        [BLADE] = { log = LOG .. "BOSS_MELEE_WEAPON_TOP", kind = "unique", group = SWORD },
-        [CORE] = { log = LOG .. "BOSS_MELEE_WEAPON_MIDDLE", kind = "unique", group = SWORD },
-        [HILT] = { log = LOG .. "BOSS_MELEE_WEAPON_BOTTOM", kind = "unique", group = SWORD },
-        [CODEX] = { log = "ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_MAGMA_TEMPEST", kind = "unique" },
-        [SCRIPTURE] = { log = LOG .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
-        [52500] = { log = STONES, kind = "excluded" }, -- Igneous stone: a run reward
+        [BLADE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_TOP", kind = "unique", group = SWORD },
+        [CORE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_MIDDLE", kind = "unique", group = SWORD },
+        [HILT] = { log = VARS.log .. "BOSS_MELEE_WEAPON_BOTTOM", kind = "unique", group = SWORD },
+        [CODEX] = { log = VARS.codex, kind = "unique" },
+        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
+        [52500] = { log = VARS.stones, kind = "excluded" }, -- Igneous stone: a run reward
         [52546] = { kind = "pet" }, -- Little Zuk
     },
 }

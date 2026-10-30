@@ -22,6 +22,7 @@ local VARS = {
     looted = 0x4000000, -- the bit of run set when the chest is looted (no varbit name)
     killedCount = "BARROWS_KILLED_COUNT", -- brothers killed this run, Akrisae and Linza included
     linzaKilled = "SISTER_KILLED_LINZA", -- 1 if Linza was killed this run
+    log = "ITEMLOG_ITEM_BARROWS_", -- each item's log count, by brother and piece
 }
 
 -- Each brother: their name (as in tracked chests' mode names), their flag var
@@ -29,7 +30,7 @@ local VARS = {
 local function brother(name, flag, logName, pieces)
     local items = {}
     for itemID, piece in pairs(pieces) do
-        items[itemID] = "ITEMLOG_ITEM_BARROWS_" .. logName .. "_" .. piece
+        items[itemID] = VARS.log .. logName .. "_" .. piece
     end
     return { name = name, flag = flag, items = items }
 end
@@ -160,7 +161,7 @@ end
 -- src/bosses/kreearra.lua for what each kind means).
 local items = {
     [36156] = { kind = "excluded" }, -- Corruption sigil: only with a dragon defender or better
-    [39061] = { log = "ITEMLOG_ITEM_BARROWS_AMULET", kind = "excluded" }, -- Amulet of the forsaken: no published rate
+    [39061] = { log = VARS.log .. "AMULET", kind = "excluded" }, -- Amulet of the forsaken: no published rate
 }
 for _, b in ipairs({ AKRISAE, LINZA, table.unpack(ORIGINALS) }) do
     for itemID, log in pairs(b.items) do

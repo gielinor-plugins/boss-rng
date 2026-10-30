@@ -6,14 +6,17 @@
 
 local common = require("src/bosses/common")
 
+local VARS = {
+    kc = "BSLAY_KILLS_EGWD_BIK_BOSS",
+    log = "ITEMLOG_ITEM_EGWD_BIK_", -- each item's log count (Croesus's internal name is Bik)
+}
+
 local HELM, TOP, BOTTOMS, GLOVES, BOOTS = 52250, 52256, 52258, 52252, 52254 -- Cryptbloom
 local SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE = 52244, 52248, 52213, 52345
 local UNIQUE = {
     chance = 1 / 600,
     items = common.Even({ HELM, TOP, BOTTOMS, GLOVES, BOOTS, SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE }),
 }
-
-local LOG = "ITEMLOG_ITEM_EGWD_BIK_" -- Croesus's internal name is Bik
 
 return {
     key = "croesus", -- saved data key: never change it
@@ -24,21 +27,21 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = "BSLAY_KILLS_EGWD_BIK_BOSS", rolls = common.Repeat({}, 12, UNIQUE) },
+        { name = "Normal", kc = VARS.kc, rolls = common.Repeat({}, 12, UNIQUE) },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = {
-        [HELM] = { log = LOG .. "BOSS_MAGIC_HELM", kind = "unique" },
-        [TOP] = { log = LOG .. "BOSS_MAGIC_BODY", kind = "unique" },
-        [BOTTOMS] = { log = LOG .. "BOSS_MAGIC_LEGS", kind = "unique" },
-        [GLOVES] = { log = LOG .. "BOSS_MAGIC_GLOVES", kind = "unique" },
-        [BOOTS] = { log = LOG .. "BOSS_MAGIC_BOOTS", kind = "unique" },
-        [SPOREHAMMER] = { log = LOG .. "BOSS_OFFHAND_MINING", kind = "unique" },
-        [FOULTORCH] = { log = LOG .. "BOSS_OFFHAND_WOODCUTTING", kind = "unique" },
-        [SPORE_SACK] = { log = LOG .. "BOSS_SEED_STORAGE_UNIQUE", kind = "unique" },
-        [SCRIPTURE] = { log = LOG .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
+        [HELM] = { log = VARS.log .. "BOSS_MAGIC_HELM", kind = "unique" },
+        [TOP] = { log = VARS.log .. "BOSS_MAGIC_BODY", kind = "unique" },
+        [BOTTOMS] = { log = VARS.log .. "BOSS_MAGIC_LEGS", kind = "unique" },
+        [GLOVES] = { log = VARS.log .. "BOSS_MAGIC_GLOVES", kind = "unique" },
+        [BOOTS] = { log = VARS.log .. "BOSS_MAGIC_BOOTS", kind = "unique" },
+        [SPOREHAMMER] = { log = VARS.log .. "BOSS_OFFHAND_MINING", kind = "unique" },
+        [FOULTORCH] = { log = VARS.log .. "BOSS_OFFHAND_WOODCUTTING", kind = "unique" },
+        [SPORE_SACK] = { log = VARS.log .. "BOSS_SEED_STORAGE_UNIQUE", kind = "unique" },
+        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
         [52459] = { kind = "pet" }, -- Little Sus
     },
 }

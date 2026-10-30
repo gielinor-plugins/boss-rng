@@ -6,10 +6,19 @@
 -- mushroom are 1/500 each, on their own rolls. Every player in the team gets
 -- their own rolls, at the same rates for any team size.
 
+local VARS = {
+    kc = "BSLAY_KILLS_SOLAK",
+    log = "ITEMLOG_ITEM_SOLAK_", -- each item's log count, by its name
+}
+
 local GRIMOIRE, CROSSBOW, OFFHAND = 42785, 42770, 42774
 local STAVE, MUSHROOM = 42767, 42782
 
-local LOG = "ITEMLOG_ITEM_SOLAK_"
+local ROLLS = {
+    { chance = 1 / 100, items = { [GRIMOIRE] = 2, [CROSSBOW] = 1, [OFFHAND] = 1 } },
+    { chance = 1 / 500, items = { [STAVE] = 1 } },
+    { chance = 1 / 500, items = { [MUSHROOM] = 1 } },
+}
 
 return {
     key = "solak", -- saved data key: never change it
@@ -19,23 +28,19 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = "BSLAY_KILLS_SOLAK", rolls = {
-            { chance = 1 / 100, items = { [GRIMOIRE] = 2, [CROSSBOW] = 1, [OFFHAND] = 1 } },
-            { chance = 1 / 500, items = { [STAVE] = 1 } },
-            { chance = 1 / 500, items = { [MUSHROOM] = 1 } },
-        } },
+        { name = "Normal", kc = VARS.kc, rolls = ROLLS },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = {
-        [GRIMOIRE] = { log = LOG .. "PRAYER_BOOK", kind = "unique" },
-        [CROSSBOW] = { log = LOG .. "CROSSBOW", kind = "unique" },
-        [OFFHAND] = { log = LOG .. "OFFHAND_CROSSBOW", kind = "unique" },
-        [STAVE] = { log = LOG .. "MERETHIELS_STAFF", kind = "unique" },
+        [GRIMOIRE] = { log = VARS.log .. "PRAYER_BOOK", kind = "unique" },
+        [CROSSBOW] = { log = VARS.log .. "CROSSBOW", kind = "unique" },
+        [OFFHAND] = { log = VARS.log .. "OFFHAND_CROSSBOW", kind = "unique" },
+        [STAVE] = { log = VARS.log .. "MERETHIELS_STAFF", kind = "unique" },
         -- Unlocks the Blightbound lasher pet, but it's an item with its own rate.
-        [MUSHROOM] = { log = LOG .. "BLIGHTBOUND_PET", kind = "unique" },
-        [43357] = { log = LOG .. "GRIMOIRE_PAGES2", kind = "excluded" }, -- Torn grimoire page: a common drop
+        [MUSHROOM] = { log = VARS.log .. "BLIGHTBOUND_PET", kind = "unique" },
+        [43357] = { log = VARS.log .. "GRIMOIRE_PAGES2", kind = "excluded" }, -- Torn grimoire page: a common drop
         [42844] = { kind = "pet" }, -- Solly
     },
 }

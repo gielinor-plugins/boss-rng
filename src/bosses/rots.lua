@@ -7,7 +7,13 @@
 
 local common = require("src/bosses/common")
 
+local VARS = {
+    kc = "BSLAY_KILLS_BARROWSROTS", -- goes up at the kill, looted or not
+    log = "ITEMLOG_ITEM_ROTS_", -- each item's log count, by its name
+}
+
 local MALEVOLENT, MERCILESS, VENGEFUL = 30014, 30022, 30018 -- magic, melee and ranged
+local ROLLS = { { chance = 1 / 80, items = common.Even({ MALEVOLENT, MERCILESS, VENGEFUL }) } }
 
 return {
     key = "rots", -- saved data key: never change it
@@ -18,17 +24,16 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = "BSLAY_KILLS_BARROWSROTS",
-            rolls = { { chance = 1 / 80, items = common.Even({ MALEVOLENT, MERCILESS, VENGEFUL }) } } },
+        { name = "Normal", kc = VARS.kc, rolls = ROLLS },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = {
-        [MALEVOLENT] = { log = "ITEMLOG_ITEM_ROTS_SHIELD_MAGIC", kind = "unique" },
-        [MERCILESS] = { log = "ITEMLOG_ITEM_ROTS_SHIELD_MELEE", kind = "unique" },
-        [VENGEFUL] = { log = "ITEMLOG_ITEM_ROTS_SHIELD_RANGED", kind = "unique" },
-        [30027] = { log = "ITEMLOG_ITEM_ROTS_ENERGY", kind = "excluded" }, -- Malevolent energy: guaranteed
+        [MALEVOLENT] = { log = VARS.log .. "SHIELD_MAGIC", kind = "unique" },
+        [MERCILESS] = { log = VARS.log .. "SHIELD_MELEE", kind = "unique" },
+        [VENGEFUL] = { log = VARS.log .. "SHIELD_RANGED", kind = "unique" },
+        [30027] = { log = VARS.log .. "ENERGY", kind = "excluded" }, -- Malevolent energy: guaranteed
         -- The brothers' bobbleheads: cosmetic unlocks.
         [38935] = { kind = "excluded" }, -- Ahrim
         [30032] = { kind = "excluded" }, -- Dharok

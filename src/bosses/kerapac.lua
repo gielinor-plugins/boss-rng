@@ -13,6 +13,13 @@
 
 local common = require("src/bosses/common")
 
+local VARS = {
+    kc = "BSLAY_KILLS_EGWD_JAS_BOSS",
+    kcHard = "BSLAY_KILLS_EGWD_JAS_BOSS_HARDMODE",
+    log = "ITEMLOG_ITEM_EGWD_JAS_", -- each item's log count (Kerapac's internal name is Jas)
+    codex = "ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CONCENTRATED_BLAST",
+}
+
 local SYMBOL, GEM, SHAFT = 51776, 51779, 51782
 local WRAPS, CODEX, SCRIPTURE = 51767, 51843, 51812
 local STAFF = { name = "Staff pieces" }
@@ -32,8 +39,6 @@ end
 
 local OTHERS = common.Even({ WRAPS, CODEX, SCRIPTURE })
 
-local LOG = "ITEMLOG_ITEM_EGWD_JAS_" -- Kerapac's internal name is Jas
-
 return {
     key = "kerapac", -- saved data key: never change it
     name = "Kerapac",
@@ -52,10 +57,10 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = "BSLAY_KILLS_EGWD_JAS_BOSS", rolls = function(picks)
+        { name = "Normal", kc = VARS.kc, rolls = function(picks)
             return piles(picks.normalTeam, { { chance = 1 / 256, items = OTHERS } })
         end },
-        { name = "Hard mode", kc = "BSLAY_KILLS_EGWD_JAS_BOSS_HARDMODE", rolls = function(picks)
+        { name = "Hard mode", kc = VARS.kcHard, rolls = function(picks)
             return piles(picks.hardTeam, {
                 { chance = 1 / 400, items = common.Even({ SYMBOL, GEM, SHAFT }) },
                 { chance = 399 / 400 / 180, items = OTHERS },
@@ -66,12 +71,12 @@ return {
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = {
-        [SYMBOL] = { log = LOG .. "BOSS_MAGIC_WEAPON_TOP", kind = "unique", group = STAFF },
-        [GEM] = { log = LOG .. "BOSS_MAGIC_WEAPON_MIDDLE", kind = "unique", group = STAFF },
-        [SHAFT] = { log = LOG .. "BOSS_MAGIC_WEAPON_BOTTOM", kind = "unique", group = STAFF },
-        [WRAPS] = { log = LOG .. "BOSS_MAGIC_GLOVES", kind = "unique" },
-        [CODEX] = { log = "ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CONCENTRATED_BLAST", kind = "unique" },
-        [SCRIPTURE] = { log = LOG .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
+        [SYMBOL] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_TOP", kind = "unique", group = STAFF },
+        [GEM] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_MIDDLE", kind = "unique", group = STAFF },
+        [SHAFT] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_BOTTOM", kind = "unique", group = STAFF },
+        [WRAPS] = { log = VARS.log .. "BOSS_MAGIC_GLOVES", kind = "unique" },
+        [CODEX] = { log = VARS.codex, kind = "unique" },
+        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
         [51861] = { kind = "pet" }, -- Kerry
     },
 }

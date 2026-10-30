@@ -12,6 +12,7 @@ local common = require("src/bosses/common")
 local VARS = {
     kc = "BSLAY_KILLS_DUNGEON_DRAGONFORT", -- then the boss's number; _SOLO for solo kills
     players = "DUNGEON_PLAYERS_AT_BOSS_KILL", -- players in the room at the kill
+    log = "ITEMLOG_ITEM_DUNGEON_MELEE_CODEX_", -- each codex's log count, by its name
 }
 
 local FLURRY, FURY, BARGE = 43391, 43389, 43393
@@ -75,9 +76,9 @@ return {
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = {
-        [FLURRY] = { log = "ITEMLOG_ITEM_DUNGEON_MELEE_CODEX_FLURRY", kind = "unique" },
-        [FURY] = { log = "ITEMLOG_ITEM_DUNGEON_MELEE_CODEX_FURY", kind = "unique" },
-        [BARGE] = { log = "ITEMLOG_ITEM_DUNGEON_MELEE_CODEX_BARGE", kind = "unique" },
+        [FLURRY] = { log = VARS.log .. "FLURRY", kind = "unique" },
+        [FURY] = { log = VARS.log .. "FURY", kind = "unique" },
+        [BARGE] = { log = VARS.log .. "BARGE", kind = "unique" },
         [43373] = { kind = "lore" }, -- Redacted Dragonkin Research
         [43374] = { kind = "lore" }, -- Diary of an Overzealous Gnome
         [43165] = { kind = "excluded" }, -- Draconic energy: a common drop

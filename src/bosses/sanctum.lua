@@ -9,6 +9,11 @@
 
 local common = require("src/bosses/common")
 
+local VARS = {
+    kc = "BSLAY_KILLS_RAID_REBIRTH1_", -- then each boss's name, with _HARDMODE for hard mode
+    log = "ITEMLOG_ITEM_", -- then each unique's log count name
+}
+
 local CODEX, SCRIPTURE, ROAR, ODE = 57156, 57124, 57162, 57158
 
 -- The rolls, from 1 in books for a book, then for Nakatra 1 in weapons for a
@@ -24,8 +29,6 @@ local function rolls(books, weapons, shard)
     return list
 end
 
-local KC = "BSLAY_KILLS_RAID_REBIRTH1_" -- each boss's kill count var starts with this
-
 return {
     key = "sanctum", -- saved data key: never change it
     name = "Sanctum of Rebirth",
@@ -34,21 +37,21 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Vermyx", kc = KC .. "WYRM_BOSS", rolls = rolls(125) },
-        { name = "Vermyx hard mode", kc = KC .. "WYRM_BOSS_HARDMODE", rolls = rolls(100) },
-        { name = "Kezalam", kc = KC .. "BEAST_BOSS", rolls = rolls(125) },
-        { name = "Kezalam hard mode", kc = KC .. "BEAST_BOSS_HARDMODE", rolls = rolls(100) },
-        { name = "Nakatra", kc = KC .. "SLAYER_MASTER_BOSS", rolls = rolls(125, 75) },
-        { name = "Nakatra hard mode", kc = KC .. "SLAYER_MASTER_BOSS_HARDMODE", rolls = rolls(100, 60, 75) },
+        { name = "Vermyx", kc = VARS.kc .. "WYRM_BOSS", rolls = rolls(125) },
+        { name = "Vermyx hard mode", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = rolls(100) },
+        { name = "Kezalam", kc = VARS.kc .. "BEAST_BOSS", rolls = rolls(125) },
+        { name = "Kezalam hard mode", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = rolls(100) },
+        { name = "Nakatra", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls(125, 75) },
+        { name = "Nakatra hard mode", kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE", rolls = rolls(100, 60, 75) },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = {
-        [CODEX] = { log = "ITEMLOG_ITEM_COMBATV2_PRAYER_CODEX_DIVINE_RAGE", kind = "unique" },
-        [SCRIPTURE] = { log = "ITEMLOG_ITEM_RAID_REBIRTH1_AMASCUT_BOOK_UNLOCK_TOKEN", kind = "unique" },
-        [ROAR] = { log = "ITEMLOG_ITEM_MAGIC_DEVOURER_WAND_T95", kind = "unique" },
-        [ODE] = { log = "ITEMLOG_ITEM_MAGIC_DEVOURER_ORB_T95", kind = "unique" },
+        [CODEX] = { log = VARS.log .. "COMBATV2_PRAYER_CODEX_DIVINE_RAGE", kind = "unique" },
+        [SCRIPTURE] = { log = VARS.log .. "RAID_REBIRTH1_AMASCUT_BOOK_UNLOCK_TOKEN", kind = "unique" },
+        [ROAR] = { log = VARS.log .. "MAGIC_DEVOURER_WAND_T95", kind = "unique" },
+        [ODE] = { log = VARS.log .. "MAGIC_DEVOURER_ORB_T95", kind = "unique" },
         [common.SHARD] = common.SHARD_ITEM, -- also dropped by Amascut
         [57121] = { kind = "lore" }, -- The Brood Mother
         [57122] = { kind = "lore" }, -- The Beast of Darkness

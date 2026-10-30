@@ -1,5 +1,5 @@
--- The unique rolls the God Wars Dungeon generals share. Not a boss file: the
--- generals' files use it so the roll math lives in one place.
+-- What the God Wars Dungeon generals share. Not a boss file: the generals' files
+-- use it so the roll math and shared items live in one place.
 --
 -- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-27: a 1/64 roll for
 -- the general's unique table, then an item from it at random (1/6 each for
@@ -11,6 +11,14 @@ local godwars = {}
 
 local UNIQUE_TABLE = 1 / 64
 local HILT = (1 - UNIQUE_TABLE) / 512
+
+-- Godsword shards come from a table shared by the God Wars bosses, so their
+-- boss log counts aren't one general's.
+local SHARDS = {
+    [11710] = { log = "ITEMLOG_ITEM_GWD_SHARD1", kind = "shared" },
+    [11712] = { log = "ITEMLOG_ITEM_GWD_SHARD2", kind = "shared" },
+    [11714] = { log = "ITEMLOG_ITEM_GWD_SHARD3", kind = "shared" },
+}
 
 -- The rolls for a general: uniques, its unique table as { [item id] = weight }
 -- (equal weights split it evenly), and hilt, its hilt id. They're one roll since
@@ -26,6 +34,22 @@ function godwars.Rolls(uniques, hilt)
         items[itemID] = UNIQUE_TABLE * weight / totalWeight
     end
     return { { chance = UNIQUE_TABLE + HILT, items = items } }
+end
+
+-- A general's items: its own, the Godsword shards, and its god's Warpriest set,
+-- { [piece] = item id } with log counts named log .. piece. The Warpriest set
+-- also drops from the bodyguards and other monsters of that god, so it's shared.
+function godwars.Items(own, log, warpriest)
+    local items = {}
+    for _, source in ipairs({ own, SHARDS }) do
+        for itemID, item in pairs(source) do
+            items[itemID] = item
+        end
+    end
+    for piece, itemID in pairs(warpriest) do
+        items[itemID] = { log = log .. piece, kind = "shared" }
+    end
+    return items
 end
 
 return godwars

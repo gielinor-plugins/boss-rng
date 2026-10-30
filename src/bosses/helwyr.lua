@@ -3,6 +3,12 @@
 local common = require("src/bosses/common")
 local godwars2 = require("src/bosses/godwars2")
 
+local VARS = {
+    kc = "BSLAY_KILLS_HELWYR",
+    kcHard = "BSLAY_KILLS_HELWYR_HARDMODE",
+    log = "ITEMLOG_ITEM_GWD2_SEREN_", -- each unique's log count, by its item
+}
+
 local CREST, WAND, ORB, ESSENCE = 37027, 37085, 40600, 37033
 local COUNTED = { CREST, WAND, ORB } -- the boss's crest and weapons
 
@@ -14,17 +20,17 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = "BSLAY_KILLS_HELWYR", rolls = godwars2.Rolls(godwars2.NORMAL, COUNTED, ESSENCE) },
-        { name = "Hard mode", kc = "BSLAY_KILLS_HELWYR_HARDMODE", rolls = godwars2.Rolls(godwars2.HARD, COUNTED, ESSENCE) },
+        { name = "Normal", kc = VARS.kc, rolls = godwars2.Rolls(godwars2.NORMAL, COUNTED, ESSENCE) },
+        { name = "Hard mode", kc = VARS.kcHard, rolls = godwars2.Rolls(godwars2.HARD, COUNTED, ESSENCE) },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = godwars2.Items({
-        [CREST] = { log = "ITEMLOG_ITEM_GWD2_SEREN_CREST", kind = "unique" },
-        [WAND] = { log = "ITEMLOG_ITEM_GWD2_SEREN_WEAPON", kind = "unique" },
-        [ORB] = { log = "ITEMLOG_ITEM_GWD2_SEREN_WEAPON_OFFHAND", kind = "unique" },
-        [ESSENCE] = { log = "ITEMLOG_ITEM_GWD2_SEREN_ESSENCE", kind = "unique" }, -- Serenic essence
+        [CREST] = { log = VARS.log .. "CREST", kind = "unique" },
+        [WAND] = { log = VARS.log .. "WEAPON", kind = "unique" },
+        [ORB] = { log = VARS.log .. "WEAPON_OFFHAND", kind = "unique" },
+        [ESSENCE] = { log = VARS.log .. "ESSENCE", kind = "unique" }, -- Serenic essence
         [37182] = { kind = "pet" }, -- Lilwyr
     }),
 }

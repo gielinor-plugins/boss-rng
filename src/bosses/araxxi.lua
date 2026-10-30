@@ -15,6 +15,7 @@ local common = require("src/bosses/common")
 local VARS = {
     kc = "BSLAY_KILLS_ARAXXI",
     duo = "SB_DUO", -- 1 in a duo fight, private or public; 0 solo
+    log = "ITEMLOG_ITEM_SB_", -- each item's log count (Araxxor's internal name is SB, the spider boss)
 }
 
 local LEG_TOP, LEG_MIDDLE, LEG_BOTTOM = 31718, 31719, 31720
@@ -70,13 +71,13 @@ return {
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = {
-        [LEG_TOP] = { log = "ITEMLOG_ITEM_SB_LEG_TOP", kind = "unique", group = LEGS },
-        [LEG_MIDDLE] = { log = "ITEMLOG_ITEM_SB_LEG_MIDDLE", kind = "unique", group = LEGS },
-        [LEG_BOTTOM] = { log = "ITEMLOG_ITEM_SB_LEG_BOTTOM", kind = "unique", group = LEGS },
-        [FANG] = { log = "ITEMLOG_ITEM_SB_FANG", kind = "unique", group = ADD_ONS }, -- Araxxi's fang
-        [EYE] = { log = "ITEMLOG_ITEM_SB_EYE", kind = "unique", group = ADD_ONS }, -- Araxxi's eye
-        [WEB] = { log = "ITEMLOG_ITEM_SB_WEB", kind = "unique", group = ADD_ONS }, -- Araxxi's web
-        [35870] = { log = "ITEMLOG_ITEM_SB_PHEROMONE", kind = "excluded" }, -- Araxyte pheromone: a common drop
+        [LEG_TOP] = { log = VARS.log .. "LEG_TOP", kind = "unique", group = LEGS },
+        [LEG_MIDDLE] = { log = VARS.log .. "LEG_MIDDLE", kind = "unique", group = LEGS },
+        [LEG_BOTTOM] = { log = VARS.log .. "LEG_BOTTOM", kind = "unique", group = LEGS },
+        [FANG] = { log = VARS.log .. "FANG", kind = "unique", group = ADD_ONS }, -- Araxxi's fang
+        [EYE] = { log = VARS.log .. "EYE", kind = "unique", group = ADD_ONS }, -- Araxxi's eye
+        [WEB] = { log = VARS.log .. "WEB", kind = "unique", group = ADD_ONS }, -- Araxxi's web
+        [35870] = { log = VARS.log .. "PHEROMONE", kind = "excluded" }, -- Araxyte pheromone: a common drop
         [31753] = { kind = "pet" }, -- Bill
         [31752] = { kind = "pet" }, -- Lana
         [31750] = { kind = "pet" }, -- Pete

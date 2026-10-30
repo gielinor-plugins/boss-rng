@@ -3,6 +3,12 @@
 local common = require("src/bosses/common")
 local godwars2 = require("src/bosses/godwars2")
 
+local VARS = {
+    kc = "BSLAY_KILLS_TWINDEMONS",
+    kcHard = "BSLAY_KILLS_TWINDEMONS_HARDMODE",
+    log = "ITEMLOG_ITEM_GWD2_ZAMORAK_", -- each unique's log count, by its item
+}
+
 local CREST, NYMORA, AVARYSS, ESSENCE = 37024, 37090, 37095, 37032
 local COUNTED = { CREST, NYMORA, AVARYSS } -- the boss's crest and weapons
 
@@ -14,17 +20,17 @@ return {
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = "BSLAY_KILLS_TWINDEMONS", rolls = godwars2.Rolls(godwars2.NORMAL, COUNTED, ESSENCE) },
-        { name = "Hard mode", kc = "BSLAY_KILLS_TWINDEMONS_HARDMODE", rolls = godwars2.Rolls(godwars2.HARD, COUNTED, ESSENCE) },
+        { name = "Normal", kc = VARS.kc, rolls = godwars2.Rolls(godwars2.NORMAL, COUNTED, ESSENCE) },
+        { name = "Hard mode", kc = VARS.kcHard, rolls = godwars2.Rolls(godwars2.HARD, COUNTED, ESSENCE) },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).
     items = godwars2.Items({
-        [CREST] = { log = "ITEMLOG_ITEM_GWD2_ZAMORAK_CREST", kind = "unique" },
-        [NYMORA] = { log = "ITEMLOG_ITEM_GWD2_ZAMORAK_WEAPON", kind = "unique" },
-        [AVARYSS] = { log = "ITEMLOG_ITEM_GWD2_ZAMORAK_WEAPON_OFFHAND", kind = "unique" },
-        [ESSENCE] = { log = "ITEMLOG_ITEM_GWD2_ZAMORAK_ESSENCE", kind = "unique" }, -- Zamorakian essence
+        [CREST] = { log = VARS.log .. "CREST", kind = "unique" },
+        [NYMORA] = { log = VARS.log .. "WEAPON", kind = "unique" },
+        [AVARYSS] = { log = VARS.log .. "WEAPON_OFFHAND", kind = "unique" },
+        [ESSENCE] = { log = VARS.log .. "ESSENCE", kind = "unique" }, -- Zamorakian essence
         [37184] = { kind = "pet" }, -- Nylessa
         [37185] = { kind = "pet" }, -- Ava
     }),
