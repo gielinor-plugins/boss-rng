@@ -13,18 +13,25 @@ local VARS = {
 local HELMET, CHESTPLATE, TASSETS = 25022, 11724, 11726
 local GLOVES, BOOTS, WARSHIELD, HILT = 25025, 11728, 25019, 11704
 
-local ROLLS = godwars.Rolls(common.Even({ HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }), HILT)
+local ARMOR = { HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }
+-- Chances per kill, before and after the Late-Game Rebalance.
+local RATES = godwars.Rates({ armor = 1 / 384 }, { armor = 1 / 320 })
+
+local function rolls(_, r)
+    return godwars.Rolls(common.Each(ARMOR, r.armor), HILT, r)
+end
 
 return {
     key = "graardor", -- saved data key: never change it
     name = "General Graardor",
     logPage = "COLLECTION_BOSS_GRAARDOR", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
+    rates = RATES,
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = ROLLS },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = ROLLS },
+        { name = "Normal", kc = VARS.kc, rolls = rolls },
+        { name = "Hard mode", kc = VARS.kcHard, rolls = rolls },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

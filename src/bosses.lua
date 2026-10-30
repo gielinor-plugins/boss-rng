@@ -37,18 +37,16 @@
 -- of up to most is one drop, and its log count (items, not drops) shows apart
 -- from the boss's other uniques, as a count of word ("spike").
 --
--- When a mode's rates change, its old ones stay for the kills tracked before:
---   olderRates   { { before = day, rolls = ... }, ... }, oldest first (days
---                from src/days.lua, e.g. days.FromDate(2026, 11, 24)): a kill
---                on a day before an entry's day uses that entry's rolls; later
---                kills use the mode's own. Kills are saved by day, so an update
---                with new rates applies to kills tracked before it shipped.
+-- A boss whose rates changed over time has rates, a history of named values
+-- (see src/rates.lua), and its modes' rolls are functions of (picks, values):
+-- each tracked kill uses the values of its day.
 --
 -- A boss's assumptions can be a function of the player's picks too, for ones
 -- that only hold for some picks (Kerapac's duo kills).
 --
 -- A mode's rolls can be a function of the player's picks for the boss's choices
--- (see src/choices.lua), for rates set by one, such as Kerapac's team.
+-- (see src/choices.lua), for rates set by one, such as Kerapac's team, and of
+-- its rate values (see rates above).
 --
 -- A unique listed by more than one boss has one boss log count for all of them,
 -- so its drops can't be told apart. Such a unique is pooled: it gets pooledBy,

@@ -6,11 +6,29 @@
 -- Graardor's armor, 1/5 per entry for Zilyana's); only if that roll misses, a
 -- 1/512 roll for the hilt. So a kill gives at most one of these, and the hilt's
 -- real chance per kill is 63/64 x 1/512. Hard mode doesn't change these rates.
+-- Jagex's Late-Game Rebalance raises armor (shields included) to 1/320, the
+-- hilts to 1/384 and some weapons; a kill still gives at most one.
+
+local rates = require("src/rates")
+local updates = require("src/updates")
+local common = require("src/bosses/common")
 
 local godwars = {}
 
-local UNIQUE_TABLE = 1 / 64
-local HILT = (1 - UNIQUE_TABLE) / 512
+-- A general's rate history from before, its own items' chances per kill by
+-- name, and after, the ones the Late-Game Rebalance changed. The hilt is shared.
+function godwars.Rates(before, after)
+    before.hilt = (1 - 1 / 64) / 512
+    after.hilt, after.since = 1 / 384, updates.LATE_GAME_REBALANCE
+    return rates.History({ before, after })
+end
+
+-- A general's rolls: chances, its items' chances per kill, { [item id] = chance },
+-- with its hilt's from r, its rate values. One roll, since a kill gives at most one.
+function godwars.Rolls(chances, hilt, r)
+    chances[hilt] = r.hilt
+    return { common.OneOf(chances) }
+end
 
 -- Godsword shards come from a table shared by the God Wars bosses, so their
 -- boss log counts aren't one general's.
@@ -19,22 +37,6 @@ local SHARDS = {
     [11712] = { log = "ITEMLOG_ITEM_GWD_SHARD2", kind = "shared" },
     [11714] = { log = "ITEMLOG_ITEM_GWD_SHARD3", kind = "shared" },
 }
-
--- The rolls for a general: uniques, its unique table as { [item id] = weight }
--- (equal weights split it evenly), and hilt, its hilt id. They're one roll since
--- they can't drop together: each item's weight is its chance per kill, so the
--- roll's chance is their sum.
-function godwars.Rolls(uniques, hilt)
-    local totalWeight = 0
-    for _, weight in pairs(uniques) do
-        totalWeight = totalWeight + weight
-    end
-    local items = { [hilt] = HILT }
-    for itemID, weight in pairs(uniques) do
-        items[itemID] = UNIQUE_TABLE * weight / totalWeight
-    end
-    return { { chance = UNIQUE_TABLE + HILT, items = items } }
-end
 
 -- A general's items: its own, the Godsword shards, and its god's Warpriest set,
 -- { [piece] = item id } with log counts named log .. piece. The Warpriest set

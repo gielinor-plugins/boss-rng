@@ -7,14 +7,16 @@
 -- evenly, then one of their items evenly. Linza, if killed, adds one roll at
 -- 1/96 for one of her five items (since 20 July 2026, before Boss RNG came out).
 -- Jagex's Late-Game Rebalance design preview gives the amulet of the forsaken
--- as 1/480 per chest (1/240 from the late November 2026 update). It doesn't say
--- whether partial chests are included, so they're assumed to be.
+-- as 1/480 per chest, 1/240 after it. It doesn't say whether partial chests are
+-- included, so they're assumed to be.
 --
 -- Each tracked chest is counted as it's looted, for a mode named by the brothers
 -- killed, so it's exact. The kill count only counts chests with 6 or more
 -- brothers (Akrisae counts, Linza doesn't); partial chests, with fewer, are
 -- tracked outside it.
 
+local rates = require("src/rates")
+local updates = require("src/updates")
 local common = require("src/bosses/common")
 
 local VARS = {
@@ -27,14 +29,16 @@ local VARS = {
 }
 local LOOTED = 0x4000000 -- the bit of VARS.run set when the chest is looted (no varbit name)
 
-local RATES = {
-    maxRolls = 7, -- a chest's equipment rolls, at most
-    linza = 1 / 96, -- Linza's roll, for one of her items
-    amulet = 1 / 480, -- the amulet of the forsaken, per chest
-}
+-- Linza's roll (for one of her items) and the amulet of the forsaken's, per
+-- chest, before and after the Late-Game Rebalance.
+local RATES = rates.History({
+    { linza = 1 / 96, amulet = 1 / 480 },
+    { since = updates.LATE_GAME_REBALANCE, amulet = 1 / 240 },
+})
+local MAX_ROLLS = 7 -- a chest's equipment rolls, at most
 
 -- The chance of Barrows equipment per roll with n brothers killed.
-function RATES.piece(n)
+local function pieceChance(n)
     return 1 / math.max(450 - 58 * n, 73)
 end
 
@@ -87,17 +91,17 @@ local function weights(brothers)
     return result
 end
 
--- A chest's rolls: the amulet's, one equipment roll per brother killed plus
--- one (up to maxRolls), and Linza's if she was killed.
-local function chestRolls(brothers, linza)
-    local rolls = { { chance = RATES.amulet, items = { [AMULET] = 1 } } }
+-- A chest's rolls at rate values r: the amulet's, one equipment roll per
+-- brother killed plus one (up to MAX_ROLLS), and Linza's if she was killed.
+local function chestRolls(brothers, linza, r)
+    local rolls = { { chance = r.amulet, items = { [AMULET] = 1 } } }
     local n = #brothers
     if n > 0 then
-        local roll = { chance = RATES.piece(n), items = weights(brothers) }
-        common.Repeat(rolls, math.min(n + 1, RATES.maxRolls), roll)
+        local roll = { chance = pieceChance(n), items = weights(brothers) }
+        common.Repeat(rolls, math.min(n + 1, MAX_ROLLS), roll)
     end
     if linza then
-        table.insert(rolls, { chance = RATES.linza, items = weights({ LINZA }) })
+        table.insert(rolls, { chance = r.linza, items = weights({ LINZA }) })
     end
     return rolls
 end
@@ -129,7 +133,11 @@ local function chestMode(name)
         end
     end
     local kc = #brothers >= FULL_CHEST and VARS.kc or nil
-    return { name = name, kc = kc, rolls = chestRolls(brothers, killed[LINZA.name]) }
+    local linza = killed[LINZA.name]
+    local function rolls(_, r)
+        return chestRolls(brothers, linza, r)
+    end
+    return { name = name, kc = kc, rolls = rolls }
 end
 
 -- The chest's mode name from the game's values as it's looted: the originals'
@@ -177,6 +185,7 @@ return {
     name = "Barrows brothers",
     logPage = "COLLECTION_BOSS_BARROWS", -- the boss log page's database row
     assumptions = { "Amulet of the forsaken from partial chests too" },
+    rates = RATES,
 
     -- The kill count's mode, counted only through its kill event: each tracked
     -- chest gets a mode of its own (killEvents, modeFor).

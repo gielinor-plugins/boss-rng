@@ -4,6 +4,10 @@ local bosses = require("src/bosses")
 local choices = require("src/choices")
 local luck = require("src/luck")
 local stats = require("src/stats")
+local updates = require("src/updates")
+
+-- A day before the Late-Game Rebalance (30 Oct 2026), and the day it went live.
+local BEFORE, AFTER = 20756, updates.LATE_GAME_REBALANCE
 
 -- Each of a boss's choices at its default: { [choice key] = value }.
 local function defaults(boss)
@@ -64,8 +68,10 @@ describe("boss data", function()
 
             it("only rolls unique items", function()
                 for _, mode in ipairs(boss.modes) do
-                    for itemID in pairs(luck.ItemChances(stats.Rolls(mode, defaults(boss)))) do
-                        assert.are.equal("unique", boss.items[itemID].kind)
+                    for _, day in ipairs({ BEFORE, AFTER }) do
+                        for itemID in pairs(luck.ItemChances(stats.Rolls(boss, mode, defaults(boss), day))) do
+                            assert.are.equal("unique", boss.items[itemID].kind)
+                        end
                     end
                 end
             end)
@@ -74,23 +80,33 @@ describe("boss data", function()
 end)
 
 -- Each boss's boss log item count, and its wiki rates per kill for a few items,
--- in its first two modes, or the modes named in modes (made by its kill events).
+-- in its first two modes, or the modes named in modes (made by its kill events),
+-- before the Late-Game Rebalance; after and afterHard, the ones it changed.
 local HILT = 63 / 64 / 512 -- a general's hilt: only rolled when the unique table misses
 local NEX = 1 / 384
 local CASES = {
-    { file = "graardor", items = 18, rates = { [25022] = 1 / 384, [11704] = HILT } },
-    { file = "kreearra", items = 18, rates = { [11718] = 1 / 384, [11702] = HILT } },
-    { file = "zilyana", items = 19, rates = { [11730] = 1 / 320, [25037] = 1 / 640, [25034] = 1 / 320, [11706] = HILT } },
-    { file = "kril", items = 20, rates = { [24992] = 1 / 512, [11716] = 1 / 512, [11708] = HILT } },
+    { file = "graardor", items = 18, rates = { [25022] = 1 / 384, [11704] = HILT },
+        after = { [25022] = 1 / 320, [25019] = 1 / 320, [11704] = 1 / 384 } },
+    { file = "kreearra", items = 18, rates = { [11718] = 1 / 384, [11702] = HILT },
+        after = { [11718] = 1 / 320, [25013] = 1 / 320, [11702] = 1 / 384 } },
+    { file = "zilyana", items = 19, rates = { [11730] = 1 / 320, [25037] = 1 / 640, [25034] = 1 / 320, [11706] = HILT },
+        after = { [11730] = 1 / 320, [25037] = 1 / 320, [34855] = 1 / 320, [11706] = 1 / 384 } },
+    { file = "kril", items = 20, rates = { [24992] = 1 / 512, [11716] = 1 / 512, [11708] = HILT },
+        after = { [24992] = 1 / 320, [25001] = 1 / 320, [11716] = 1 / 384, [11736] = 1 / 64, [11708] = 1 / 384 } },
     { file = "nex", items = 21, rates = { [20135] = NEX, [25664] = NEX, [20171] = NEX } },
     { file = "helwyr", items = 8,
         rates = { [37027] = 1 / 256, [40600] = 1 / 256, [37033] = (1 - 6 / 256) / 64 },
-        hard = { [37085] = 1 / 179, [37033] = (1 - 6 / 179) / 44 } },
+        hard = { [37085] = 1 / 179, [37033] = (1 - 6 / 179) / 44 },
+        after = { [37027] = 1 / 128, [40600] = 1 / 256, [37033] = (1 - 1 / 128 - 5 / 256) / 64 },
+        afterHard = { [37027] = 1 / 128, [37085] = 1 / 179 } },
     { file = "vindicta", items = 8,
         rates = { [37018] = 1 / 255, [37070] = 1 / 255, [37030] = (1 - 5 / 255) / 64 },
-        hard = { [37070] = 1 / 179, [37030] = (1 - 5 / 179) / 44 } },
-    { file = "furies", items = 9, rates = { [37090] = 1 / 256, [37095] = 1 / 256 }, hard = { [37024] = 1 / 179 } },
-    { file = "gregorovic", items = 8, rates = { [37075] = 1 / 256, [37080] = 1 / 256 }, hard = { [37021] = 1 / 179 } },
+        hard = { [37070] = 1 / 179, [37030] = (1 - 5 / 179) / 44 },
+        after = { [37018] = 1 / 128, [37070] = 1 / 255 }, afterHard = { [37018] = 1 / 128 } },
+    { file = "furies", items = 9, rates = { [37090] = 1 / 256, [37095] = 1 / 256 }, hard = { [37024] = 1 / 179 },
+        after = { [37024] = 1 / 128 }, afterHard = { [37024] = 1 / 128 } },
+    { file = "gregorovic", items = 8, rates = { [37075] = 1 / 256, [37080] = 1 / 256 }, hard = { [37021] = 1 / 179 },
+        after = { [37021] = 1 / 128 }, afterHard = { [37021] = 1 / 128 } },
     -- Normal mode, then the 100% enrage tier: an armor piece, a weapon, the Nexus and the Shard.
     { file = "amascut", items = 11, modes = { "Normal", "Enrage 100%" },
         rates = { [59344] = 3 / 4 / 5 / 600, [59350] = 1 / 4 / 2 / 600, [59358] = 1 / 750 },
@@ -103,7 +119,8 @@ local CASES = {
     -- A chest with all seven brothers (7 rolls at 1/73) and Linza (1/96 over
     -- her five items), plus the amulet at 1/480. Dharok has 4 items, Ahrim 6.
     { file = "barrows", items = 39, modes = { "Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza" },
-        rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5, [39061] = 1 / 480 } },
+        rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5, [39061] = 1 / 480 },
+        after = { [39061] = 1 / 240, [37449] = 1 / 96 / 5 } },
     -- One rare roll per chest: normal, then hard mode.
     { file = "vorkath", items = 5, rates = { [56079] = 1 / 45, [56068] = 1 / 249 },
         hard = { [56079] = 1 / 15, [56068] = 1 / 150, [56321] = 1 / 150 } },
@@ -119,9 +136,11 @@ local CASES = {
     { file = "rasial", items = 8,
         rates = { [55480] = 1 / 640, [55482] = 1 / 640, [55488] = 1 / 640, [55496] = 1 / 640 } },
     { file = "solak", items = 7,
-        rates = { [42785] = 1 / 200, [42770] = 1 / 400, [42774] = 1 / 400, [42767] = 1 / 500, [42782] = 1 / 500 } },
-    -- Full contribution: 12 rolls at 1/5,400 each.
-    { file = "croesus", items = 10, rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 } },
+        rates = { [42785] = 1 / 200, [42770] = 1 / 400, [42774] = 1 / 400, [42767] = 1 / 500, [42782] = 1 / 500 },
+        after = { [42785] = 1 / 200, [42770] = 1 / 200, [42774] = 1 / 200, [42767] = 1 / 500 } },
+    -- Full contribution: 12 rolls at 1/5,400 each, then 1/3,000 armor and 1/2,500 others.
+    { file = "croesus", items = 10, rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 },
+        after = { [52250] = 12 / 3000, [52345] = 12 / 2500, [52213] = 12 / 2500 } },
     -- Solo, the default: three loot piles.
     { file = "kerapac", items = 7, rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
         hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 } },
@@ -152,15 +171,27 @@ for _, case in ipairs(CASES) do
             assert.are.equal(case.items, count)
         end)
 
-        it("has the wiki rates", function()
-            for modeIndex, rates in ipairs({ case.rates, case.hard }) do
+        -- Checks each mode's chances on day against expected, { rates, hard rates }.
+        local function check(day, expected)
+            for modeIndex, rates in pairs(expected) do
                 local mode = case.modes and modeNamed(boss, case.modes[modeIndex]) or boss.modes[modeIndex]
-                local chances = luck.ItemChances(stats.Rolls(mode, defaults(boss)))
+                local chances = luck.ItemChances(stats.Rolls(boss, mode, defaults(boss), day))
                 for itemID, rate in pairs(rates) do
                     assert.are.near(rate, chances[itemID], 1e-12)
                 end
             end
+        end
+
+        it("has the wiki rates", function()
+            check(BEFORE, { case.rates, case.hard })
         end)
+
+        if case.after then
+            it("has the Late-Game Rebalance's rates from its day", function()
+                check(AFTER, { case.after, case.afterHard })
+                check(AFTER - 1, { case.rates, case.hard })
+            end)
+        end
     end)
 end
 
@@ -177,10 +208,10 @@ it("counts each tracked Araxxi kill as solo or duo by the duo flag", function()
 end)
 
 it("scales Kerapac's loot piles by the player's team", function()
-    local modes = require("src/bosses/kerapac").modes
+    local boss = require("src/bosses/kerapac")
     local picks = { normalTeam = "duo", hardTeam = "trio" }
-    assert.are.near(1.5 / 256 / 3, luck.ItemChances(stats.Rolls(modes[1], picks))[51767], 1e-12)
-    assert.are.near(1 / 400 / 3, luck.ItemChances(stats.Rolls(modes[2], picks))[51782], 1e-12)
+    assert.are.near(1.5 / 256 / 3, luck.ItemChances(stats.Rolls(boss, boss.modes[1], picks))[51767], 1e-12)
+    assert.are.near(1 / 400 / 3, luck.ItemChances(stats.Rolls(boss, boss.modes[2], picks))[51782], 1e-12)
 end)
 
 it("only assumes Kerapac's duo damage when a pick has duo kills", function()
@@ -195,7 +226,7 @@ describe("TzKal-Zuk's checkpoints", function()
     local boss = require("src/bosses/zuk")
     local function pieceChance(stones, normalKills, hardKills)
         local picks = { stones = stones, normalKills = normalKills, hardKills = hardKills }
-        return luck.ItemChances(stats.Rolls(boss.modes[2], picks))[52505] * 3
+        return luck.ItemChances(stats.Rolls(boss, boss.modes[2], picks))[52505] * 3
     end
 
     it("takes the share of runs without checkpoints from the Igneous stones", function()
@@ -254,7 +285,7 @@ describe("Barrows", function()
     it("gives a full chest the kill count and a partial one only its brothers' items", function()
         local full = boss.modeFor(opened(SIX, true, true))
         assert.are.equal("BSLAY_KILLS_BARROWS", full.kc)
-        local chances = luck.ItemChances(full.rolls)
+        local chances = luck.ItemChances(stats.Rolls(boss, full, {}, BEFORE))
         assert.are.near(7 / 73 / 7 / 4, chances[4716], 1e-12)
         assert.are.near(1 / 96 / 5, chances[37449], 1e-12)
 
@@ -264,7 +295,7 @@ describe("Barrows", function()
 
         local partial = boss.modeFor(opened({ "Ahrim", "Dharok", "Guthan" }, false, false))
         assert.is_nil(partial.kc)
-        chances = luck.ItemChances(partial.rolls)
+        chances = luck.ItemChances(stats.Rolls(boss, partial, {}, BEFORE))
         assert.are.near(4 / 276 / 3 / 4, chances[4716], 1e-12) -- 3 brothers: 4 rolls at 1/276
         assert.is_nil(chances[4732]) -- no Karil
         assert.is_nil(chances[37449]) -- no Linza
@@ -285,9 +316,10 @@ end)
 
 -- Nakatra's rolls, normal then hard mode.
 describe("sanctum's Nakatra", function()
-    local modes = require("src/bosses/sanctum").modes
+    local sanctum = require("src/bosses/sanctum")
+    local modes = sanctum.modes
     local function chances(mode)
-        return luck.ItemChances(stats.Rolls(mode, {}))
+        return luck.ItemChances(stats.Rolls(sanctum, mode, {}))
     end
 
     it("has the wiki rates", function()
@@ -309,6 +341,7 @@ end)
 
 -- The generals' uniques can't drop together, so their chances simply add up.
 it("gives a general at most one unique per kill", function()
-    local rolls = require("src/bosses/zilyana").modes[1].rolls
+    local zilyana = require("src/bosses/zilyana")
+    local rolls = stats.Rolls(zilyana, zilyana.modes[1], {}, BEFORE)
     assert.are.near(1 / 64 + HILT, luck.ChanceOfAny(rolls), 1e-12)
 end)

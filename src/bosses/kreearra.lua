@@ -16,18 +16,25 @@ local VARS = {
 local HELMET, CHESTPLATE, CHAINSKIRT = 11718, 11720, 11722
 local GLOVES, BOOTS, BUCKLER, HILT = 25016, 25010, 25013, 11702
 
-local ROLLS = godwars.Rolls(common.Even({ HELMET, CHESTPLATE, CHAINSKIRT, GLOVES, BOOTS, BUCKLER }), HILT)
+local ARMOR = { HELMET, CHESTPLATE, CHAINSKIRT, GLOVES, BOOTS, BUCKLER }
+-- Chances per kill, before and after the Late-Game Rebalance.
+local RATES = godwars.Rates({ armor = 1 / 384 }, { armor = 1 / 320 })
+
+local function rolls(_, r)
+    return godwars.Rolls(common.Each(ARMOR, r.armor), HILT, r)
+end
 
 return {
     key = "kreearra", -- saved data key: never change it
     name = "Kree'arra",
     logPage = "COLLECTION_BOSS_KREEARRA", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
+    rates = RATES,
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = ROLLS },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = ROLLS },
+        { name = "Normal", kc = VARS.kc, rolls = rolls },
+        { name = "Hard mode", kc = VARS.kcHard, rolls = rolls },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind:

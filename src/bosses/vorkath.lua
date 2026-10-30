@@ -13,6 +13,8 @@
 -- chests opened, not kills: each opening is counted with its drop, and a chest
 -- opened while Boss RNG is off is simply untracked.
 
+local common = require("src/bosses/common")
+
 local VARS = {
     kc = "BSLAY_KILLS_FORT_BOSS_ZEMO_VORKATH",
     kcHard = "BSLAY_KILLS_FORT_BOSS_ZEMO_VORKATH_HARD",
@@ -25,14 +27,6 @@ local SPIKE, SCALE, CODEX = 56079, 56321, 56068
 local CHEST, CHEST_HARD = 56071, 56072 -- Zemouregal & Vorkath loot (normal), (hard)
 local REWARD_WINDOW = "DROP_CASKET_REWARDINV" -- the inventory a chest opens into
 
--- A chest's rare roll: the chance of any rare, each item weighted by its rate.
-local function rareRoll(rates)
-    local chance = 0
-    for _, rate in pairs(rates) do
-        chance = chance + rate
-    end
-    return { { chance = chance, items = rates } }
-end
 
 return {
     key = "vorkath", -- saved data key: never change it
@@ -45,9 +39,9 @@ return {
     -- counted through its chest opened, not its kill count.
     modes = {
         { name = "Normal", kc = VARS.kc, byEvent = true,
-            rolls = rareRoll({ [SPIKE] = 1 / 45, [CODEX] = 1 / 249 }) },
+            rolls = { common.OneOf({ [SPIKE] = 1 / 45, [CODEX] = 1 / 249 }) } },
         { name = "Hard mode", kc = VARS.kcHard, byEvent = true,
-            rolls = rareRoll({ [SPIKE] = 1 / 15, [CODEX] = 1 / 150, [SCALE] = 1 / 150 }) },
+            rolls = { common.OneOf({ [SPIKE] = 1 / 15, [CODEX] = 1 / 150, [SCALE] = 1 / 150 }) } },
     },
     containers = {
         [CHEST] = { mode = "Normal", window = REWARD_WINDOW },

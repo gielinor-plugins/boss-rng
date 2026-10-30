@@ -3,7 +3,11 @@
 -- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28: each loot roll
 -- has a 1/600 chance of a unique, one of nine evenly (1/5,400 each). Rolls go up
 -- with contribution, to 12 at full contribution. Every player gets their own rolls.
+-- Jagex's Late-Game Rebalance raises each roll's weapons, spore sack and
+-- scripture to 1/2,500 each and Cryptbloom pieces to 1/3,000 each.
 
+local rates = require("src/rates")
+local updates = require("src/updates")
 local common = require("src/bosses/common")
 
 local VARS = {
@@ -13,10 +17,20 @@ local VARS = {
 
 local HELM, TOP, BOTTOMS, GLOVES, BOOTS = 52250, 52256, 52258, 52252, 52254 -- Cryptbloom
 local SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE = 52244, 52248, 52213, 52345
-local UNIQUE = {
-    chance = 1 / 600,
-    items = common.Even({ HELM, TOP, BOTTOMS, GLOVES, BOOTS, SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE }),
-}
+local ARMOR = { HELM, TOP, BOTTOMS, GLOVES, BOOTS }
+local OTHERS = { SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE }
+local LOOT_ROLLS = 12 -- at full contribution
+
+-- Each item's chance per loot roll, before and after the Late-Game Rebalance.
+local RATES = rates.History({
+    { armor = 1 / 5400, other = 1 / 5400 },
+    { since = updates.LATE_GAME_REBALANCE, armor = 1 / 3000, other = 1 / 2500 },
+})
+
+local function rolls(_, r)
+    local unique = common.OneOf(common.Each(ARMOR, r.armor, common.Each(OTHERS, r.other)))
+    return common.Repeat({}, LOOT_ROLLS, unique)
+end
 
 return {
     key = "croesus", -- saved data key: never change it
@@ -24,10 +38,11 @@ return {
     logPage = "COLLECTION_BOSS_EGWD_BIK_BOSS", -- the boss log page's database row
     -- Kill counts don't say how much a player contributed.
     assumptions = { "Full contribution (12 rolls)" },
+    rates = RATES,
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = common.Repeat({}, 12, UNIQUE) },
+        { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see

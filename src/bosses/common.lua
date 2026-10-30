@@ -54,6 +54,25 @@ function common.Repeat(rolls, n, roll)
     return rolls
 end
 
+-- Each of ids at chance, { [item id] = chance }, added to into if given.
+function common.Each(ids, chance, into)
+    local chances = into or {}
+    for _, itemID in ipairs(ids) do
+        chances[itemID] = chance
+    end
+    return chances
+end
+
+-- One roll that gives at most one of its items, from each item's chance:
+-- { [item id] = chance } as the weights, and their sum as the roll's chance.
+function common.OneOf(chances)
+    local chance = 0
+    for _, itemChance in pairs(chances) do
+        chance = chance + itemChance
+    end
+    return { chance = chance, items = chances }
+end
+
 -- Weights for a roll's items split evenly between ids.
 function common.Even(ids)
     local weights = {}

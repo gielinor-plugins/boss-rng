@@ -1,6 +1,7 @@
 -- Run from the project root with: busted
 
 local luck = require("src/luck")
+local rates = require("src/rates")
 local stats = require("src/stats")
 
 local DAY = 20756 -- 30 Oct 2026
@@ -174,8 +175,10 @@ describe("stats with rates that changed", function()
     local CHANGE = DAY + 10
     -- Item 1 at 1/10 before CHANGE, 1/5 from it.
     local CHANGED = {
-        modes = { { name = "Normal", kc = "KC", rolls = { { chance = 1 / 5, items = { [1] = 1 } } },
-            olderRates = { { before = CHANGE, rolls = { { chance = 1 / 10, items = { [1] = 1 } } } } } } },
+        rates = rates.History({ { item = 1 / 10 }, { since = CHANGE, item = 1 / 5 } }),
+        modes = { { name = "Normal", kc = "KC", rolls = function(_, r)
+            return { { chance = r.item, items = { [1] = 1 } } }
+        end } },
         items = { [1] = { kind = "unique" } },
     }
 

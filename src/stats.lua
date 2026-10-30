@@ -13,42 +13,40 @@ local stats = {}
 -- precise (one early drop would show as "top 1%").
 stats.MIN_EXPECTED = 1
 
--- A mode's rolls, or rates' (see olderRates in src/bosses.lua): a table, or a
--- function of the player's picks for the boss's choices (see src/choices.lua).
--- None for a mode counted only through its kill events.
-function stats.Rolls(rates, picks)
-    local rolls = rates.rolls or {}
+local NO_RATES = {} -- the rate values of a boss without a history
+
+-- A boss's mode's rolls on a day (nil or 0: today's), for the player's picks:
+-- a table, or a function of the picks and the boss's rate values that day (see
+-- src/rates.lua). None for a mode counted only through its kill events.
+function stats.Rolls(boss, mode, picks, day)
+    local rolls = mode.rolls or {}
     if type(rolls) == "function" then
-        return rolls(picks)
+        return rolls(picks, boss.rates and boss.rates:On(day) or NO_RATES)
     end
     return rolls
 end
 
--- The rates a mode had on a day: its first olderRates entry the day is before,
--- else its own. Day 0 (not known) uses its own, today's rates.
-local function ratesOn(mode, day)
-    for _, older in ipairs(mode.olderRates or {}) do
-        if day > 0 and day < older.before then
-            return older
-        end
-    end
-    return mode
-end
-
 -- Rolls and chances per kill by mode and day, for picks, worked out once per
--- set of rates: Rolls(mode, day) and Chances(mode, day), { [item id] = chance }.
-local function ratesTable(picks)
+-- mode and rate version: Rolls(mode, day) and Chances(mode, day), { [item id]
+-- = chance }.
+local function ratesTable(boss, picks)
     local rolls, chances = {}, {}
     local lookup = {}
+    -- The cache for a mode on a day: one per rate version.
+    local function cache(store, mode, day)
+        local version = boss.rates and boss.rates:On(day) or NO_RATES
+        store[mode] = store[mode] or {}
+        return store[mode], version
+    end
     function lookup.Rolls(mode, day)
-        local rates = ratesOn(mode, day)
-        rolls[rates] = rolls[rates] or stats.Rolls(rates, picks)
-        return rolls[rates]
+        local byVersion, version = cache(rolls, mode, day)
+        byVersion[version] = byVersion[version] or stats.Rolls(boss, mode, picks, day)
+        return byVersion[version]
     end
     function lookup.Chances(mode, day)
-        local rates = ratesOn(mode, day)
-        chances[rates] = chances[rates] or luck.ItemChances(lookup.Rolls(mode, day))
-        return chances[rates]
+        local byVersion, version = cache(chances, mode, day)
+        byVersion[version] = byVersion[version] or luck.ItemChances(lookup.Rolls(mode, day))
+        return byVersion[version]
     end
     return lookup
 end
@@ -209,7 +207,7 @@ function stats.ForBoss(entry)
     if tallies == nil then
         return nil
     end
-    local rates = ratesTable(entry.picks or {})
+    local rates = ratesTable(boss, entry.picks or {})
     local modes = modesOf(boss, tallies)
 
     local result = { kills = 0, extraKills = 0, extraLabel = boss.extraKills, unit = boss.unit, items = {} }

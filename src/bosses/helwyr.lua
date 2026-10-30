@@ -10,18 +10,20 @@ local VARS = {
 }
 
 local CREST, WAND, ORB, ESSENCE = 37027, 37085, 40600, 37033
-local COUNTED = { CREST, WAND, ORB } -- the boss's crest and weapons
+local WEAPONS = { WAND, ORB }
+local RATES = godwars2.Rates()
 
 return {
     key = "helwyr", -- saved data key: never change it
     name = "Helwyr",
     logPage = "COLLECTION_BOSS_HELWYR", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
+    rates = RATES,
 
     -- Mode names are saved with the player's data: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = godwars2.Rolls(godwars2.NORMAL, COUNTED, ESSENCE) },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = godwars2.Rolls(godwars2.HARD, COUNTED, ESSENCE) },
+        { name = "Normal", kc = VARS.kc, rolls = godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE) },
+        { name = "Hard mode", kc = VARS.kcHard, rolls = godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE) },
     },
 
     -- Every item on the boss log page, with its log count varbit and kind (see
