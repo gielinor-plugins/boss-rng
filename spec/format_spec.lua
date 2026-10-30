@@ -26,6 +26,10 @@ describe("format", function()
         assert.are.equal("no tracked kills yet", format.Luck({ kills = 0 }))
         assert.are.equal("luck rating in about 14 kills", format.Luck({ kills = 20, killsToLuck = 14 }))
         assert.are.equal("luck rating in about 1 kill", format.Luck({ kills = 20, killsToLuck = 1 }))
+        -- A boss counting chests says so.
+        assert.are.equal("luck rating in about 3 chests", format.Luck({ kills = 2, killsToLuck = 3, unit = "chest" }))
+        assert.are.equal("no tracked chests yet", format.Luck({ kills = 0, unit = "chest" }))
+        assert.are.equal("Tracked: 2 chests · 0 uniques", format.Tracked({ kills = 2, received = 0, unit = "chest" }))
     end)
 
     it("words luck in a few words for columns", function()
@@ -80,6 +84,8 @@ describe("format", function()
     end)
 
     it("words the game's all-time totals, once read", function()
+        assert.are.equal("Boss log: 408 kills · 3 uniques · 184 spikes", format.AllTime({
+            allTime = { kills = 408, received = 3, stacks = { { word = "spike", count = 184 } } } }))
         assert.are.equal("Boss log: 924 kills · 9 uniques",
             format.AllTime({ allTime = { kills = 924, received = 9 } }))
         assert.are.equal("", format.AllTime({}))

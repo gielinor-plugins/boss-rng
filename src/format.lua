@@ -24,6 +24,11 @@ function format.Capitalize(text)
     return text:sub(1, 1):upper() .. text:sub(2)
 end
 
+-- What a boss's luck counts: "kill", or its own unit ("chest", see src/bosses.lua).
+local function unit(result)
+    return result.unit or "kill"
+end
+
 -- True if result has no tracked kills, in the kill counts or outside them.
 local function untracked(result)
     return result.kills == 0 and (result.extraKills or 0) == 0
@@ -72,13 +77,14 @@ end
 
 -- Luck as a sentence: "top 3% luck", "about average luck", "bottom 12% luck",
 -- "no tracked kills yet", or until there are enough, when it will show: "luck
--- rating in about 40 kills".
+-- rating in about 40 kills". Bosses with their own unit use it ("chests").
 function format.Luck(result)
     if untracked(result) then
-        return "no tracked kills yet"
+        return "no tracked " .. unit(result) .. "s yet"
     elseif result.luck == nil then
         local more = result.killsToLuck
-        return more and ("luck rating in about " .. count(more, "kill")) or "luck rating after more kills"
+        return more and ("luck rating in about " .. count(more, unit(result)))
+            or ("luck rating after more " .. unit(result) .. "s")
     end
     local short = format.LuckShort(result)
     return (short == "average" and "about average" or short) .. " luck"
@@ -94,17 +100,17 @@ function format.DryCount(result)
 end
 
 -- The dry streak: "12 kills dry · 4% go this long", "12+ kills dry · ...", or
--- "unique on your last kill". The percentage is the share of players who would
--- still be dry after as many kills.
+-- "unique on your last kill", in the boss's unit. The percentage is the share
+-- of players who would still be dry after as many kills.
 function format.Dry(result)
     if result.kills == 0 then
         return ""
     end
     if result.dryKills == 0 then
-        return "unique on your last kill"
+        return "unique on your last " .. unit(result)
     end
-    local kills = format.DryCount(result) .. ((result.dryKills == 1 and not result.dryAtLeast) and " kill" or " kills")
-    return kills .. " dry · " .. format.Percent(1 - result.dryShare) .. " go this long"
+    local plural = (result.dryKills == 1 and not result.dryAtLeast) and "" or "s"
+    return format.DryCount(result) .. " " .. unit(result) .. plural .. " dry · " .. format.Percent(1 - result.dryShare) .. " go this long"
 end
 
 -- Tracked kills, as count(n, word), with any kills outside the kill count
@@ -118,23 +124,26 @@ end
 -- What luck is based on, the kills and drops Boss RNG tracked: "Tracked: 212
 -- kills (+4 partial) · 2 uniques", or "" with none (the headline says so).
 function format.Tracked(result)
-    return untracked(result) and "" or ("Tracked: " .. trackedCounts(result, "kill"))
+    return untracked(result) and "" or ("Tracked: " .. trackedCounts(result, unit(result)))
 end
 
 -- The same in a few words, for the panel: "212 tracked kills · 2 uniques".
 function format.TrackedShort(result)
-    return untracked(result) and "" or trackedCounts(result, "tracked kill")
+    return untracked(result) and "" or trackedCounts(result, "tracked " .. unit(result))
 end
 
 -- The game's own totals (kill counts and boss log counts), shown as facts and
--- never used for luck: "Boss log: 924 kills · 9 uniques", or "" until they can
--- be read.
+-- never used for luck: "Boss log: 924 kills · 9 uniques", with stacked uniques
+-- as their own counts ("· 184 spikes"), or "" until they can be read.
 function format.AllTime(result)
     if result.allTime == nil then
         return ""
     end
-    return "Boss log: " .. count(result.allTime.kills, "kill") .. " · "
-        .. count(result.allTime.received, "unique")
+    local parts = { "Boss log: " .. count(result.allTime.kills, "kill"), count(result.allTime.received, "unique") }
+    for _, stack in ipairs(result.allTime.stacks or {}) do
+        table.insert(parts, count(stack.count, stack.word))
+    end
+    return table.concat(parts, " · ")
 end
 
 -- How many uniques an average player would have after the same kills, to

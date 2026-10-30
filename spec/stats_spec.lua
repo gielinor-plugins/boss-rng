@@ -111,7 +111,7 @@ describe("stats.ForBoss", function()
         it("shows them as facts, without using them for luck", function()
             local result = forBoss(BOSS, tallies({ Normal = 40 }),
                 totals({ KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 2, ["2"] = 1 }))
-            assert.are.same({ kills = 120, received = 3 }, result.allTime)
+            assert.are.same({ kills = 120, received = 3, stacks = {} }, result.allTime)
             assert.are.equal(40, result.kills)
             assert.are.equal(0, result.received)
             assert.are.near(1.2, result.expected, 1e-9)
@@ -124,6 +124,14 @@ describe("stats.ForBoss", function()
             assert.is_false(result.dryAtLeast)
             assert.is_false(result.items[1].dryAtLeast)
             assert.is_true(result.items[2].dryAtLeast)
+        end)
+
+        it("shows a stacked unique's log count apart, since it counts items, not drops", function()
+            local boss = { modes = BOSS.modes, items = {
+                [1] = { kind = "unique", stack = { most = 9, word = "spike" } }, [2] = { kind = "unique" } } }
+            local result = forBoss(boss, tallies({ Normal = 10 }), totals({ KC_NORMAL = 10, KC_HARD = 0 }, { ["1"] = 184, ["2"] = 3 }))
+            assert.are.same({ kills = 10, received = 3, stacks = { { word = "spike", count = 184 } } }, result.allTime)
+            assert.is_nil(result.items[1].allTime)
         end)
 
         it("knows a streak is exact when every kill was tracked", function()

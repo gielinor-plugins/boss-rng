@@ -234,6 +234,68 @@ describe("gamevars", function()
         assert.are.same({}, reports)
     end)
 
+    describe("with a container kept to open later", function()
+        local CHEST = 500
+        local WINDOW = "DROP_CASKET_REWARDINV"
+        local chested = {
+            modes = { { name = "Normal", kc = "KC_NORMAL", byEvent = true } },
+            containers = { [CHEST] = { mode = "Normal", window = WINDOW } },
+            items = { [101] = { log = "LOG_WEAPON", kind = "unique", stack = { most = 9, word = "spike" } } },
+        }
+
+        -- Sets the backpack's chest count, as an inventory update.
+        local function backpack(count)
+            mock.backpack[CHEST] = count
+            mock.Fire("InventoryUpdated", { inv = config.Inv.INV })
+        end
+
+        local function rewardWindow(name)
+            mock.Fire("InventoryAdded", { inv = { id = 952, configName = name or WINDOW } })
+        end
+
+        before_each(function()
+            gamevars.Stop()
+            mock.backpack[CHEST] = 3
+            gamevars.Start({ chested }, function(_, mode, count)
+                table.insert(reports, "kill " .. mode.name .. " +" .. count)
+            end, function(_, itemID, count)
+                table.insert(reports, "drop " .. itemID .. " +" .. count)
+            end)
+            advance(1) -- ready: the backpack's chests are read
+        end)
+
+        it("counts a chest opened, not the kill count, and its drop as one", function()
+            change(KC_VAR, 1, 2) -- the kill: not counted
+            rewardWindow()
+            backpack(2)
+            send(LOG_VAR, 10, 16) -- six spikes
+            advance(1)
+            assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+        end)
+
+        it("doesn't count a chest banked or claimed", function()
+            backpack(2) -- banked
+            advance(1)
+            backpack(4) -- withdrawn and claimed
+            advance(1)
+            assert.are.same({}, reports)
+        end)
+
+        it("only counts its own reward window", function()
+            rewardWindow("OTHER_REWARDINV")
+            backpack(2)
+            advance(1)
+            assert.are.same({}, reports)
+        end)
+
+        it("counts chests opened one per reward window", function()
+            rewardWindow()
+            backpack(1) -- two left at once, one window
+            advance(1)
+            assert.are.same({ "kill Normal +1" }, reports)
+        end)
+    end)
+
     it("unsubscribes everything when stopped", function()
         gamevars.Stop()
         assert.are.equal(0, mock.SubscriptionCount())

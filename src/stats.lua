@@ -166,6 +166,23 @@ local function sum(values)
     return total
 end
 
+-- The game's totals for a boss: { kills, received, stacks }. A stacked unique's
+-- log count is items, not drops, so it's its own count in stacks, { word, count }.
+local function allTimeTotals(boss, allTime)
+    local totals = { kills = sum(allTime.kills), received = 0, stacks = {} }
+    for key, count in pairs(allTime.items) do
+        local item = boss.items[tonumber(key)]
+        local stack = item and item.stack
+        if stack then
+            table.insert(totals.stacks, { word = stack.word, count = count })
+        else
+            totals.received = totals.received + count
+        end
+    end
+    table.sort(totals.stacks, function(a, b) return a.word < b.word end)
+    return totals
+end
+
 -- Stats for one boss from its entry, { boss, tallies, picks, allTime }: its
 -- tallies (see tracker.Tallies), the player's picks for its choices (see
 -- choices.For) and the game's all-time totals (see gamevars.AllTime, nil until
@@ -183,7 +200,8 @@ end
 --   dryAtLeast   true if the streak may be longer: no unique tracked yet, and
 --                there may be kills from before tracking
 --   dryShare     share of players who would have had a unique within dryKills
---   allTime      { kills, received } from the game, or nil until read
+--   allTime      { kills, received, stacks } from the game, or nil until read
+--   unit         what the boss's kills are ("chest"), or nil for kills
 --   items        { [itemID] = { expected, received, luck, dryKills, dryAtLeast,
 --                allTime } } per unique, or per group of uniques (with its group)
 function stats.ForBoss(entry)
@@ -194,7 +212,7 @@ function stats.ForBoss(entry)
     local rates = ratesTable(entry.picks or {})
     local modes = modesOf(boss, tallies)
 
-    local result = { kills = 0, extraKills = 0, extraLabel = boss.extraKills, items = {} }
+    local result = { kills = 0, extraKills = 0, extraLabel = boss.extraKills, unit = boss.unit, items = {} }
     local expected = {} -- by item id
     local countedExpected = 0 -- over kills in the kill counts
     eachKill(modes, tallies.kills, function(mode, day, kills)
@@ -211,7 +229,7 @@ function stats.ForBoss(entry)
         end
     end)
     if allTime then
-        result.allTime = { kills = sum(allTime.kills), received = sum(allTime.items) }
+        result.allTime = allTimeTotals(boss, allTime)
     end
     -- Without all-time totals, there may always have been kills before tracking.
     local mayHaveEarlier = allTime == nil or result.allTime.kills > result.kills
@@ -226,7 +244,7 @@ function stats.ForBoss(entry)
                 received = tallies.items[key] or 0,
                 dryKills = killsThatCanDrop(modes, rates, tallies.dry[key] or {}, itemID),
                 dryAtLeast = tallies.items[key] == nil and mayHaveEarlier,
-                allTime = allTime and allTime.items[key],
+                allTime = allTime and not item.stack and allTime.items[key] or nil,
             }
             row.luck = luckOf(row.expected, row.received)
             result.items[itemID] = row

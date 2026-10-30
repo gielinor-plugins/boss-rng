@@ -28,6 +28,14 @@ function mock.Reset(keepSaved)
     end
     mock.inGame = false
     mock.characterName = "Tester"
+    mock.backpack = {} -- [item id] = count
+
+    config = { Inv = { INV = { id = 93, configName = "INV" } } }
+    Inventory = {
+        Find = function()
+            return { isValid = true, GetTotal = function(_, itemID) return mock.backpack[itemID] or 0 end }
+        end,
+    }
 
     Event = setmetatable({}, {
         __index = function(_, name)

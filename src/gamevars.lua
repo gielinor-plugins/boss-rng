@@ -6,8 +6,9 @@
 --
 -- Kill counts and log counts are varbits: slices of a bigger "base" var. At a kill
 -- or drop the game sends the base var's old and new value (VarTransmit), and the
--- change in each slice is a kill or drop. Bosses whose chest hides which unique
--- dropped until it's opened would break this, so they aren't supported yet.
+-- change in each slice is a kill or drop. A boss whose loot comes in an item
+-- kept to open later (see containers in src/bosses.lua) counts each one opened
+-- instead: the backpack's count of it falling as its reward window opens.
 
 local days = require("src/days")
 local safe = require("src/safe")
@@ -21,8 +22,9 @@ local REF = "bossrng_gamevars"
 -- The client runs 50 ticks per second.
 local SETTLE_TICKS = 5 * 50
 
--- Each KC varbit rises by 1 per kill, and an item's count by a little per drop.
--- Bigger jumps (like a login sync) and any decrease are ignored.
+-- Each KC varbit rises by 1 per kill, and an item's count by a little per drop
+-- (more for a stack, see src/bosses.lua). Bigger jumps (like a login sync) and
+-- any decrease are ignored.
 local MAX_CHANGE = 3
 
 local watched = {} -- [base var id] = slices to check when that var changes
@@ -32,6 +34,13 @@ local readyAtTick = nil -- nil while not in the game
 local onReady = nil -- called once vars can be trusted after entering the game
 local announced = false -- whether onReady was called since entering the game
 local killedThisSession = {} -- [boss] = true once a kill is reported since entering the game
+
+-- Containers opened: each container's report and reward window by item id,
+-- the backpack's count of each as last read, and this tick's reward windows
+-- opened (by inventory name) and container counts that fell (by item id).
+local containers = {}
+local heldCounts = {}
+local opening = { windows = {}, fell = {} }
 
 -- True once vars can be trusted: in the game, and settled after entering it.
 local function isReady()
@@ -49,11 +58,12 @@ local function lowestBit(mask)
 end
 
 -- Watches a varbit by name, or with mask, bits of a var the game doesn't name
--- as a varbit. report(change) is called whenever it goes up. group is "kills"
--- or "drops". A count (a kill count or a boss log count, never mask bits) only
--- goes up, so it reports only rises above the highest value it's had this
--- session: the game can send counts again from 0, and those aren't kills or drops.
-local function watch(name, group, report, mask)
+-- as a varbit. report(change) is called whenever it goes up, by up to most
+-- (MAX_CHANGE by default). group is "kills" or "drops". A count (a kill count
+-- or a boss log count, never mask bits) only goes up, so it reports only rises
+-- above the highest value it's had this session: the game can send counts
+-- again from 0, and those aren't kills or drops.
+local function watch(name, group, report, mask, most)
     local found = var.VarPlayer[name]
     if found == nil or (mask == nil and not found.isVarBit) then
         print("[Boss RNG] Unknown varbit " .. name)
@@ -63,7 +73,9 @@ local function watch(name, group, report, mask)
     local count = mask == nil and name or nil -- a named varbit
     mask = mask or found.varBitMask
     watched[baseID] = watched[baseID] or {}
-    table.insert(watched[baseID], { mask = mask, shift = lowestBit(mask), group = group, report = report, count = count })
+    table.insert(watched[baseID], {
+        mask = mask, shift = lowestBit(mask), group = group, report = report, count = count, most = most or MAX_CHANGE,
+    })
 end
 
 -- Calls fn(slice) for every watched slice that's a count.
@@ -97,7 +109,7 @@ local function onVarTransmit(event)
     end
     for _, slice in ipairs(slices) do
         local change = rise(slice, old, new) -- counts keep their highest even while settling
-        if isReady() and change > 0 and change <= MAX_CHANGE then
+        if isReady() and change > 0 and change <= slice.most then
             table.insert(pending[slice.group], { report = slice.report, change = change })
         end
     end
@@ -106,14 +118,62 @@ end
 local function onGameStateChanged(event)
     readyAtTick = event.newState == GameState.GAME and tick + SETTLE_TICKS or nil
     announced = false
-    killedThisSession = {}
+    killedThisSession, heldCounts = {}, {}
     eachCount(function(slice) slice.highest = nil end) -- maybe another character
+end
+
+-- The backpack's count of each container, or nil if it can't be read.
+local function readHeld()
+    local backpack = Inventory.Find(config.Inv.INV)
+    if backpack == nil or not backpack.isValid then
+        return nil
+    end
+    local counts = {}
+    for itemID in pairs(containers) do
+        counts[itemID] = backpack:GetTotal(itemID)
+    end
+    return counts
+end
+
+-- Notes containers leaving the backpack, and any other inventory opening (a
+-- reward window). Banking a container lowers its count too, but opens no
+-- reward window.
+local function onInventory(event)
+    if not isReady() then
+        return
+    elseif event.inv.id == config.Inv.INV.id then
+        for itemID, count in pairs(readHeld() or {}) do
+            local fell = (heldCounts[itemID] or count) - count
+            if fell > 0 then
+                opening.fell[itemID] = (opening.fell[itemID] or 0) + fell
+            end
+            heldCounts[itemID] = count
+        end
+    else
+        local name = event.inv.configName
+        opening.windows[name] = (opening.windows[name] or 0) + 1
+    end
+end
+
+-- Queues this tick's openings as kills: each container that left the backpack
+-- in the tick its reward window opened, one per window.
+local function queueOpenings()
+    for itemID, fell in pairs(opening.fell) do
+        local container = containers[itemID]
+        local opened = math.min(fell, opening.windows[container.window] or 0)
+        if opened > 0 then
+            table.insert(pending.kills, { report = container.report, change = opened })
+            opening.windows[container.window] = opening.windows[container.window] - opened
+        end
+    end
+    opening = { windows = {}, fell = {} }
 end
 
 -- When a kill and a drop change in the same tick they can arrive in either order
 -- (at Kree'arra the drop came first). Reporting a tick's changes together, kills
 -- first, means a drop is always counted after the kill it landed with.
 local function flush()
+    queueOpenings()
     for _, group in ipairs({ "kills", "drops" }) do
         for _, item in ipairs(pending[group]) do
             safe.Call("recording " .. group, item.report, item.change)
@@ -131,6 +191,7 @@ local function onLogic(event)
             local found = var.VarPlayer[slice.count]
             slice.highest = math.max(slice.highest or 0, found and found.value or 0)
         end)
+        heldCounts = readHeld() or {}
         safe.Call("updating once the game is ready", onReady)
     end
 end
@@ -199,11 +260,14 @@ end
 -- Starts reporting changes for every boss in bosses (the list from src/bosses.lua),
 -- on the logic tick after they happen:
 --   onKills(boss, mode, count, day)  a KC varbit of that mode went up (modes
---                                    counted by kill events aren't watched), or
---                                    one of the boss's kill event vars did, for
---                                    the mode it says; day is today (see today)
+--                                    counted by kill events or containers
+--                                    aren't watched), one of the boss's kill
+--                                    event vars did, for the mode it says, or
+--                                    one of its containers was opened; day is
+--                                    today (see today)
 --   onDrops(boss, itemID, count)     the log count of a unique item went up,
 --                                    for a boss killed since entering the game
+--                                    (a stack's rise is one drop)
 -- and calls ready() each time vars can be trusted after entering the game.
 --
 -- The game can send boss log counts again long after login, as jumps from 0
@@ -229,13 +293,24 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
                 end
             end, event.mask)
         end
+        for itemID, container in pairs(boss.containers or {}) do
+            for _, mode in ipairs(boss.modes) do
+                if mode.name == container.mode then
+                    containers[itemID] = {
+                        window = container.window,
+                        report = function(count) killed(boss, mode, count) end,
+                    }
+                end
+            end
+        end
         for itemID, item in pairs(boss.items) do
             if item.kind == "unique" then -- only items that count toward luck
+                local stack = item.stack and item.stack.most
                 watch(item.log, "drops", function(count)
                     if killedThisSession[boss] then
-                        onDrops(boss, itemID, count)
+                        onDrops(boss, itemID, stack and 1 or count)
                     end
-                end)
+                end, nil, stack)
             end
         end
     end
@@ -247,13 +322,18 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
     Event.Logic.Subscribe(REF, onLogic)
     Event.GameStateChanged.Subscribe(REF, onGameStateChanged)
     Event.VarTransmit.Subscribe(REF, onVarTransmit)
+    Event.InventoryAdded.Subscribe(REF, onInventory)
+    Event.InventoryUpdated.Subscribe(REF, onInventory)
 end
 
 function gamevars.Stop()
     Event.Logic.Unsubscribe(REF)
     Event.GameStateChanged.Unsubscribe(REF)
     Event.VarTransmit.Unsubscribe(REF)
-    watched = {}
+    Event.InventoryAdded.Unsubscribe(REF)
+    Event.InventoryUpdated.Unsubscribe(REF)
+    watched, containers, heldCounts = {}, {}, {}
+    opening = { windows = {}, fell = {} }
     pending = { kills = {}, drops = {} }
     readyAtTick = nil
     onReady, announced, killedThisSession = nil, false, {}

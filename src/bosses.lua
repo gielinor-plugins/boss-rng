@@ -21,8 +21,21 @@
 --   modeFor      function(name): that mode ({ name, kc, rolls }); kc is nil for
 --                kills outside the kill count, shown apart as extraKills (a
 --                label, "partial")
--- The boss's own mode for that kill count is then marked byEvent, with no
--- rolls: its kill count isn't watched, since the events count its kills.
+-- The boss's own mode for that kill count is then marked byEvent: its kill count
+-- isn't watched, since the events count its kills. It has no rolls unless kills
+-- are counted for it directly (by containers, or a kill event naming it).
+--
+-- A boss whose loot comes in an item kept to open later (a container, such as
+-- a chest) counts containers opened, not kills, so each is counted with its drop:
+--   containers   { [item id] = { mode, window } }: the mode, marked byEvent,
+--                counts one kill each time the item leaves the backpack in the
+--                tick its reward window (an inventory name) opens (see
+--                src/gamevars.lua)
+--   unit         what the boss's kills are called in its numbers ("chest")
+--
+-- A unique dropped in stacks has stack = { most, word }: a rise of its log count
+-- of up to most is one drop, and its log count (items, not drops) shows apart
+-- from the boss's other uniques, as a count of word ("spike").
 --
 -- When a mode's rates change, its old ones stay for the kills tracked before:
 --   olderRates   { { before = day, rolls = ... }, ... }, oldest first (days
@@ -49,7 +62,7 @@ local BOSS_FILES = {
     "araxxi", "barrows", "rots", "solak",
     "croesus", "kerapac", "zuk", -- Elder God Wars Dungeon
     "dragonkin", -- elite dungeons
-    "corp", "raksha", "rasial",
+    "corp", "raksha", "rasial", "vorkath",
 }
 
 local bosses = {}

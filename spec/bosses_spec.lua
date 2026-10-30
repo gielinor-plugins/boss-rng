@@ -41,8 +41,8 @@ describe("boss data", function()
 
             it("counts a kill count by its kill events only if it has them", function()
                 for _, mode in ipairs(boss.modes) do
-                    assert.are.equal(mode.byEvent == true, mode.rolls == nil)
-                    assert.is_true(not mode.byEvent or boss.killEvents ~= nil)
+                    assert.is_true(mode.byEvent == true or mode.rolls ~= nil)
+                    assert.is_true(not mode.byEvent or boss.killEvents ~= nil or boss.containers ~= nil)
                 end
             end)
 
@@ -104,6 +104,9 @@ local CASES = {
     -- her five items), plus the amulet at 1/480. Dharok has 4 items, Ahrim 6.
     { file = "barrows", items = 39, modes = { "Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza" },
         rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5, [39061] = 1 / 480 } },
+    -- One rare roll per chest: normal, then hard mode.
+    { file = "vorkath", items = 5, rates = { [56079] = 1 / 45, [56068] = 1 / 249 },
+        hard = { [56079] = 1 / 15, [56068] = 1 / 150, [56321] = 1 / 150 } },
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
     -- Astellarn solo, then in a duo.
     { file = "dragonkin", items = 7, modes = { "Astellarn, solo", "Astellarn, 2 players" },
