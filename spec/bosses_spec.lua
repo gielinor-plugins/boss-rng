@@ -101,9 +101,9 @@ local CASES = {
     { file = "araxxi", items = 15, modes = { "Solo", "Duo" },
         rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 }, hard = { [31719] = 1 / 70 / 3, [31724] = 1 / 200 / 3 } },
     -- A chest with all seven brothers (7 rolls at 1/73) and Linza (1/96 over
-    -- her five items). Dharok has 4 items, Ahrim 6.
+    -- her five items), plus the amulet at 1/480. Dharok has 4 items, Ahrim 6.
     { file = "barrows", items = 39, modes = { "Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza" },
-        rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5 } },
+        rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5, [39061] = 1 / 480 } },
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
     -- Astellarn solo, then in a duo.
     { file = "dragonkin", items = 7, modes = { "Astellarn, solo", "Astellarn, 2 players" },
@@ -265,6 +265,7 @@ describe("Barrows", function()
         assert.are.near(4 / 276 / 3 / 4, chances[4716], 1e-12) -- 3 brothers: 4 rolls at 1/276
         assert.is_nil(chances[4732]) -- no Karil
         assert.is_nil(chances[37449]) -- no Linza
+        assert.are.near(1 / 480, chances[39061], 1e-12) -- the amulet, in every chest
     end)
 
 end)

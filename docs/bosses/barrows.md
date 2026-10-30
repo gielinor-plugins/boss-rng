@@ -27,6 +27,11 @@ from one of the brothers you killed, picked evenly, then one of their items,
 picked evenly. Linza, if you killed her, adds one roll at 1 in 96 for one of her
 five items. Before the 20 July 2026 update, that roll was 1 in 192.
 
+Every chest also has a 1 in 480 chance of the **Amulet of the forsaken**, from
+Jagex's [Late-Game Rebalance design preview](https://secure.runescape.com/m=news/late-game-rebalance-design-preview)
+(1 in 240 from the late November 2026 update). It doesn't say whether partial
+chests can give it, so Boss RNG assumes they can, and the "i" says so.
+
 ## What Boss RNG reads
 
 | Var | What it holds |
@@ -60,8 +65,6 @@ counts every chest since your last unique.
 
 ## Not counted
 
-- **Amulet of the forsaken:** it's on the collection log, but it has no published
-  drop rate, so there's nothing to compare your count to.
 - **Corruption sigil:** it only drops if you have a dragon defender or better,
   which Boss RNG doesn't track.
 - **Barrows chest** (a boss trophy, 1 in 500): it isn't on the collection log,

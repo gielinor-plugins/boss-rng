@@ -6,6 +6,9 @@
 -- 1/max(450 - 58n, 73) chance of Barrows equipment: one of the killed brothers
 -- evenly, then one of their items evenly. Linza, if killed, adds one roll at
 -- 1/96 for one of her five items (since 20 July 2026, before Boss RNG came out).
+-- Jagex's Late-Game Rebalance design preview gives the amulet of the forsaken
+-- as 1/480 per chest (1/240 from the late November 2026 update). It doesn't say
+-- whether partial chests are included, so they're assumed to be.
 --
 -- Each tracked chest is counted as it's looted, for a mode named by the brothers
 -- killed, so it's exact. The kill count only counts chests with 6 or more
@@ -17,81 +20,90 @@ local common = require("src/bosses/common")
 local VARS = {
     kc = "BSLAY_KILLS_BARROWS", -- chests with 6 or more brothers, Akrisae counting (Linza not)
     run = "BARROWS", -- the run's tunnels and chest
-    looted = 0x4000000, -- the bit of run set when the chest is looted (no varbit name)
+    killed = "BARROWS_KILLED_", -- 1 if that original brother was killed this run, by name
     killedCount = "BARROWS_KILLED_COUNT", -- brothers killed this run, Akrisae and Linza included
     linzaKilled = "SISTER_KILLED_LINZA", -- 1 if Linza was killed this run
     log = "ITEMLOG_ITEM_BARROWS_", -- each item's log count, by brother and piece
 }
+local LOOTED = 0x4000000 -- the bit of VARS.run set when the chest is looted (no varbit name)
 
--- Each brother: their name (as in tracked chests' mode names), their flag var
--- for this run (originals only), and their items, { [item id] = log var }.
-local function brother(name, flag, logName, pieces)
-    local items = {}
-    for itemID, piece in pairs(pieces) do
-        items[itemID] = VARS.log .. logName .. "_" .. piece
-    end
-    return { name = name, flag = flag, items = items }
+local RATES = {
+    maxRolls = 7, -- a chest's equipment rolls, at most
+    linza = 1 / 96, -- Linza's roll, for one of her items
+    amulet = 1 / 480, -- the amulet of the forsaken, per chest
+}
+
+-- The chance of Barrows equipment per roll with n brothers killed.
+function RATES.piece(n)
+    return 1 / math.max(450 - 58 * n, 73)
 end
 
+local FULL_CHEST = 6 -- the fewest brothers (Linza not counted) for the kill count
+local CHEST = "Chest: " -- tracked chests' mode names start with this
+
+local AMULET = 39061 -- Amulet of the forsaken
+local SIGIL = 36156 -- Corruption sigil
+
+-- A brother: their name (as in tracked chests' mode names), their name in game
+-- vars, and their items, { [item id] = log var }, with how many there are.
+local function brother(name, varName, pieces)
+    local items, size = {}, 0
+    for itemID, piece in pairs(pieces) do
+        items[itemID] = VARS.log .. varName .. "_" .. piece
+        size = size + 1
+    end
+    return { name = name, varName = varName, items = items, size = size }
+end
+
+-- The six originals, each with a flag var for this run.
 local ORIGINALS = {
-    brother("Ahrim", "BARROWS_KILLED_AHRIM", "AHRIM", { -- hood, top, skirt, staff, wand, book
+    brother("Ahrim", "AHRIM", { -- hood, top, skirt, staff, wand, book
         [4708] = "HEAD", [4712] = "BODY", [4714] = "LEGS", [4710] = "STAFF", [25652] = "WAND", [25672] = "OFFHAND" }),
-    brother("Dharok", "BARROWS_KILLED_DHAROK", "DHAROK", {
-        [4716] = "HEAD", [4720] = "BODY", [4722] = "LEGS", [4718] = "AXE" }),
-    brother("Guthan", "BARROWS_KILLED_GUTHAN", "GUTHAN", {
-        [4724] = "HEAD", [4728] = "BODY", [4730] = "LEGS", [4726] = "SPEAR" }),
-    brother("Karil", "BARROWS_KILLED_KARIL", "KARIL", { -- coif, top, skirt, crossbow, pistol crossbows
+    brother("Dharok", "DHAROK", { [4716] = "HEAD", [4720] = "BODY", [4722] = "LEGS", [4718] = "AXE" }),
+    brother("Guthan", "GUTHAN", { [4724] = "HEAD", [4728] = "BODY", [4730] = "LEGS", [4726] = "SPEAR" }),
+    brother("Karil", "KARIL", { -- coif, top, skirt, crossbow, pistol crossbows
         [4732] = "HEAD", [4736] = "BODY", [4738] = "LEGS", [4734] = "CROSSBOW", [25918] = "PISTOL",
         [25895] = "PISTOL_OFFHAND" }),
-    brother("Torag", "BARROWS_KILLED_TORAG", "TORAG", {
-        [4745] = "HEAD", [4749] = "BODY", [4751] = "LEGS", [4747] = "HAMMER" }),
-    brother("Verac", "BARROWS_KILLED_VERAC", "VERAC", {
-        [4753] = "HEAD", [4757] = "BODY", [4759] = "LEGS", [4755] = "FLAIL" }),
+    brother("Torag", "TORAG", { [4745] = "HEAD", [4749] = "BODY", [4751] = "LEGS", [4747] = "HAMMER" }),
+    brother("Verac", "VERAC", { [4753] = "HEAD", [4757] = "BODY", [4759] = "LEGS", [4755] = "FLAIL" }),
 }
-local AKRISAE = brother("Akrisae", nil, "AKRISAE", {
-    [21736] = "HEAD", [21752] = "BODY", [21760] = "LEGS", [21744] = "MACE" })
-local LINZA = brother("Linza", nil, "SISTER", { -- helm, cuirass, greaves, hammer, shield
+local AKRISAE = brother("Akrisae", "AKRISAE", { [21736] = "HEAD", [21752] = "BODY", [21760] = "LEGS", [21744] = "MACE" })
+local LINZA = brother("Linza", "SISTER", { -- helm, cuirass, greaves, hammer, shield
     [37433] = "HEAD", [37437] = "BODY", [37441] = "LEGS", [37445] = "HAMMER", [37449] = "SHIELD" })
 
-local WITH_AKRISAE = { table.unpack(ORIGINALS) }
-table.insert(WITH_AKRISAE, AKRISAE)
+-- The brothers sharing the equipment rolls, in mode name order.
+local BROTHERS = { table.unpack(ORIGINALS) }
+table.insert(BROTHERS, AKRISAE)
 
 -- Item weights for a roll that picks one of brothers evenly, then one of their
 -- items evenly.
 local function weights(brothers)
     local result = {}
     for _, b in ipairs(brothers) do
-        local count = 0
-        for _ in pairs(b.items) do
-            count = count + 1
-        end
         for itemID in pairs(b.items) do
-            result[itemID] = 1 / count
+            result[itemID] = 1 / b.size
         end
     end
     return result
 end
 
--- A chest's rolls: one per brother killed plus one, up to 7, then Linza's if she
--- was killed.
+-- A chest's rolls: the amulet's, one equipment roll per brother killed plus
+-- one (up to maxRolls), and Linza's if she was killed.
 local function chestRolls(brothers, linza)
-    local rolls = {}
+    local rolls = { { chance = RATES.amulet, items = { [AMULET] = 1 } } }
     local n = #brothers
     if n > 0 then
-        local roll = { chance = 1 / math.max(450 - 58 * n, 73), items = weights(brothers) }
-        common.Repeat(rolls, math.min(n + 1, 7), roll)
+        local roll = { chance = RATES.piece(n), items = weights(brothers) }
+        common.Repeat(rolls, math.min(n + 1, RATES.maxRolls), roll)
     end
     if linza then
-        table.insert(rolls, { chance = 1 / 96, items = weights({ LINZA }) })
+        table.insert(rolls, { chance = RATES.linza, items = weights({ LINZA }) })
     end
     return rolls
 end
 
--- A tracked chest's mode name: "Chest: " and the brothers killed, as in
--- WITH_AKRISAE's order, then Linza. Saved with the player's tallies: never
--- change the format.
-local CHEST = "Chest: "
-
+-- A tracked chest's mode name: CHEST, then the brothers killed in BROTHERS'
+-- order, then Linza. Saved with the player's tallies: never change the format.
 local function chestName(brothers, linza)
     local names = {}
     for _, b in ipairs(brothers) do
@@ -103,9 +115,6 @@ local function chestName(brothers, linza)
     return CHEST .. table.concat(names, ", ")
 end
 
--- The fewest brothers (not counting Linza) for a chest to be in the kill count.
-local FULL_CHEST = 6
-
 -- The mode for a tracked chest's name: exactly its brothers' rolls, in the kill
 -- count only if it's a full chest.
 local function chestMode(name)
@@ -114,7 +123,7 @@ local function chestMode(name)
         killed[b] = true
     end
     local brothers = {}
-    for _, b in ipairs(WITH_AKRISAE) do
+    for _, b in ipairs(BROTHERS) do
         if killed[b.name] then
             table.insert(brothers, b)
         end
@@ -139,37 +148,44 @@ local function chestLooted(values)
     return chestName(brothers, values.linzaKilled == 1)
 end
 
-local reads = { killedCount = VARS.killedCount, linzaKilled = VARS.linzaKilled }
-for _, b in ipairs(ORIGINALS) do
-    reads[b.name] = b.flag
+-- The vars chestLooted reads: the count, Linza's flag and each original's flag.
+local function lootReads()
+    local reads = { killedCount = VARS.killedCount, linzaKilled = VARS.linzaKilled }
+    for _, b in ipairs(ORIGINALS) do
+        reads[b.name] = VARS.killed .. b.varName
+    end
+    return reads
 end
 
 -- Every item on the boss log page, with its log count varbit and kind (see
 -- src/bosses/kreearra.lua for what each kind means).
-local items = {
-    [36156] = { kind = "excluded" }, -- Corruption sigil: only with a dragon defender or better
-    [39061] = { log = VARS.log .. "AMULET", kind = "excluded" }, -- Amulet of the forsaken: no published rate
-}
-for _, b in ipairs({ AKRISAE, LINZA, table.unpack(ORIGINALS) }) do
-    for itemID, log in pairs(b.items) do
-        items[itemID] = { log = log, kind = "unique" }
+local function logItems()
+    local items = {
+        [AMULET] = { log = VARS.log .. "AMULET", kind = "unique" },
+        [SIGIL] = { kind = "excluded" }, -- only with a dragon defender or better
+    }
+    for _, b in ipairs({ AKRISAE, LINZA, table.unpack(ORIGINALS) }) do
+        for itemID, log in pairs(b.items) do
+            items[itemID] = { log = log, kind = "unique" }
+        end
     end
+    return items
 end
 
 return {
     key = "barrows", -- saved data key: never change it
     name = "Barrows brothers",
     logPage = "COLLECTION_BOSS_BARROWS", -- the boss log page's database row
-    assumptions = {},
+    assumptions = { "Amulet of the forsaken from partial chests too" },
 
     -- The kill count's mode, counted only through its kill event: each tracked
     -- chest gets a mode of its own (killEvents, modeFor).
     modes = {
         { name = "Normal", kc = VARS.kc, byEvent = true },
     },
-    killEvents = { { var = VARS.run, mask = VARS.looted, reads = reads, mode = chestLooted } },
+    killEvents = { { var = VARS.run, mask = LOOTED, reads = lootReads(), mode = chestLooted } },
     modeFor = chestMode,
     extraKills = "partial", -- tracked chests outside the kill count
 
-    items = items,
+    items = logItems(),
 }
