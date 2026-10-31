@@ -14,10 +14,13 @@
 --
 -- A boss can count each tracked kill for a mode made from the game's values at
 -- the kill (Barrows chests by the brothers killed, Araxxi kills by team):
---   killEvents   a list of { var, mask, reads = { [key] = var }, mode = function(values) }:
---                when var (or with mask, those bits of it) goes up, the reads
---                are read and mode gives the mode's name, or nil to leave the
---                kill uncounted
+--   killEvents   a list of { var, mask, reads = { [key] = var }, lasts = { [key] =
+--                varbit }, mode = function(values) }: when var (or with mask,
+--                those bits of it) goes up, the reads are read, each of lasts
+--                gives its last value above 0 since the previous kill (nil if
+--                none: for a value the game resets at the kill, like Croesus's
+--                contribution), and mode gives the mode's name, or nil to leave
+--                the kill uncounted
 --   modeFor      function(name): that mode ({ name, kc, rolls }); kc is nil for
 --                kills outside the kill count, shown apart as extraKills (a
 --                label, "partial")

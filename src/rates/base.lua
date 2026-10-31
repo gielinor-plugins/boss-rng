@@ -39,8 +39,7 @@ return {
             pieceBase = 450, piecePerBrother = 58, pieceBest = 73, maxRolls = 7,
         },
         corp = { sigil = 1 / 256, elixir = 3 / 512 },
-        -- Each item per loot roll, and the loot rolls at full contribution.
-        croesus = { armor = 1 / 5400, other = 1 / 5400, lootRolls = 12 },
+        croesus = { armor = 1 / 5400, other = 1 / 5400 }, -- each item, per loot roll
         dragonkin = { solo = 1 / 83, duo = 1 / 166, trio = 1 / 250 },
         furies = godWars2(),
         graardor = { armor = 1 / 384, hilt = GWD_HILT },

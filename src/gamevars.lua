@@ -52,6 +52,10 @@ local opening = { windows = {}, fell = {} }
 -- this tick's kills and loot rises. By base var id, and as a list.
 local claims, claimList = {}, {}
 
+-- Varbits kept at their last value above 0 (see lasts in killEvents): [base var
+-- id] = { name, keep(value) }.
+local lasts = {}
+
 -- True once vars can be trusted: in the game, and settled after entering it.
 local function isReady()
     return readyAtTick ~= nil and tick >= readyAtTick
@@ -120,6 +124,12 @@ local function onVarTransmit(event)
         local change = rise(slice, old, new) -- counts keep their highest even while settling
         if isReady() and change > 0 and change <= slice.most then
             table.insert(pending[slice.group], { report = slice.report, change = change })
+        end
+    end
+    for _, last in ipairs(lasts[event.var.id] or {}) do
+        local now = var.VarPlayer[last.name].value
+        if now and now > 0 then
+            last.keep(now)
         end
     end
     for _, claim in ipairs(isReady() and claims[event.var.id] or {}) do
@@ -299,13 +309,16 @@ end
 -- The mode a boss's kill event or claim says the kill was (see killEvents and
 -- claims in src/bosses.lua), from the game's values as it's reported (and for
 -- a claim, its var's old value), or nil if any can't be read or it gives none.
-local function eventMode(boss, event, old)
+local function eventMode(boss, event, old, kept)
     local values = {}
     for key, name in pairs(event.reads) do
         values[key] = value(name)
         if values[key] == nil then
             return nil
         end
+    end
+    for key in pairs(event.lasts or {}) do
+        values[key] = kept[key] -- nil if none was seen
     end
     local name = event.mode(values, old)
     return name and boss.modeFor(name)
@@ -340,8 +353,22 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
             end
         end
         for _, event in ipairs(boss.killEvents or {}) do
+            local kept = {} -- each of event.lasts' last value above 0 since the last kill
+            for key, name in pairs(event.lasts or {}) do
+                local found = var.VarPlayer[name]
+                local base = found and found.baseVar
+                if base then
+                    lasts[base.id] = lasts[base.id] or {}
+                    table.insert(lasts[base.id], { name = name, keep = function(now) kept[key] = now end })
+                else
+                    print("[Boss RNG] Unknown varbit " .. name)
+                end
+            end
             watch(event.var, "kills", function()
-                local mode = eventMode(boss, event)
+                local mode = eventMode(boss, event, nil, kept)
+                for key in pairs(kept) do
+                    kept[key] = nil
+                end
                 if mode then
                     killed(boss, mode, 1)
                 end
@@ -409,7 +436,7 @@ function gamevars.Stop()
     Event.VarTransmit.Unsubscribe(REF)
     Event.InventoryAdded.Unsubscribe(REF)
     Event.InventoryUpdated.Unsubscribe(REF)
-    watched, containers, heldCounts, claims, claimList = {}, {}, {}, {}, {}
+    watched, containers, heldCounts, claims, claimList, lasts = {}, {}, {}, {}, {}, {}
     opening = { windows = {}, fell = {} }
     pending = { kills = {}, drops = {} }
     readyAtTick = nil

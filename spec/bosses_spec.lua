@@ -268,6 +268,22 @@ it("counts the Shadow Reef's group kills by the players at the kill", function()
     assert.are.near(1 / 111 / 3, luck.ItemChances(stats.Rolls(boss, mode, {}))[47490], 1e-12)
 end)
 
+it("counts each tracked Croesus kill at the unique rolls of its contribution", function()
+    local boss = require("src/bosses/croesus")
+    local event = boss.killEvents[1]
+    assert.are.equal("EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION", event.lasts.contribution)
+    assert.are.equal("12 rolls", event.mode({ contribution = 466 })) -- seen in game
+    assert.are.equal("11 rolls", event.mode({ contribution = 419 }))
+    assert.are.equal("1 roll", event.mode({ contribution = 60 }))
+    assert.are.equal("0 rolls", event.mode({ contribution = 59 })) -- one loot roll, no uniques
+    assert.is_nil(event.mode({})) -- no contribution seen: uncounted
+    local two = boss.modeFor("2 rolls")
+    assert.are.near(2 / 5400, luck.ItemChances(stats.Rolls(boss, two, {}, BEFORE))[52250], 1e-12)
+    assert.are.near(2 / 3000, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52250], 1e-12) -- the rebalance
+    assert.are.near(2 / 2500, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52345], 1e-12)
+    assert.are.same({}, stats.Rolls(boss, boss.modeFor("0 rolls"), {}))
+end)
+
 describe("Barrows", function()
     local boss = require("src/bosses/barrows")
     local SIX = { "Ahrim", "Dharok", "Guthan", "Karil", "Torag", "Verac" }

@@ -115,6 +115,28 @@ describe("gamevars", function()
         assert.are.same({ "Chest 3 +1" }, reports)
     end)
 
+    it("gives a kill event the last value above 0 of a varbit reset at the kill", function()
+        gamevars.Stop()
+        local evented = {
+            modes = { { name = "Normal", kc = "KC_NORMAL", byEvent = true } },
+            items = {},
+            killEvents = { { var = "KC_NORMAL", reads = {}, lasts = { score = "LOG_SHARED" }, mode = function(values)
+                return values.score and "Score " .. values.score or nil
+            end } },
+            modeFor = function(name) return { name = name } end,
+        }
+        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.name) end, function() end)
+        advance(1)
+        mock.SetValue("LOG_SHARED", 7)
+        send(LOG_VAR, 0, 0x070000) -- the score rises through the fight
+        mock.SetValue("LOG_SHARED", 0)
+        send(LOG_VAR, 0x070000, 0) -- and resets in the kill's tick
+        change(KC_VAR, 1, 2)
+        assert.are.same({ "Score 7" }, reports)
+        change(KC_VAR, 2, 3) -- no score seen since: uncounted
+        assert.are.same({ "Score 7" }, reports)
+    end)
+
     it("can watch bits of a var the game doesn't name as a varbit", function()
         gamevars.Stop()
         local evented = {
