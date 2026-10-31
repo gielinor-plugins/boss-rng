@@ -134,6 +134,9 @@ local CASES = {
     -- Solo, then duo: the same rates.
     { file = "raksha", items = 6, rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
         hard = { [51082] = 1 / 130, [51094] = 1 / 325 } },
+    -- Four rares on one roll, raised by the Late-Game Rebalance, and the Latent Offering.
+    { file = "elidinis", items = 7, rates = { [57519] = 1 / 480, [57544] = 1 / 480, [57528] = 1 / 71 },
+        after = { [57519] = 1 / 256, [57524] = 1 / 256, [57528] = 1 / 71 } },
     -- Two rolls of their own, both raised by the Late-Game Rebalance.
     { file = "magister", items = 8, rates = { [40650] = 1 / 18, [40320] = 1 / 500 },
         after = { [40650] = 1 / 10, [40320] = 1 / 128 } },

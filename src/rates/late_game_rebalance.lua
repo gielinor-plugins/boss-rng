@@ -14,6 +14,7 @@ return {
     rates = {
         barrows = { amulet = 1 / 240 },
         croesus = { armor = 1 / 3000, other = 1 / 2500 },
+        elidinis = { rare = 1 / 256 },
         furies = { normalCrest = CREST, hardCrest = CREST },
         graardor = { armor = 1 / 320, hilt = HILT },
         gregorovic = { normalCrest = CREST, hardCrest = CREST },
