@@ -61,7 +61,7 @@ local BOSS_FILES = {
     "amascut", "sanctum", -- Amascut and Sanctum of Rebirth
     "araxxi", "barrows", "rots", "solak",
     "croesus", "kerapac", "zuk", -- Elder God Wars Dungeon
-    "dragonkin", -- elite dungeons
+    "dragonkin", "shadow_reef", -- elite dungeons
     "corp", "magister", "raksha", "rasial", "vorkath",
 }
 

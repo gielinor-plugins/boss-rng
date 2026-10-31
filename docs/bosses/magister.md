@@ -29,3 +29,5 @@ luck and dry streak comes from them; the gloves have their own row.
 
 - **The Minister** (pet): pets aren't counted.
 - **The Magister's Journal #1 to #5:** lore pages.
+- **Soul obelisk** (a boss trophy, 1 in 500): it isn't on the collection log, so
+  there's no count to read.

@@ -17,9 +17,13 @@ Each boss has a solo kill count and a group kill count.
 
 - **Solo kills** count at 1 in 83.
 - **Group kills:** when a group kill count goes up, Boss RNG reads how many
-  players were in the room at the kill, so each kill counts at the right rate
-  exactly. A group kill where your partner never came in counts at the solo
-  rate. If the player count can't be read at a kill, that kill isn't counted.
+  players were in the dungeon at the kill and counts the kill at that rate. A
+  group kill after your partner left counts at the solo rate. If the player
+  count can't be read at a kill, that kill isn't counted.
+
+The game reads everyone in the dungeon, not just those in the fight. A teammate
+who sits out a boss but stays in the dungeon still counts toward the team, so
+that kill counts at a lower rate than you had; the "i" says so.
 
 ## What Boss RNG reads
 
@@ -27,7 +31,7 @@ Each boss has a solo kill count and a group kill count.
 |---|---|
 | `BSLAY_KILLS_DUNGEON_DRAGONFORT<N>_SOLO` | Your solo kill count for each boss: 1 Astellarn, 2 Verak Lith, 3 the Black stone dragon. |
 | `BSLAY_KILLS_DUNGEON_DRAGONFORT<N>` | Your group kill count for each boss. |
-| `DUNGEON_PLAYERS_AT_BOSS_KILL` | How many players were in the room at the kill. Read at each group kill. |
+| `DUNGEON_PLAYERS_AT_BOSS_KILL` | How many players were in the dungeon at the kill. Read at each group kill. |
 | `ITEMLOG_ITEM_DUNGEON_MELEE_CODEX_<NAME>` | Your boss log count for each codex: `FLURRY`, `FURY` and `BARGE`. |
 
 ## Not counted

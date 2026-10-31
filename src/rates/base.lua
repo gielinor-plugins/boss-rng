@@ -55,6 +55,7 @@ return {
         rasial = { weapon = 1 / 320, armor = 1 / 128 },
         rots = { table = 1 / 80 },
         sanctum = { books = 1 / 125, weapons = 1 / 75, hardBooks = 1 / 100, hardWeapons = 1 / 60, hardShard = 1 / 75 },
+        shadow_reef = { solo = 1 / 55, duo = 1 / 111, trio = 1 / 166 }, -- any crossbow piece
         solak = { grimoire = 1 / 200, crossbow = 1 / 400, stave = 1 / 500, mushroom = 1 / 500 },
         vindicta = godWars2({ normal = 1 / 255 }),
         vorkath = { -- per chest

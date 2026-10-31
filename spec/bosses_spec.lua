@@ -127,6 +127,9 @@ local CASES = {
     -- Astellarn solo, then in a duo.
     { file = "dragonkin", items = 7, modes = { "Astellarn, solo", "Astellarn, 2 players" },
         rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
+    -- The Ambassador solo, then in a trio: any crossbow piece, split evenly.
+    { file = "shadow_reef", items = 7, modes = { "The Ambassador, solo", "The Ambassador, 3 players" },
+        rates = { [47490] = 1 / 55 / 3, [47492] = 1 / 55 / 3 }, hard = { [47494] = 1 / 166 / 3 } },
     { file = "corp", items = 7, rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 } },
     -- Solo, then duo: the same rates.
     { file = "raksha", items = 6, rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
@@ -253,6 +256,16 @@ it("counts each tracked Dragonkin Laboratory group kill by the players at the ki
     assert.are.equal("Black stone dragon, 2 players", mode.name)
     assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", mode.kc)
     assert.are.near(1 / 166, luck.ItemChances(stats.Rolls(boss, mode, {}))[43393], 1e-12)
+end)
+
+it("counts the Shadow Reef's group kills by the players at the kill", function()
+    local boss = require("src/bosses/shadow_reef")
+    local event = boss.killEvents[1]
+    assert.are.equal("BSLAY_KILLS_DUNGEON_ULTHVEN3", event.var)
+    assert.are.equal("BSLAY_KILLS_DUNGEON_ULTHVEN3_SOLO", boss.modes[1].kc)
+    local mode = boss.modeFor(event.mode({ players = 2 }))
+    assert.are.equal("The Ambassador, 2 players", mode.name)
+    assert.are.near(1 / 111 / 3, luck.ItemChances(stats.Rolls(boss, mode, {}))[47490], 1e-12)
 end)
 
 describe("Barrows", function()

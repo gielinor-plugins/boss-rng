@@ -23,6 +23,7 @@ Supported bosses:
   **Rasial, the First Necromancer.**
 - **Elder God Wars Dungeon:** Croesus, Kerapac and TzKal-Zuk.
 - **Dragonkin Laboratory** (Astellarn, Verak Lith and the Black stone dragon, as one entry).
+- **The Shadow Reef** (the Ambassador's crossbow pieces).
 - **Zemouregal & Vorkath** (normal and hard mode, by chests opened).
 
 ## What Boss RNG reads
