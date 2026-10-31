@@ -82,15 +82,17 @@ function format.LuckShort(result)
 end
 
 -- Luck as a sentence: "top 3% luck", "about average luck", "bottom 12% luck",
--- "no tracked kills yet", or until there are enough, when it will show: "luck
--- rating in about 40 kills". Bosses with their own unit use it ("chests").
+-- "no tracked kills yet", or until there are enough, when it will show (at the
+-- first unique, or once an average player would have one), short enough for the
+-- panel: "luck: next unique or 40 kills". Bosses with their own unit use it
+-- ("chests").
 function format.Luck(result)
     if untracked(result) then
         return "no tracked " .. unit(result) .. "s yet"
     elseif result.luck == nil then
         local more = result.killsToLuck
-        return more and ("luck rating in about " .. count(more, unit(result)))
-            or ("luck rating after more " .. unit(result) .. "s")
+        local when = more and count(more, unit(result)) or ("more " .. unit(result) .. "s")
+        return "luck: next unique or " .. when
     end
     local short = format.LuckShort(result)
     return (short == "average" and "about average" or short) .. " luck"
