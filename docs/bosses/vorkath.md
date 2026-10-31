@@ -27,7 +27,8 @@ RNG is off is simply not tracked, along with whatever it gave.
 
 Spikes drop in stacks, and your boss log counts spikes, not drops. Boss RNG
 counts each stack as one drop for luck, and shows your boss log's spike count on
-its own ("Boss log: 400 kills · 6 uniques · 184 spikes").
+its own, apart from your other uniques ("Boss log: 400 kills · 184 spikes ·
+6 other uniques").
 
 Spikes are the most common rare, so most of the boss's headline luck and dry
 streak comes from them. Each item's row shows its own luck and dry streak, so

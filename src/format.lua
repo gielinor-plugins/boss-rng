@@ -140,16 +140,19 @@ function format.TrackedShort(result)
 end
 
 -- The game's own totals (kill counts and boss log counts), shown as facts and
--- never used for luck: "Boss log: 924 kills · 9 uniques", with stacked uniques
--- as their own counts ("· 184 spikes"), or "" until they can be read.
+-- never used for luck: "Boss log: 924 kills · 9 uniques", or "" until they can
+-- be read. A stacked unique's log counts items, not drops, so it comes first as
+-- its own count, and the rest are "other uniques": "· 184 spikes · 3 other uniques".
 function format.AllTime(result)
     if result.allTime == nil then
         return ""
     end
-    local parts = { "Boss log: " .. count(result.allTime.kills, "kill"), count(result.allTime.received, "unique") }
-    for _, stack in ipairs(result.allTime.stacks or {}) do
+    local parts = { "Boss log: " .. count(result.allTime.kills, "kill") }
+    local stacks = result.allTime.stacks or {}
+    for _, stack in ipairs(stacks) do
         table.insert(parts, count(stack.count, stack.word))
     end
+    table.insert(parts, count(result.allTime.received, #stacks > 0 and "other unique" or "unique"))
     return table.concat(parts, " · ")
 end
 
