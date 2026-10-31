@@ -202,6 +202,23 @@ local function value(name)
     return found and found.value
 end
 
+-- A boss's all-time kills, the sum of its kill counts, or nil until vars can be
+-- trusted or if any can't be read. Cheaper than AllTime, for listing bosses.
+function gamevars.AllTimeKills(boss)
+    if not isReady() then
+        return nil
+    end
+    local total = 0
+    for _, mode in ipairs(boss.modes) do
+        local kills = value(mode.kc)
+        if kills == nil then
+            return nil
+        end
+        total = total + kills
+    end
+    return total
+end
+
 -- A boss's all-time totals, read from the game: { kills = { [kill count var] = n },
 -- items = { [item id text] = n } for its uniques, values = { [key] = n } for its
 -- reads (see src/bosses.lua) }. Nil until vars can be trusted, or if any can't be read.

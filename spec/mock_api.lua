@@ -67,6 +67,11 @@ function mock.Reset(keepSaved)
     }
 end
 
+-- Saves an entry, as if an earlier session had.
+function mock.SetSaved(key, value)
+    saved[key] = copy(value)
+end
+
 -- A saved entry, for checking what was written.
 function mock.Saved(key)
     return saved[key]

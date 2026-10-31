@@ -28,9 +28,9 @@ end
 -- Tallies with these kills on DAY, items ({ [item id text] = drops }) and dry
 -- streaks ({ [key] = { [mode name] = kills } }, each defaulting to all kills).
 local function tallies(kills, items, dry)
-    local result = { kills = onDay(kills), items = items or {}, dry = {} }
+    local result = { kills = onDay(kills), items = items or {}, dryFrom = {} }
     for _, key in ipairs({ "any", "1", "2" }) do
-        result.dry[key] = onDay((dry or {})[key] or kills)
+        result.dryFrom[key] = { dry = onDay((dry or {})[key] or kills) } -- kept as counted
     end
     return result
 end
@@ -193,7 +193,7 @@ describe("stats with rates that changed", function()
     -- Tallies with 20 kills before CHANGE and 10 from it, all dry.
     local function spanning()
         local byMode = { Normal = { [tostring(CHANGE - 1)] = 20, [tostring(CHANGE)] = 10 } }
-        return { kills = byMode, dry = { any = byMode, ["1"] = byMode }, items = {} }
+        return { kills = byMode, dryFrom = {}, items = {} } -- dry from the first kill
     end
 
     it("rates each kill at the rates of its day", function()
@@ -205,9 +205,22 @@ describe("stats with rates that changed", function()
         assert.are.near(1 - missAll, forBoss(CHANGED, spanning()).dryShare, 1e-12)
     end)
 
+    it("doesn't count kills from days an item wasn't on the table", function()
+        local added = {
+            rates = rates.History({ { values = { new = 0 } }, { since = CHANGE, values = { new = 1 / 5 } } }),
+            modes = { { name = "Normal", kc = "KC", rolls = function(r)
+                return { { chance = r.new, items = { [1] = 1 } } }
+            end } },
+            items = { [1] = { kind = "unique" } },
+        }
+        local result = forBoss(added, spanning())
+        assert.are.near(10 / 5, result.expected, 1e-9) -- only the 10 kills from CHANGE
+        assert.are.equal(10, result.items[1].dryKills)
+    end)
+
     it("rates kills of an unknown day (0) at today's rates", function()
         local byMode = { Normal = { ["0"] = 10 } }
-        local result = forBoss(CHANGED, { kills = byMode, dry = { any = byMode }, items = {} })
+        local result = forBoss(CHANGED, { kills = byMode, dryFrom = {}, items = {} })
         assert.are.near(10 / 5, result.expected, 1e-9)
         assert.is_nil(result.since)
     end)

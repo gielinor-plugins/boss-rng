@@ -253,7 +253,7 @@ function stats.ForBoss(entry)
     local counted = {} -- the uniques in the boss's dry streak
     -- The dry share over an item's dry streak, for a set of item ids.
     local function shareOf(itemID, ids)
-        return dryShare(modes, rates, tallies.dry[tostring(itemID)] or {}, ids)
+        return dryShare(modes, rates, tracker.Dry(tallies, tostring(itemID)), ids)
     end
     for itemID, item in pairs(boss.items) do
         if item.kind == "unique" then
@@ -261,7 +261,7 @@ function stats.ForBoss(entry)
             local row = {
                 expected = expected[itemID] or 0,
                 received = tallies.items[key] or 0,
-                dryKills = killsThatCanDrop(modes, rates, tallies.dry[key] or {}, itemID),
+                dryKills = killsThatCanDrop(modes, rates, tracker.Dry(tallies, key), itemID),
                 dryAtLeast = tallies.items[key] == nil and mayHaveEarlier,
                 allTime = allTime and not item.stack and allTime.items[key] or nil,
             }
@@ -282,7 +282,7 @@ function stats.ForBoss(entry)
             or result.expected / math.max(1, result.extraKills)
         result.killsToLuck = killsToLuck(result.expected, rate)
     end
-    local dry = tallies.dry[tracker.ANY] or {}
+    local dry = tracker.Dry(tallies, tracker.ANY)
     result.dryKills = tracker.Total(dry)
     result.dryAtLeast = result.received == 0 and mayHaveEarlier
     result.dryShare = dryShare(modes, rates, dry, counted)

@@ -21,7 +21,10 @@ end
 --                 or nil if nobody is logged in. A missing record, or one saved
 --                 by another version, starts again as fresh().
 --   store.Save()  saves the loaded record
-function saved.ForCharacter(prefix, version, fresh)
+-- With codec, records are saved in another form: codec.Encode(record) gives
+-- what to save, and codec.Decode(saved) the record back, from this version or
+-- an older one it can convert (nil to start again).
+function saved.ForCharacter(prefix, version, fresh, codec)
     local store = {}
     local name, record = nil, nil
 
@@ -33,6 +36,9 @@ function saved.ForCharacter(prefix, version, fresh)
         if current ~= name then
             name = current
             record = PersistentDB:GetStructuredData(prefix .. name)
+            if record ~= nil and codec then
+                record = codec.Decode(record)
+            end
             if record == nil or record.version ~= version then
                 record = fresh()
                 record.version = version
@@ -42,7 +48,7 @@ function saved.ForCharacter(prefix, version, fresh)
     end
 
     function store.Save()
-        if not PersistentDB:SetStructuredData(prefix .. name, record) then
+        if not PersistentDB:SetStructuredData(prefix .. name, codec and codec.Encode(record) or record) then
             print("[Boss RNG] Could not save data for " .. name)
         end
     end

@@ -5,69 +5,87 @@
 
 local safe = require("src/safe")
 local saved = require("src/saved")
+local tallies = require("src/tallies")
 
 local tracker = {}
 
-local VERSION = 4 -- of the saved shape; older records start again
+local VERSION = 5 -- of the saved shape (see src/tallies.lua); version 4 is converted, older starts again
 
 -- The key of the dry streak counting every unique; the others are item ids.
 tracker.ANY = "any"
 
-local store = saved.ForCharacter("char:", VERSION, function() return { bosses = {} } end)
+-- Each record as saved: every boss's tallies encoded (see tallies.Encode).
+local codec = {}
+local encoded = {} -- each boss's encoded tallies, kept until they change (see talliesFor)
+
+-- Applies convert(tallies, boss key) to each boss's tallies in a record,
+-- returning a new record.
+local function eachBoss(from, convert, version)
+    local to = { version = version, lastBoss = from.lastBoss, bosses = {} }
+    for key, t in pairs(from.bosses or {}) do
+        to.bosses[key] = convert(t, key)
+    end
+    return to
+end
+
+function codec.Encode(from)
+    return eachBoss(from, function(t, key)
+        encoded[key] = encoded[key] or tallies.Encode(t)
+        return encoded[key]
+    end, from.version)
+end
+
+function codec.Decode(saved)
+    if saved.version == VERSION then
+        return eachBoss(saved, tallies.Decode, VERSION)
+    elseif saved.version == 4 then
+        return eachBoss(saved, tallies.FromVersion4, VERSION)
+    end
+    return nil
+end
+
+local store = saved.ForCharacter("char:", VERSION, function() return { bosses = {} } end, codec)
 local record = nil -- the logged in character's, once loaded
 local listeners = {}
+local changes = 0 -- counts every change to the tallies, and every character switch
 
 -- Loads the logged in character's record if needed. Returns false if nobody is
 -- logged in.
 local function load()
-    record = store.Load()
+    local loaded = store.Load()
+    if loaded ~= record then
+        record, encoded = loaded, {}
+        changes = changes + 1
+    end
     return record ~= nil
 end
 
 local function save()
+    changes = changes + 1
     store.Save()
     for _, listener in ipairs(listeners) do
         safe.Call("updating after a change", listener)
     end
 end
 
--- Empty tallies. Keys are text, the only kind Jagex's saved data examples use.
---   kills  { [mode name] = { [day] = kills } }
---   dry    { [ANY or item id] = { [mode name] = { [day] = kills } } }: kills
---          since the last unique, or the last drop of that item
---   items  { [item id] = drops }
-local function emptyTallies()
-    return { kills = {}, dry = {}, items = {} }
-end
-
--- A boss's tallies, created if needed.
+-- A boss's tallies, created if needed, to change: its saved form is encoded
+-- again at the next save.
 local function talliesFor(boss)
-    local tallies = record.bosses[boss.key]
-    if tallies == nil then
-        tallies = emptyTallies()
-        record.bosses[boss.key] = tallies
+    encoded[boss.key] = nil
+    local t = record.bosses[boss.key]
+    if t == nil then
+        t = tallies.Empty()
+        record.bosses[boss.key] = t
     end
-    return tallies
-end
-
--- Adds n kills of a mode on a day to byMode, { [mode name] = { [day] = kills } }.
-local function addKills(byMode, modeName, day, n)
-    local byDay = byMode[modeName] or {}
-    local key = tostring(day)
-    byDay[key] = (byDay[key] or 0) + n
-    byMode[modeName] = byDay
+    return t
 end
 
 -- The total of { [mode name] = { [day] = kills } }.
-function tracker.Total(byMode)
-    local total = 0
-    for _, byDay in pairs(byMode) do
-        for _, n in pairs(byDay) do
-            total = total + n
-        end
-    end
-    return total
-end
+tracker.Total = tallies.Total
+
+-- A dry streak's kills, { [mode name] = { [day] = kills } }: key is ANY or an
+-- item id as text (see src/tallies.lua).
+tracker.Dry = tallies.Dry
 
 -- The dry streak keys of a boss: ANY, and each unique's id as text.
 function tracker.DryKeys(boss)
@@ -81,17 +99,20 @@ function tracker.DryKeys(boss)
 end
 
 -- count kills of a boss's mode on a day (see src/days.lua). Each kill adds to
--- every dry streak: the boss's, and each of its uniques'.
+-- every dry streak (the boss's, and each of its uniques'): they're read as the
+-- kills since their start, so only streaks kept as counted need adding to.
 function tracker.AddKills(boss, mode, count, day)
     if not load() then
         return
     end
-    local tallies = talliesFor(boss)
-    addKills(tallies.kills, mode.name, day, count)
+    local t = talliesFor(boss)
     for key in pairs(tracker.DryKeys(boss)) do
-        tallies.dry[key] = tallies.dry[key] or {}
-        addKills(tallies.dry[key], mode.name, day, count)
+        local start = t.dryFrom[key]
+        if start and start.dry then
+            tallies.AddKills(start.dry, mode.name, day, count)
+        end
     end
+    tallies.AddKills(t.kills, mode.name, day, count)
     record.lastBoss = boss.key
     save()
 end
@@ -107,11 +128,11 @@ function tracker.AddDrops(boss, itemID, count)
         return
     end
     if boss.items[itemID].pooledBy == nil or record.lastBoss == boss.key then
-        local tallies = talliesFor(boss)
+        local t = talliesFor(boss)
         local key = tostring(itemID)
-        tallies.items[key] = (tallies.items[key] or 0) + count
-        tallies.dry[key] = {}
-        tallies.dry[tracker.ANY] = {}
+        t.items[key] = (t.items[key] or 0) + count
+        t.dryFrom[key] = tallies.StartNow(t.kills)
+        t.dryFrom[tracker.ANY] = tallies.StartNow(t.kills)
     end
     save()
 end
@@ -122,7 +143,7 @@ function tracker.Tallies(boss)
     if not load() then
         return nil
     end
-    return record.bosses[boss.key] or emptyTallies()
+    return record.bosses[boss.key] or tallies.Empty()
 end
 
 -- The key of the boss the logged in character killed most recently, or nil.
@@ -131,6 +152,13 @@ function tracker.LastBossKey()
         return nil
     end
     return record.lastBoss
+end
+
+-- A number that changes whenever any tallies the tracker gives out might have,
+-- so something worked out from them can tell when to work it out again.
+function tracker.Changes()
+    load()
+    return changes
 end
 
 -- Calls listener() after every change.

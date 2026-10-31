@@ -32,23 +32,56 @@ local function picksFor(boss, allTime)
 end
 
 -- Bosses with tracked kills or all-time kills from the game, in alphabetical
--- order, each with the player's picks for its choices and its stats.
+-- order, each { boss, tallies }. Only the picked boss's stats are worked out
+-- (see withStats), so listing reads only kill counts.
 local function bossesWithKills()
     local list = {}
     for _, boss in ipairs(bosses) do
         local tallies = tracker.Tallies(boss)
-        local allTime = tallies and gamevars.AllTime(boss)
-        local entry = { boss = boss, tallies = tallies, picks = picksFor(boss, allTime), allTime = allTime }
-        entry.stats = stats.ForBoss(entry)
-        local result = entry.stats
-        if result and (result.kills + result.extraKills > 0 or (result.allTime and result.allTime.kills > 0)) then
-            table.insert(list, entry)
+        if tallies and (tracker.Total(tallies.kills) > 0 or (gamevars.AllTimeKills(boss) or 0) > 0) then
+            table.insert(list, { boss = boss, tallies = tallies })
         end
     end
     table.sort(list, function(a, b)
         return a.boss.name < b.boss.name
     end)
     return list
+end
+
+-- A table's values as text in key order, for telling whether inputs changed.
+local function asText(values)
+    local keys = {}
+    for key in pairs(values or {}) do
+        table.insert(keys, tostring(key))
+    end
+    table.sort(keys)
+    local parts = {}
+    for i, key in ipairs(keys) do
+        local value = values[key] or values[tonumber(key)]
+        parts[i] = key .. "=" .. tostring(value)
+    end
+    return table.concat(parts, ",")
+end
+
+-- The last stats worked out, and what they were worked out from.
+local cached = { inputs = nil, stats = nil }
+
+-- Fills in an entry's all-time totals, picks and stats. Stats are worked out
+-- again only when something they're worked out from changed: the boss, its
+-- tallies (tracker.Changes), the game's totals or the picks. Nothing is kept
+-- but the last result, and nothing from it is saved.
+local function withStats(entry)
+    entry.allTime = gamevars.AllTime(entry.boss)
+    entry.picks = picksFor(entry.boss, entry.allTime)
+    local allTime = entry.allTime or {}
+    local inputs = table.concat({
+        entry.boss.key, tracker.Changes(), asText(allTime.kills), asText(allTime.items), asText(entry.picks),
+    }, "|")
+    if cached.inputs ~= inputs then
+        cached.inputs, cached.stats = inputs, stats.ForBoss(entry)
+    end
+    entry.stats = cached.stats
+    return entry
 end
 
 -- The index in list of the boss with this key, or nil.
@@ -115,15 +148,20 @@ local function choose(boss, choice, value)
     redrawSoon()
 end
 
--- What the views draw: the bosses with kills (list), the index of the picked boss (selected, nil without kills),
+-- What the views draw: the bosses with kills (list; only the picked one has
+-- allTime, picks and stats), the index of the picked boss (selected, nil without kills),
 -- what to do when the player picks a boss (onPick), picks for one of its
 -- choices (onChoose) or asks for details (onDetails), and how to redraw after a
 -- change made in a view (onRedraw).
 function currentState()
     local list = bossesWithKills()
+    local selected = #list > 0 and selectedIndex(list) or nil
+    if selected then
+        withStats(list[selected])
+    end
     return {
         list = list,
-        selected = #list > 0 and selectedIndex(list) or nil,
+        selected = selected,
         onPick = pick,
         onChoose = choose,
         onDetails = showWindow,

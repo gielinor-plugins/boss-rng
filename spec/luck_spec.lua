@@ -32,6 +32,11 @@ describe("luck.ItemChances", function()
         })
         assert.are.near(0.2, chances.x, 1e-12)
     end)
+
+    it("leaves out items at a chance of 0", function()
+        local chances = luck.ItemChances({ { chance = 0, items = { x = 0, y = 0 } }, { chance = 0.1, items = { z = 1, w = 0 } } })
+        assert.are.same({ z = 0.1 }, chances)
+    end)
 end)
 
 describe("luck.ChanceOfAny", function()
@@ -43,6 +48,10 @@ describe("luck.ChanceOfAny", function()
     it("only counts tracked items", function()
         local weaponsOnly = { w1 = true, w2 = true }
         assert.are.near(1 / 320, luck.ChanceOfAny(RASIAL, weaponsOnly), 1e-12)
+    end)
+
+    it("skips a roll with nothing on it", function()
+        assert.are.equal(0, luck.ChanceOfAny({ { chance = 0, items = { x = 0 } } }))
     end)
 end)
 

@@ -19,7 +19,10 @@ function luck.ItemChances(rolls)
             totalWeight = totalWeight + weight
         end
         for itemID, weight in pairs(roll.items) do
-            chances[itemID] = (chances[itemID] or 0) + roll.chance * weight / totalWeight
+            -- A chance of 0 (an item not on the table on that day) leaves it out.
+            if roll.chance > 0 and weight > 0 then
+                chances[itemID] = (chances[itemID] or 0) + roll.chance * weight / totalWeight
+            end
         end
     end
     return chances
@@ -37,7 +40,9 @@ function luck.ChanceOfAny(rolls, tracked)
                 trackedWeight = trackedWeight + weight
             end
         end
-        missAll = missAll * (1 - roll.chance * trackedWeight / totalWeight)
+        if totalWeight > 0 then
+            missAll = missAll * (1 - roll.chance * trackedWeight / totalWeight)
+        end
     end
     return 1 - missAll
 end
