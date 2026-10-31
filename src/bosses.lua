@@ -42,11 +42,13 @@
 -- each tracked kill uses the rates of its day.
 --
 -- A boss's assumptions can be a function of the player's picks too, for ones
--- that only hold for some picks (Kerapac's duo kills).
+-- that only hold for some picks.
 --
 -- A mode's rolls are a function of the rate values (see above) and the
 -- player's picks for the boss's choices (see src/choices.lua), for rates set by
--- one, such as Kerapac's team; or a plain table for a mode with fixed rolls.
+-- one, such as Kerapac's loot piles; or a plain table for a mode with fixed
+-- rolls. On the settings page, choicesHelp (paragraphs) says why and how to set
+-- them.
 --
 -- A unique listed by more than one boss has one boss log count for all of them,
 -- so its drops can't be told apart. Such a unique is pooled: it gets pooledBy,

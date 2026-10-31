@@ -161,7 +161,7 @@ end
 local DROPDOWN_MAX_VISIBLE = 6
 
 -- Calls onPick with the option a change selected, unless it's already current.
--- Both dropdowns report a change twice, the old entry with 0 and the new one
+-- The combo box reports a change twice, the old entry with 0 and the new one
 -- with 1, each by its id: here its index in options.
 local function onChange(dropdown, options, current, onPick)
     dropdown:Subscribe(ui.Hook.ONSELECTIONCHANGED, function(_, index, selected)
@@ -200,26 +200,25 @@ function widgets.AddDropdown(parent, x, y, width, options, current, onPick)
     return combo
 end
 
--- The game's dropdown list of options ({ value, label } each), listed in their
--- order with the current one moved to the top: the list can't be told which
--- entry to show, so it always shows its first. Its header is one entry tall, as
--- the list expects when telling which entry was clicked; it's centered in a row
--- as tall as DROPDOWN_HEIGHT at y. Picking another calls onPick with its value.
--- Add it after anything its open list covers, like AddDropdown.
-function widgets.AddOrderedDropdown(parent, x, y, width, options, current, onPick)
-    local list = ui.List.new(parent)
-    list.stylesheetID = id.StyleSheet.DROPDOWN_DEFAULT
-    list.dropdownMaxVisibleEntries = math.min(#options, DROPDOWN_MAX_VISIBLE)
-    widgets.Place(list, x, y + (widgets.DROPDOWN_HEIGHT - list.entryHeight) // 2, width, list.entryHeight)
-    local ordered = {}
-    for _, option in ipairs(options) do
-        table.insert(ordered, option.value == current and 1 or #ordered + 1, option)
-    end
-    for i, option in ipairs(ordered) do
-        list:Add(option.label, i)
-    end
-    onChange(list, ordered, current, onPick)
-    return list
+widgets.SLIDER_HEIGHT = 50 -- as in the docs' examples
+
+-- The game's slider from min to max in steps of step (at most 1), at current.
+-- Values are whole steps to the slider, which shows them divided back. Moving it
+-- calls onPick with the new value.
+function widgets.AddSlider(parent, x, y, width, min, max, step, current, onPick)
+    local slider = ui.Slider.new(parent)
+    slider.stylesheetID = id.StyleSheet.SLIDER_DEFAULT
+    widgets.Place(slider, x, y, width, widgets.SLIDER_HEIGHT)
+    local scale = math.floor(1 / step + 0.5)
+    local function steps(value) return math.floor(value * scale + 0.5) end
+    slider:Setup(steps(min), steps(max), steps(current), scale, 1)
+    slider:Subscribe(ui.Hook.ONSELECTIONCHANGED, function(component)
+        if component.value ~= steps(current) then
+            current = component.value / scale
+            safe.Call("moving a slider", onPick, current)
+        end
+    end)
+    return slider
 end
 
 -- A dropdown of the bosses in state.list, showing state.selected. Picking one

@@ -2,29 +2,28 @@
 -- RNG about their tracked kills, such as Kerapac's team. Picks are the player's
 -- own, so they're saved apart from the tallies.
 --
--- A boss file can declare choices (see src/bosses/kerapac.lua), each with:
---   key      saved data key: never change it
---   label    shown before its dropdown, and with the pick in the assumptions
---   default  the value until the player picks one
---   options  { { value = "solo", label = "Solo" }, ... }, in the order to list
---            them; an option can add a note, saying it in full in the
---            assumptions when its label is shortened to fit its dropdown
+-- A boss file can declare choices (see src/bosses/kerapac.lua), each a number
+-- set on a slider:
+--   key            saved data key: never change it
+--   label          shown by its slider, and with the pick in the assumptions
+--   unit           follows the label in the assumptions (" loot piles per kill")
+--   default        the value until the player picks one
+--   min, max, step the slider's range and step
 
 local saved = require("src/saved")
 
 local choices = {}
 
 -- Saved as { bosses = { [boss key] = { [choice key] = value } } }.
-local store = saved.ForCharacter("choices:", 3, function() return { bosses = {} } end)
+local store = saved.ForCharacter("choices:", 4, function() return { bosses = {} } end)
 
--- The option of a choice with this value, or nil.
-function choices.Option(choice, value)
-    for _, option in ipairs(choice.options) do
-        if option.value == value then
-            return option
-        end
+-- True if value is a number the choice's slider can show.
+function choices.Valid(choice, value)
+    if type(value) ~= "number" or value < choice.min or value > choice.max then
+        return false
     end
-    return nil
+    local steps = (value - choice.min) / choice.step
+    return math.abs(steps - math.floor(steps + 0.5)) < 1e-9
 end
 
 -- The logged in character's picks for a boss, { [choice key] = value }, with
@@ -35,13 +34,13 @@ function choices.For(boss)
     local values = {}
     for _, choice in ipairs(boss.choices or {}) do
         local picked = picks[choice.key]
-        values[choice.key] = choices.Option(choice, picked) and picked or choice.default
+        values[choice.key] = choices.Valid(choice, picked) and picked or choice.default
     end
     return values
 end
 
 -- A boss's assumptions for these picks: its own (a list, or a function of the
--- picks), then each choice's pick ("Normal mode kills done: Solo").
+-- picks), then each choice's pick ("Normal Mode loot piles per kill: 2.5").
 function choices.Assumptions(boss, picks)
     local notes = {}
     local own = boss.assumptions
@@ -49,8 +48,7 @@ function choices.Assumptions(boss, picks)
         table.insert(notes, note)
     end
     for _, choice in ipairs(boss.choices or {}) do
-        local option = choices.Option(choice, picks[choice.key])
-        table.insert(notes, choice.label .. ": " .. (option.note or option.label))
+        table.insert(notes, string.format("%s%s: %g", choice.label, choice.unit or "", picks[choice.key]))
     end
     return notes
 end

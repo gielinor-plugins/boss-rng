@@ -140,7 +140,7 @@ local CASES = {
     -- Full contribution: 12 rolls at 1/5,400 each, then 1/3,000 armor and 1/2,500 others.
     { file = "croesus", items = 10, rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 },
         after = { [52250] = 12 / 3000, [52345] = 12 / 2500, [52213] = 12 / 2500 } },
-    -- Solo, the default: three loot piles.
+    -- Three loot piles, the default.
     { file = "kerapac", items = 7, rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
         hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 } },
     -- Hard mode before the stones are read: 1/27 for any sword piece.
@@ -206,19 +206,13 @@ it("counts each tracked Araxxi kill as solo or duo by the duo flag", function()
     assert.are.equal("BSLAY_KILLS_ARAXXI", boss.modeFor("Duo").kc)
 end)
 
-it("scales Kerapac's loot piles by the player's team", function()
+it("scales Kerapac's loot piles by the player's average", function()
     local boss = require("src/bosses/kerapac")
-    local picks = { normalTeam = "duo", hardTeam = "trio" }
+    local picks = { normalPiles = 1.5, hardPiles = 1 }
     assert.are.near(1.5 / 256 / 3, luck.ItemChances(stats.Rolls(boss, boss.modes[1], picks))[51767], 1e-12)
     assert.are.near(1 / 400 / 3, luck.ItemChances(stats.Rolls(boss, boss.modes[2], picks))[51782], 1e-12)
-end)
-
-it("only assumes Kerapac's duo damage when a pick has duo kills", function()
-    local boss = require("src/bosses/kerapac")
-    assert.are.same({ "Normal mode kills done: Solo", "Hard mode kills done: Trio" },
-        choices.Assumptions(boss, { normalTeam = "solo", hardTeam = "trio" }))
-    assert.are.same({ "Top damage on half of duo kills", "Normal mode kills done: Half solo, half duo",
-        "Hard mode kills done: Solo" }, choices.Assumptions(boss, { normalTeam = "soloDuo", hardTeam = "solo" }))
+    assert.are.same({ "Normal Mode loot piles per kill: 1.5", "Hard Mode loot piles per kill: 1" },
+        choices.Assumptions(boss, picks))
 end)
 
 describe("TzKal-Zuk's checkpoints", function()

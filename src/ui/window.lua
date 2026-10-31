@@ -1,9 +1,9 @@
 -- The details window, from the top: the boss dropdown and a headline for the
 -- picked boss (its luck as a sentence, a wide bar once there's enough to show
 -- it, its dry streak, its tracked totals, an average player's, the game's
--- all-time totals and a dropdown for each of its choices), then a table with one
--- row per unique (item, luck, dry). It fits its contents, showing at most
--- MAX_ROWS rows; the rest scroll with the mouse wheel.
+-- all-time totals), then a table with one row per unique (item, luck, dry). It
+-- fits its contents, showing at most MAX_ROWS rows; the rest scroll with the
+-- mouse wheel.
 
 local choices = require("src/choices")
 local format = require("src/format")
@@ -50,7 +50,6 @@ local luckColumn = "luck" -- what the luck column shows: "luck" or "totals"; kep
 -- The luck column's two views, picked in its heading.
 local COLUMNS = { { value = "luck", label = "Luck" }, { value = "totals", label = "Totals" } }
 local COLUMN_PICKER_WIDTH = 100
-local PICKER_WIDTH = 110
 
 function window.IsOpen()
     return box ~= nil
@@ -104,30 +103,6 @@ local function centerInDropdownRow(text, width)
     text.alignVertical = ui.AlignMode.CENTRE
 end
 
--- A line per dropdown of the picked boss (see pickers.For): its
--- label, and the dropdown, queued in dropdowns (see window.Draw). A divider sets
--- them apart from the lines of text above. Returns the y below them.
-local function addPickers(parent, state, y, dropdowns)
-    local list = pickers.For(state.list[state.selected], state.onChoose)
-    if #list == 0 then
-        return y
-    end
-    widgets.AddSeparator(parent, PAD + 8, y + 3, TABLE_WIDTH - 8)
-    y = y + 8
-    local dropdownX = PAD + TABLE_WIDTH - PICKER_WIDTH
-    for _, picker in ipairs(list) do
-        local labelWidth = dropdownX - PAD - 12
-        centerInDropdownRow(addGreyText(parent, picker.label, PAD + 8, y, labelWidth), labelWidth)
-        local dropdownY = y
-        table.insert(dropdowns, function()
-            widgets.AddOrderedDropdown(parent, dropdownX, dropdownY, PICKER_WIDTH, picker.options, picker.current,
-                picker.onPick)
-        end)
-        y = y + widgets.DROPDOWN_HEIGHT + 2
-    end
-    return y
-end
-
 -- Adds lines of grey text at x, y, skipping empty ones, each { text, colour? }.
 -- Returns the y below them.
 local function addLines(parent, lines, x, y, width)
@@ -143,8 +118,8 @@ end
 -- The headline for the picked boss, below room left for the boss dropdown: its
 -- luck as a sentence with an "i" for its assumptions and a full width bar once
 -- luck shows, then its dry streak, tracked totals, what an average player
--- would have, the game's all-time totals and its dropdowns. Returns the y below it.
-local function addHeadline(parent, state, y, dropdowns)
+-- would have and the game's all-time totals. Returns the y below it.
+local function addHeadline(parent, state, y)
     local entry = state.list[state.selected]
     local result = entry.stats
     y = y + 34
@@ -152,7 +127,7 @@ local function addHeadline(parent, state, y, dropdowns)
     local headlineY = y
     local notes = choices.Assumptions(entry.boss, entry.picks)
     if #notes > 0 then
-        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes)
+        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes, pickers.WhereToChange(entry.boss))
     end
     y = widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 30, result) + 2
     if result.luck then
@@ -170,7 +145,6 @@ local function addHeadline(parent, state, y, dropdowns)
         widgets.AddSeparator(parent, PAD + 8, y + 3, TABLE_WIDTH - 8)
         y = addLines(parent, { { allTime, MUTED } }, PAD + 8, y + 8, TABLE_WIDTH - 8)
     end
-    y = addPickers(parent, state, y, dropdowns)
     widgets.AddRect(parent, PAD, headlineY, 2, y - headlineY, ACCENT)
     return y + 8
 end
@@ -263,7 +237,7 @@ function window.Draw(state)
 
     local pickerY = TITLE_HEIGHT + 8
     table.insert(dropdowns, function() widgets.AddBossPicker(box, state, PAD, pickerY, TABLE_WIDTH) end)
-    y = addHeadline(box, state, pickerY, dropdowns)
+    y = addHeadline(box, state, pickerY)
     widgets.AddSeparator(box, PAD, y, TABLE_WIDTH)
     local headerY = y + 4
     addColumnNames(box, headerY, state.onRedraw, dropdowns)

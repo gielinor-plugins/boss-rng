@@ -1,5 +1,5 @@
--- Boss RNG's UI: the ribbon panel (src/ui/panel.lua) and the details window
--- (src/ui/window.lua). This module decides which boss the views show and
+-- Boss RNG's UI: the ribbon panel (src/ui/panel.lua), the details window
+-- (src/ui/window.lua) and the settings page (src/ui/settings.lua). This module decides which boss the views show and
 -- redraws them when that, the player's picks or tallies change.
 -- All UI code lives in src/ui.lua and src/ui/, using Jagex's native components.
 
@@ -10,6 +10,7 @@ local safe = require("src/safe")
 local stats = require("src/stats")
 local tracker = require("src/tracker")
 local panel = require("src/ui/panel")
+local settings = require("src/ui/settings")
 local window = require("src/ui/window")
 
 local bossUi = {}
@@ -120,21 +121,35 @@ local function showWindow()
     end
 end
 
+-- Redraws the settings page if it's open, or one plain line if drawing fails.
+local function redrawSettings()
+    if settings.IsOpen() and not safe.Call("drawing the settings", settings.Draw, currentState()) then
+        safe.Call("drawing the settings error", settings.ShowError)
+    end
+end
+
 local function redrawAll()
     redrawPanel()
+    redrawSettings()
     if window.IsOpen() then
         showWindow()
     end
 end
 
--- Redraws the views on the next tick, so a component isn't destroyed while its
--- own event is still running.
-local function redrawSoon()
+-- Redraws the views after ticks logic ticks (default 1), so a component isn't
+-- destroyed while its own event is still running. Calling again restarts the wait.
+local function redrawSoon(ticks)
+    local left = ticks or 1
     Event.Logic.Subscribe(REDRAW_REF, function()
-        Event.Logic.Unsubscribe(REDRAW_REF)
-        redrawAll()
+        left = left - 1
+        if left <= 0 then
+            Event.Logic.Unsubscribe(REDRAW_REF)
+            redrawAll()
+        end
     end)
 end
+
+local SLIDER_SETTLE_TICKS = 25 -- half a second still before redrawing a moved slider
 
 -- Shows the picked boss in both views.
 local function pick(key)
@@ -142,10 +157,11 @@ local function pick(key)
     redrawSoon()
 end
 
--- Saves the player's pick for one of a boss's choices, and redraws with it.
+-- Saves the player's pick for one of a boss's choices, and redraws with it once
+-- the slider is left alone, so it isn't rebuilt while being dragged.
 local function choose(boss, choice, value)
     choices.Set(boss, choice, value)
-    redrawSoon()
+    redrawSoon(SLIDER_SETTLE_TICKS)
 end
 
 -- What the views draw: the bosses with kills (list; only the picked one has
@@ -161,12 +177,19 @@ function currentState()
     end
     return {
         list = list,
+        bosses = bosses,
         selected = selected,
         onPick = pick,
         onChoose = choose,
         onDetails = showWindow,
         onRedraw = redrawSoon,
     }
+end
+
+-- The game clears the settings page and fires this each time it opens.
+local function onSettingsLayerReady(event)
+    settings.Attach(event.component)
+    redrawSettings()
 end
 
 -- The game clears the panel and fires this each time it opens or is resized.
@@ -181,12 +204,15 @@ bossUi.Refresh = redrawAll
 function bossUi.Start()
     tracker.OnChange(redrawAll)
     Event.ContentLayerReady.Subscribe(REF, onContentLayerReady)
+    Event.SettingsLayerReady.Subscribe(REF, onSettingsLayerReady)
 end
 
 function bossUi.Stop()
     Event.ContentLayerReady.Unsubscribe(REF)
+    Event.SettingsLayerReady.Unsubscribe(REF)
     Event.Logic.Unsubscribe(REDRAW_REF)
     panel.Detach()
+    settings.Detach()
     window.Close()
 end
 
