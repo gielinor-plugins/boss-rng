@@ -20,6 +20,7 @@ return {
         helwyr = { normalCrest = CREST, hardCrest = CREST },
         kreearra = { armor = 1 / 320, hilt = HILT },
         kril = { armor = 1 / 320, spear = 1 / 384, staff = 1 / 64, hilt = HILT },
+        magister = { phylactery = 1 / 10, gloves = 1 / 128 },
         solak = { crossbow = 1 / 200 },
         vindicta = { normalCrest = CREST, hardCrest = CREST },
         zilyana = { crossbow = 1 / 320, hilt = HILT },

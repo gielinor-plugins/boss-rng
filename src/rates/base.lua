@@ -49,6 +49,7 @@ return {
         kerapac = { piles = 3, normal = 1 / 256, hardStaff = 1 / 400, hard = 1 / 180 }, -- per loot pile
         kreearra = { armor = 1 / 384, hilt = GWD_HILT },
         kril = { armor = 1 / 512, spear = 1 / 512, staff = 1 / 512, hilt = GWD_HILT },
+        magister = { phylactery = 1 / 18, gloves = 1 / 500 },
         nex = { table = 6 / 128 },
         raksha = { boots = 1 / 130, other = 1 / 325 },
         rasial = { weapon = 1 / 320, armor = 1 / 128 },

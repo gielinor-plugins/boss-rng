@@ -131,6 +131,9 @@ local CASES = {
     -- Solo, then duo: the same rates.
     { file = "raksha", items = 6, rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
         hard = { [51082] = 1 / 130, [51094] = 1 / 325 } },
+    -- Two rolls of their own, both raised by the Late-Game Rebalance.
+    { file = "magister", items = 8, rates = { [40650] = 1 / 18, [40320] = 1 / 500 },
+        after = { [40650] = 1 / 10, [40320] = 1 / 128 } },
     -- Every unique is 1/640: a 1/320 weapon roll and a 1/128 armor roll.
     { file = "rasial", items = 8,
         rates = { [55480] = 1 / 640, [55482] = 1 / 640, [55488] = 1 / 640, [55496] = 1 / 640 } },
