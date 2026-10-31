@@ -1,6 +1,7 @@
 -- The ribbon panel. It can be very small, so it shows only the essentials for
 -- one boss: the boss, its luck, its tracked kills and uniques, and its dry
--- streak (with nothing tracked yet, the game's totals instead), and a button at
+-- streak (with nothing tracked yet, the game's totals instead), its tip under a
+-- divider if it has one, and a button at
 -- the bottom that opens the details window. The button stays in view however
 -- small the panel is; lines that don't fit above it are left out.
 
@@ -47,7 +48,8 @@ function panel.Draw(state)
         widgets.AddText(parent, "Kill a supported boss to start.", PAD, PAD + LINE_HEIGHT)
         return
     end
-    local result = state.list[state.selected].stats
+    local entry = state.list[state.selected]
+    local result = entry.stats
     local width = layer.width - 2 * PAD
 
     -- The panel can be narrow, so text wraps to its width.
@@ -58,10 +60,19 @@ function panel.Draw(state)
     local buttonY = math.max(layer.height - PAD - BUTTON_HEIGHT, PAD + 32)
     local tracked = result.kills + result.extraKills > 0
     local lines = tracked and { format.TrackedShort(result), format.Dry(result) } or { format.AllTime(result) }
+    local function fits(height)
+        return y + height <= buttonY - 6
+    end
     for _, line in ipairs(lines) do
-        if line ~= "" and y + LINE_HEIGHT <= buttonY - 6 then
+        if line ~= "" and fits(LINE_HEIGHT) then
             y = widgets.AddWrapped(parent, line, PAD, y, width, widgets.SMALL_FONT, LINE_HEIGHT)
         end
+    end
+    -- The boss's tip, set apart under a divider, muted as in the window.
+    local tip = entry.boss.tip
+    if tip and fits(8 + LINE_HEIGHT) then
+        widgets.AddSeparator(parent, PAD, y + 2, width)
+        y = widgets.AddWrapped(parent, tip, PAD, y + 8, width, widgets.SMALL_FONT, LINE_HEIGHT, widgets.MUTED)
     end
 
     local open = ui.Button.new(parent)

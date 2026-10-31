@@ -16,6 +16,7 @@ widgets.ROW_FONT = id.Font.NOTOSANS_SEMIBOLD_12 -- names in table rows
 widgets.YELLOW = Vector4.new(1.0, 0.85, 0.2, 1.0)
 widgets.GOLD = Vector4.new(0.94, 0.75, 0.47, 1.0) -- the log's title and headings
 widgets.GREY = Vector4.new(0.75, 0.75, 0.75, 1.0) -- secondary text
+widgets.MUTED = Vector4.new(0.6, 0.6, 0.6, 1.0) -- notes beside the numbers: all-time totals, tips
 widgets.TEXT_HEIGHT = 20
 widgets.BAR_HEIGHT = 10
 widgets.DROPDOWN_HEIGHT = 25

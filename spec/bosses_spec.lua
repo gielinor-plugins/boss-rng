@@ -45,7 +45,7 @@ describe("boss data", function()
             it("counts a kill count by its kill events only if it has them", function()
                 for _, mode in ipairs(boss.modes) do
                     assert.is_true(mode.byEvent == true or mode.rolls ~= nil)
-                    assert.is_true(not mode.byEvent or boss.killEvents ~= nil or boss.containers ~= nil)
+                    assert.is_true(not mode.byEvent or (boss.killEvents or boss.containers or boss.claims) ~= nil)
                 end
             end)
 
@@ -313,14 +313,20 @@ describe("Barrows", function()
 
 end)
 
-it("counts each tracked Amascut enrage kill at the tier of its enrage", function()
+it("counts Amascut's claimed loot piles by mode: normal, or the enrage's tier", function()
     local boss = require("src/bosses/amascut")
-    local event = boss.killEvents[1]
-    assert.are.equal("BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", event.var)
-    assert.are.equal("Enrage 100%", event.mode({ enrage = 50 }))
-    assert.are.equal("Enrage 500%", event.mode({ enrage = 749 }))
-    assert.are.equal("Enrage 2,000%+", event.mode({ enrage = 4000 }))
+    local claim = boss.claims[1]
+    assert.are.equal("AMASCUT_BOSS_VARP_1", claim.var)
+    -- The loot var's old values seen in game: 2 piles at 1,000% enrage, 3 in normal mode.
+    assert.are.equal(2, (0x500207D0 & claim.mask) >> 16)
+    assert.are.equal("Enrage 1,000%", claim.mode({ enrage = 1000 }, 0x500207D0))
+    assert.are.equal("Normal", claim.mode({ enrage = 1000 }, 0x000307D0))
+    assert.are.equal("Enrage 100%", claim.mode({ enrage = 100 }, 0x100107D0))
+    assert.are.equal("Enrage 500%", claim.mode({ enrage = 749 }, 0x200107D0))
+    assert.are.equal("Enrage 2,000%+", claim.mode({ enrage = 4000 }, 0x700107D0))
+    assert.are.same({ "BSLAY_KILLS_AMASCUT_BOSS", "BSLAY_KILLS_AMASCUT_BOSS_HARDMODE" }, claim.kills)
     assert.are.equal("BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", boss.modeFor("Enrage 750%").kc)
+    assert.are.equal("pile", boss.unit)
 end)
 
 -- Nakatra's rolls, normal then hard mode.

@@ -6,21 +6,28 @@
 -- armor (armor three times in four, split over its five pieces; else one of
 -- the two weapons), one for the Nexus and, in enrage mode, one for the Shard of
 -- Genesis Essence. Enrage rates depend on the enrage tier, so each tier is a
--- mode of its own, sharing one kill count: each tracked enrage kill counts for
--- the tier of the enrage set for the instance.
+-- mode of its own.
 --
 -- Each kill makes five loot piles, each with its own unique rolls: one per player
--- in a team of five, and in smaller teams the rest go to the top damagers. Kill
--- counts don't say the team, so one pile per kill is assumed.
+-- in a team of five, and in smaller teams the rest go to the top damagers. The
+-- piles wait in the player's chest, adding up over kills, until claimed, and a
+-- new instance can't start until they are. So Boss RNG counts piles claimed,
+-- with their drops (see docs/bosses/amascut.md for the tests behind this).
 
 local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_AMASCUT_BOSS",
     kcEnrage = "BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", -- enrage mode, every tier
-    enrage = "AMASCUT_BOSS_LAST_ENRAGE", -- set as an instance starts
+    enrage = "AMASCUT_BOSS_LAST_ENRAGE", -- set as an enrage instance starts
+    loot = "AMASCUT_BOSS_VARP_1", -- the chest's waiting loot (below)
     log = "ITEMLOG_ITEM_", -- then each unique's log count name
 }
+
+-- Bits of VARS.loot: the player's loot piles waiting in the chest (varbit
+-- AMASCUT_BOSS_COMMON_LOOT_AVAILABLE), and its difficulty (_LOOT_DIFFICULTY): 0
+-- in normal mode. Its rare fields (which uniques are waiting) are never read.
+local PILES, DIFFICULTY = 0x70000, 0xF0000000
 
 local MASK, TOP, BOTTOM, GLOVES, BOOTS = 59344, 59336, 59346, 59342, 59340
 local LIGHT, GUARD, NEXUS = 59350, 59354, 59358
@@ -58,17 +65,17 @@ local TIERS = {
     { enrage = 2000, label = "2,000%+" },
 }
 
--- Each tier's mode, by name. Mode names are saved with the player's data: never
--- change them.
-local TIER_MODES = {}
+-- Normal mode and each tier's mode, by name. Mode names are saved with the
+-- player's data: never change them.
+local MODES = { Normal = { name = "Normal", kc = VARS.kc, byEvent = true, rolls = rolls("gear", "nexus") } }
 for _, tier in ipairs(TIERS) do
     local name = "Enrage " .. tier.label
     local e = tier.enrage
-    TIER_MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
+    MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
 end
 
--- The mode name of the tier an enrage falls in: the highest tier at or below it,
--- or the lowest tier below them all.
+-- The mode name of the tier an enrage falls in: the highest tier at or below it
+-- (4,000% is 2,000%+), or the lowest tier below them all.
 local function tierMode(enrage)
     local found = TIERS[1]
     for _, tier in ipairs(TIERS) do
@@ -79,22 +86,32 @@ local function tierMode(enrage)
     return "Enrage " .. found.label
 end
 
+-- The mode of piles claimed, from the loot var's old value and the enrage set
+-- for the instance (a chest's piles share one: a new instance can't start until
+-- they're claimed).
+local function claimedMode(values, old)
+    return (old & DIFFICULTY) == 0 and "Normal" or tierMode(values.enrage)
+end
+
 return {
     key = "amascut", -- saved data key: never change it
     name = "Amascut, the Devourer",
     logPage = "COLLECTION_BOSS_AMASCUT", -- the boss log page's database row
-    assumptions = { "One loot pile per kill (teams of 5)" },
+    assumptions = {},
+    unit = "pile", -- what luck counts: loot piles claimed (see claims)
+    tip = "Claim loot each kill so it counts",
 
-    -- Mode names are saved with the player's data: never change them. The enrage
-    -- kill count's mode is counted only through its kill event (a tier's mode).
+    -- Mode names are saved with the player's data: never change them. Each is
+    -- counted through piles claimed, not its kill count.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = rolls("gear", "nexus") },
+        MODES.Normal,
         { name = "Enrage", kc = VARS.kcEnrage, byEvent = true },
     },
-    killEvents = { { var = VARS.kcEnrage, reads = { enrage = VARS.enrage }, mode = function(values)
-        return tierMode(values.enrage)
-    end } },
-    modeFor = function(name) return TIER_MODES[name] end,
+    claims = { {
+        var = VARS.loot, mask = PILES, kills = { VARS.kc, VARS.kcEnrage },
+        reads = { enrage = VARS.enrage }, mode = claimedMode,
+    } },
+    modeFor = function(name) return MODES[name] end,
 
     -- Every item on the boss log page, with its log count varbit and kind (see
     -- src/bosses/kreearra.lua for what each kind means).

@@ -32,6 +32,19 @@
 --                tick its reward window (an inventory name) opens (see
 --                src/gamevars.lua)
 --   unit         what the boss's kills are called in its numbers ("chest")
+--   tip          a short line shown with the boss's numbers, for how to play so
+--                they're counted (Amascut's claims)
+--
+-- A boss whose loot waits in a chest until claimed, with a var holding how much
+-- (Amascut's loot piles), counts the loot claimed, so it's counted with its drops:
+--   claims       a list of { var, mask, kills = { kill count varbits },
+--                reads = { [key] = var }, mode = function(values, old) }: when
+--                those bits of var (a base var) fall to 0, their old value is
+--                counted as that many kills for the mode given, from the reads
+--                and var's old value (nil to leave it uncounted). Only if all of
+--                it was seen arriving, each kill raising it: loot waiting from
+--                before, or a kill that didn't raise it, leaves that claim
+--                uncounted, drops and all. The boss's modes are marked byEvent
 --
 -- A unique dropped in stacks has stack = { most, word }: a rise of its log count
 -- of up to most is one drop, and its log count (items, not drops) shows apart

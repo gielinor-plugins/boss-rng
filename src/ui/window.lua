@@ -41,7 +41,6 @@ local DRY_WIDTH = ROW_WIDTH - 8 - DRY_X
 local ROW = Vector4.new(1.0, 1.0, 1.0, 0.06)
 local HEADER = Vector4.new(0.0, 0.0, 0.0, 0.35) -- the band behind the column names
 local ACCENT = Vector4.new(0.85, 0.7, 0.35, 0.8) -- the line beside the headline
-local MUTED = Vector4.new(0.6, 0.6, 0.6, 1.0) -- facts beside the luck: the game's all-time totals
 
 local box = nil -- the window while it's open; destroying it removes its contents
 local position = { x = 200, y = 120 } -- kept while the plugin runs, so it reopens in place
@@ -118,7 +117,8 @@ end
 -- The headline for the picked boss, below room left for the boss dropdown: its
 -- luck as a sentence with an "i" for its assumptions and a full width bar once
 -- luck shows, then its dry streak, tracked totals, what an average player
--- would have and the game's all-time totals. Returns the y below it.
+-- would have, its tip if any and the game's all-time totals. Returns the y
+-- below it.
 local function addHeadline(parent, state, y)
     local entry = state.list[state.selected]
     local result = entry.stats
@@ -138,12 +138,13 @@ local function addHeadline(parent, state, y)
         { format.Dry(result) },
         { format.Tracked(result) },
         { format.Average(result) },
+        { entry.boss.tip or "", widgets.MUTED },
     }, PAD + 8, y, TABLE_WIDTH - 8)
     -- The game's totals aren't tracked, so a divider sets them apart.
     local allTime = format.AllTime(result)
     if allTime ~= "" then
         widgets.AddSeparator(parent, PAD + 8, y + 3, TABLE_WIDTH - 8)
-        y = addLines(parent, { { allTime, MUTED } }, PAD + 8, y + 8, TABLE_WIDTH - 8)
+        y = addLines(parent, { { allTime, widgets.MUTED } }, PAD + 8, y + 8, TABLE_WIDTH - 8)
     end
     widgets.AddRect(parent, PAD, headlineY, 2, y - headlineY, ACCENT)
     return y + 8

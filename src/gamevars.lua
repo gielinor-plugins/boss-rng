@@ -8,7 +8,10 @@
 -- or drop the game sends the base var's old and new value (VarTransmit), and the
 -- change in each slice is a kill or drop. A boss whose loot comes in an item
 -- kept to open later (see containers in src/bosses.lua) counts each one opened
--- instead: the backpack's count of it falling as its reward window opens.
+-- instead: the backpack's count of it falling as its reward window opens. A boss
+-- whose loot waits in a chest (see claims) counts the loot claimed: the bits
+-- holding it falling to 0, their old value being how much, when every bit of it
+-- was seen arriving with a kill.
 
 local days = require("src/days")
 local safe = require("src/safe")
@@ -41,6 +44,13 @@ local killedThisSession = {} -- [boss] = true once a kill is reported since ente
 local containers = {}
 local heldCounts = {}
 local opening = { windows = {}, fell = {} }
+
+-- Claims watched (see claims in src/bosses.lua), each { mask, shift, report(old,
+-- held), seen, trusted, kills, rises }: seen is the loot seen arriving since its
+-- bits were last 0, and trusted turns false if any arrived unseen (loot waiting
+-- before it was watched, or a kill that didn't raise it). kills and rises count
+-- this tick's kills and loot rises. By base var id, and as a list.
+local claims, claimList = {}, {}
 
 -- True once vars can be trusted: in the game, and settled after entering it.
 local function isReady()
@@ -102,16 +112,37 @@ local function rise(slice, old, new)
 end
 
 local function onVarTransmit(event)
-    local slices = watched[event.var.id]
     local old, new = event.oldValue, event.newValue
-    if slices == nil or type(old) ~= "number" or type(new) ~= "number" then
+    if type(old) ~= "number" or type(new) ~= "number" then
         return
     end
-    for _, slice in ipairs(slices) do
+    for _, slice in ipairs(watched[event.var.id] or {}) do
         local change = rise(slice, old, new) -- counts keep their highest even while settling
         if isReady() and change > 0 and change <= slice.most then
             table.insert(pending[slice.group], { report = slice.report, change = change })
         end
+    end
+    for _, claim in ipairs(isReady() and claims[event.var.id] or {}) do
+        local from, to = (old & claim.mask) >> claim.shift, (new & claim.mask) >> claim.shift
+        if to > from then
+            claim.seen, claim.rises = claim.seen + to - from, claim.rises + 1
+        elseif from > 0 and to == 0 then
+            if claim.trusted and claim.seen == from then
+                table.insert(pending.kills, { report = function(count) claim.report(old, count) end, change = from })
+            end
+            claim.seen, claim.trusted = 0, true
+        end
+    end
+end
+
+-- Distrusts a claim's waiting loot if a kill this tick didn't raise it, then
+-- starts counting the next tick.
+local function checkClaims()
+    for _, claim in ipairs(claimList) do
+        if claim.kills > claim.rises then
+            claim.trusted = false
+        end
+        claim.kills, claim.rises = 0, 0
     end
 end
 
@@ -185,12 +216,18 @@ end
 local function onLogic(event)
     tick = event.logicTick
     flush()
+    checkClaims()
     if isReady() and not announced then
         announced = true
         eachCount(function(slice)
             local found = var.VarPlayer[slice.count]
             slice.highest = math.max(slice.highest or 0, found and found.value or 0)
         end)
+        -- Loot already waiting arrived unseen, so its claim won't count.
+        for _, claim in ipairs(claimList) do
+            local held = claim.base.value
+            claim.trusted, claim.seen = held ~= nil and (held & claim.mask) == 0, 0
+        end
         heldCounts = readHeld() or {}
         safe.Call("updating once the game is ready", onReady)
     end
@@ -259,10 +296,10 @@ local function today()
     return minutes and days.FromMinutes(minutes) or 0
 end
 
--- The mode a boss's kill event says the kill was (see killEvents in
--- src/bosses.lua), from the game's values as it's reported, or nil if any
--- can't be read or the event gives none.
-local function eventMode(boss, event)
+-- The mode a boss's kill event or claim says the kill was (see killEvents and
+-- claims in src/bosses.lua), from the game's values as it's reported (and for
+-- a claim, its var's old value), or nil if any can't be read or it gives none.
+local function eventMode(boss, event, old)
     local values = {}
     for key, name in pairs(event.reads) do
         values[key] = value(name)
@@ -270,7 +307,7 @@ local function eventMode(boss, event)
             return nil
         end
     end
-    local name = event.mode(values)
+    local name = event.mode(values, old)
     return name and boss.modeFor(name)
 end
 
@@ -280,8 +317,8 @@ end
 --                                    counted by kill events or containers
 --                                    aren't watched), one of the boss's kill
 --                                    event vars did, for the mode it says, or
---                                    one of its containers was opened; day is
---                                    today (see today)
+--                                    one of its containers was opened or its
+--                                    loot claimed; day is today (see today)
 --   onDrops(boss, itemID, count)     the log count of a unique item went up,
 --                                    for a boss killed since entering the game
 --                                    (a stack's rise is one drop)
@@ -309,6 +346,29 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
                     killed(boss, mode, 1)
                 end
             end, event.mask)
+        end
+        for _, claim in ipairs(boss.claims or {}) do
+            local base = var.VarPlayer[claim.var]
+            if base then
+                local state = {
+                    base = base, mask = claim.mask, shift = lowestBit(claim.mask),
+                    seen = 0, trusted = false, kills = 0, rises = 0,
+                    report = function(old, count)
+                        local mode = eventMode(boss, claim, old)
+                        if mode then
+                            killed(boss, mode, count)
+                        end
+                    end,
+                }
+                claims[base.id] = claims[base.id] or {}
+                table.insert(claims[base.id], state)
+                table.insert(claimList, state)
+                for _, kc in ipairs(claim.kills) do
+                    watch(kc, "kills", function(count) state.kills = state.kills + count end)
+                end
+            else
+                print("[Boss RNG] Unknown var " .. claim.var)
+            end
         end
         for itemID, container in pairs(boss.containers or {}) do
             for _, mode in ipairs(boss.modes) do
@@ -349,7 +409,7 @@ function gamevars.Stop()
     Event.VarTransmit.Unsubscribe(REF)
     Event.InventoryAdded.Unsubscribe(REF)
     Event.InventoryUpdated.Unsubscribe(REF)
-    watched, containers, heldCounts = {}, {}, {}
+    watched, containers, heldCounts, claims, claimList = {}, {}, {}, {}, {}
     opening = { windows = {}, fell = {} }
     pending = { kills = {}, drops = {} }
     readyAtTick = nil

@@ -128,6 +128,74 @@ describe("gamevars", function()
         assert.are.same({ "Chest" }, reports)
     end)
 
+    describe("with loot waiting in a chest until claimed", function()
+        local LOOT_VAR = 3
+        local loot -- the loot var, holding piles in 0x70000 and a difficulty in 0xF0000000
+        local claimed = {
+            modes = { { name = "Normal", kc = "KC_NORMAL", byEvent = true } },
+            items = { [101] = { log = "LOG_WEAPON", kind = "unique" } },
+            claims = { { var = "LOOT_BASE", mask = 0x70000, kills = { "KC_NORMAL" }, reads = {},
+                mode = function(_, old) return old & 0xF0000000 == 0 and "Normal" or "Enrage" end } },
+            modeFor = function(name) return { name = name } end,
+        }
+
+        -- Starts watching with value waiting in the loot var.
+        local function start(value)
+            gamevars.Stop()
+            loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
+            loot.value = value
+            gamevars.Start({ claimed }, function(_, mode, count)
+                table.insert(reports, "kill " .. mode.name .. " +" .. count)
+            end, function(_, itemID, count)
+                table.insert(reports, "drop " .. itemID .. " +" .. count)
+            end)
+            advance(1) -- ready: the waiting loot is read
+        end
+
+        -- A kill raising the loot var from old to new (or not, if they're equal).
+        local function kill(kills, old, new)
+            send(KC_VAR, kills - 1, kills)
+            if old ~= new then
+                send(LOOT_VAR, old, new)
+            end
+            advance(1)
+        end
+
+        it("counts every pile seen arriving at its claim, with its drops", function()
+            start(0)
+            kill(1, 0, 0x10000) -- one pile: not counted yet
+            kill(2, 0x10000, 0x30000) -- two more
+            assert.are.same({}, reports)
+            send(LOOT_VAR, 0x30000, 0) -- claimed: three piles
+            send(LOG_VAR, 0, 1) -- and a drop
+            advance(1)
+            assert.are.same({ "kill Normal +3", "drop 101 +1" }, reports)
+            kill(3, 0, 0x50010000)
+            change(LOOT_VAR, 0x50010000, 0)
+            assert.are.same({ "kill Normal +3", "drop 101 +1", "kill Enrage +1" }, reports)
+        end)
+
+        it("leaves a claim uncounted, drops and all, if a kill didn't raise it", function()
+            start(0)
+            kill(1, 0, 0x50000)
+            kill(2, 0x50000, 0x50000) -- the count didn't change: its piles are unknown
+            send(LOOT_VAR, 0x50000, 0)
+            send(LOG_VAR, 0, 1)
+            advance(1)
+            assert.are.same({}, reports)
+            kill(3, 0, 0x30000) -- the next chest counts again
+            change(LOOT_VAR, 0x30000, 0)
+            assert.are.same({ "kill Normal +3" }, reports)
+        end)
+
+        it("leaves loot waiting from before it was watched uncounted", function()
+            start(0x20000)
+            kill(1, 0x20000, 0x30000)
+            change(LOOT_VAR, 0x30000, 0)
+            assert.are.same({}, reports)
+        end)
+    end)
+
     it("reports each kill with today, from the game clock", function()
         gamevars.Stop()
         local days = {}
