@@ -25,11 +25,11 @@ return {
         amascut = { -- each roll's chance: normal mode, then each enrage tier
             armorShare = 3 / 4, -- of each gear roll, split over five pieces (weapons get the rest)
             gear = 1 / 600, nexus = 1 / 750,
-            gear100 = 1 / 70, nexus100 = 1 / 280,
-            gear500 = 1 / 60, nexus500 = 1 / 240,
-            gear750 = 1 / 50, nexus750 = 1 / 200,
-            gear1000 = 1 / 35, nexus1000 = 1 / 140,
-            gear2000 = 1 / 25, nexus2000 = 1 / 100,
+            gear100 = 1 / 70, nexus100 = 1 / 280, shard100 = 1 / 280,
+            gear500 = 1 / 60, nexus500 = 1 / 240, shard500 = 1 / 240,
+            gear750 = 1 / 50, nexus750 = 1 / 200, shard750 = 1 / 200,
+            gear1000 = 1 / 35, nexus1000 = 1 / 140, shard1000 = 1 / 140,
+            gear2000 = 1 / 25, nexus2000 = 1 / 100, shard2000 = 1 / 100,
         },
         araxxi = { soloLegs = 1 / 40, soloAddOns = 1 / 120, duoLegs = 1 / 70, duoAddOns = 1 / 200 },
         barrows = { -- per chest

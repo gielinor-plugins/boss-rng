@@ -49,7 +49,7 @@ local function rolls(gearRate, nexus, shard)
     end
 end
 
--- The enrage tiers. Their Nexus and Shard rates are the same.
+-- The enrage tiers.
 local TIERS = {
     { enrage = 100, label = "100%" },
     { enrage = 500, label = "500%" },
@@ -63,8 +63,8 @@ local TIERS = {
 local TIER_MODES = {}
 for _, tier in ipairs(TIERS) do
     local name = "Enrage " .. tier.label
-    local nexus = "nexus" .. tier.enrage -- the Shard's rate too
-    TIER_MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls("gear" .. tier.enrage, nexus, nexus) }
+    local e = tier.enrage
+    TIER_MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
 end
 
 -- The mode name of the tier an enrage falls in: the highest tier at or below it,
