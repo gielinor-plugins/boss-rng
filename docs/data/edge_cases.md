@@ -10,7 +10,7 @@ needs no conversion.
 
 - Never rename a boss key, a mode name or an item id: they're keys in saved data.
 - Never rename a rate in `src/rates/base.lua` without renaming it in every
-  update file (`spec/rates_spec.lua` fails if an update changes a name base
+  update file (`spec/core/rates_spec.lua` fails if an update changes a name base
   doesn't have, and reading a missing name raises an error).
 - A rate of 0 means the item isn't on the table that day: kills from that day
   don't count toward its expected drops or its dry streak (`luck.ItemChances`

@@ -2,8 +2,8 @@
 -- The game runs this file when the plugin is turned on.
 
 local bosses = require("src/bosses")
-local gamevars = require("src/gamevars")
-local tracker = require("src/tracker")
+local gamevars = require("src/core/gamevars")
+local tracker = require("src/core/tracker")
 local bossUi = require("src/ui")
 
 bossUi.Start()

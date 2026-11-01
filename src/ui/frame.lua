@@ -4,7 +4,7 @@
 -- scrolling area's scrollbar is drawn from the game's own scrollbar sprites,
 -- since the API documents no scrollbar component.
 
-local safe = require("src/safe")
+local safe = require("src/utils/safe")
 local widgets = require("src/ui/widgets")
 
 local frame = {}

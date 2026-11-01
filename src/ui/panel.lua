@@ -5,8 +5,8 @@
 -- the bottom that opens the details window. The button stays in view however
 -- small the panel is; lines that don't fit above it are left out.
 
-local format = require("src/format")
-local safe = require("src/safe")
+local format = require("src/ui/format")
+local safe = require("src/utils/safe")
 local widgets = require("src/ui/widgets")
 
 local panel = {}

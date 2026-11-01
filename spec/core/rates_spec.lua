@@ -1,7 +1,7 @@
 -- Run from the project root with: busted
 
 local bosses = require("src/bosses")
-local rates = require("src/rates")
+local rates = require("src/core/rates")
 
 describe("rates.History", function()
     local history = rates.History({

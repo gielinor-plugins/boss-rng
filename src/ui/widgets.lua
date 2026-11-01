@@ -1,8 +1,8 @@
 -- Building blocks shared by the ribbon panel and the details window: fonts,
 -- colors, and small helpers that create the game's own components.
 
-local format = require("src/format")
-local safe = require("src/safe")
+local format = require("src/ui/format")
+local safe = require("src/utils/safe")
 
 local widgets = {}
 

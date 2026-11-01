@@ -10,7 +10,7 @@
 --   default        the value until the player picks one
 --   min, max, step the slider's range and step
 
-local saved = require("src/saved")
+local saved = require("src/utils/saved")
 
 local choices = {}
 

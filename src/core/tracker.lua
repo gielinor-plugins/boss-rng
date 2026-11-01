@@ -3,13 +3,13 @@
 -- installed. Luck comes only from these tracked kills; the game's all-time
 -- totals are shown as facts (see gamevars.AllTime).
 
-local safe = require("src/safe")
-local saved = require("src/saved")
-local tallies = require("src/tallies")
+local safe = require("src/utils/safe")
+local saved = require("src/utils/saved")
+local tallies = require("src/core/tallies")
 
 local tracker = {}
 
-local VERSION = 5 -- of the saved shape (see src/tallies.lua); version 4 is converted, older starts again
+local VERSION = 5 -- of the saved shape (see src/core/tallies.lua); version 4 is converted, older starts again
 
 -- The key of the dry streak counting every unique; the others are item ids.
 tracker.ANY = "any"
@@ -84,7 +84,7 @@ end
 tracker.Total = tallies.Total
 
 -- A dry streak's kills, { [mode name] = { [day] = kills } }: key is ANY or an
--- item id as text (see src/tallies.lua).
+-- item id as text (see src/core/tallies.lua).
 tracker.Dry = tallies.Dry
 
 -- The dry streak keys of a boss: ANY, and each unique's id as text.
@@ -98,7 +98,7 @@ function tracker.DryKeys(boss)
     return keys
 end
 
--- count kills of a boss's mode on a day (see src/days.lua). Each kill adds to
+-- count kills of a boss's mode on a day (see src/utils/days.lua). Each kill adds to
 -- every dry streak (the boss's, and each of its uniques'): they're read as the
 -- kills since their start, so only streaks kept as counted need adding to.
 function tracker.AddKills(boss, mode, count, day)

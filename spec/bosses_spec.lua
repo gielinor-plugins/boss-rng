@@ -1,9 +1,9 @@
 -- Checks every boss file follows the data format. Run from the project root: busted
 
 local bosses = require("src/bosses")
-local choices = require("src/choices")
-local luck = require("src/luck")
-local stats = require("src/stats")
+local choices = require("src/core/choices")
+local luck = require("src/core/luck")
+local stats = require("src/core/stats")
 
 -- A day before the Late-Game Rebalance (30 Oct 2026), and the day it went live.
 local BEFORE, AFTER = 20756, require("src/rates/late_game_rebalance").day

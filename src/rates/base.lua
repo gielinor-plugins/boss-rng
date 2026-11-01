@@ -1,5 +1,5 @@
 -- Each boss's published rates when Boss RNG added it, by boss key (see
--- src/rates.lua): every number a game update could change, as named values its
+-- src/core/rates.lua): every number a game update could change, as named values its
 -- boss file builds rolls from. Boss files only say which items share a roll,
 -- and split a roll evenly unless a rate here says otherwise. Sources and dates
 -- are in each boss file's header. Rates are chances per kill unless the name

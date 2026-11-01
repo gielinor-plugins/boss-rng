@@ -3,9 +3,9 @@
 -- The game's all-time totals are passed through as facts, never used for luck.
 -- Plain Lua, so it can be tested offline.
 
-local luck = require("src/luck")
-local rates = require("src/rates")
-local tracker = require("src/tracker")
+local luck = require("src/core/luck")
+local rates = require("src/core/rates")
+local tracker = require("src/core/tracker")
 
 local stats = {}
 
@@ -16,7 +16,7 @@ stats.MIN_EXPECTED = 1
 
 local NO_RATES = {} -- the rate values of a boss without any
 
--- A boss's rate values on a day (see src/rates.lua): from boss.rates, a test
+-- A boss's rate values on a day (see src/core/rates.lua): from boss.rates, a test
 -- boss's own history, or its key's.
 local function valuesOn(boss, day)
     local history = boss.rates or rates.For(boss.key)
@@ -204,7 +204,7 @@ end
 --   kills        tracked kills in the boss's kill counts
 --   extraKills   tracked kills outside them (partial Barrows chests), counted in
 --                the rest, called extraLabel ("partial")
---   since        the day of the first tracked kill (see src/days.lua), or nil
+--   since        the day of the first tracked kill (see src/utils/days.lua), or nil
 --   expected     uniques an average player would have after the tracked kills
 --   received     uniques tracked
 --   luck         share of players with fewer uniques, from 0 to 1, or nil until

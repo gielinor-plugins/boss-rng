@@ -33,7 +33,7 @@
 --   containers   { [item id] = { mode, window } }: the mode, marked byEvent,
 --                counts one kill each time the item leaves the backpack in the
 --                tick its reward window (an inventory name) opens (see
---                src/gamevars.lua)
+--                src/core/gamevars.lua)
 --   unit         what the boss's kills are called in its numbers ("chest")
 --   tip          a short line shown with the boss's numbers, for how to play so
 --                they're counted (Amascut's claims)
@@ -53,7 +53,7 @@
 -- of up to most is one drop, and its log count (items, not drops) shows apart
 -- from the boss's other uniques, as a count of word ("spike").
 --
--- Rates are named values in src/rates/, by boss key (see src/rates.lua). A
+-- Rates are named values in src/rates/, by boss key (see src/core/rates.lua). A
 -- mode's rolls are a function of a day's values and the player's picks, so
 -- each tracked kill uses the rates of its day.
 --
@@ -61,7 +61,7 @@
 -- that only hold for some picks.
 --
 -- A mode's rolls are a function of the rate values (see above) and the
--- player's picks for the boss's choices (see src/choices.lua), for rates set by
+-- player's picks for the boss's choices (see src/core/choices.lua), for rates set by
 -- one, such as Kerapac's loot piles; or a plain table for a mode with fixed
 -- rolls. On the settings page, choicesHelp (paragraphs) says why and how to set
 -- them.

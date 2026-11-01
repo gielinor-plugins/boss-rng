@@ -36,7 +36,7 @@ the picked boss's stats are ever worked out.
 
 ## Saved form of each boss's tallies
 
-`encoded` in `src/tracker.lua`.
+`encoded` in `src/core/tracker.lua`.
 
 **Why:** the character's record is saved after every kill and drop, and saving
 encodes each boss's kills as text (see `saved_data.md`).

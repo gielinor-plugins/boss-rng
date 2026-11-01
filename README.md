@@ -57,8 +57,13 @@ Questions or deletion requests: gielinorplugins@gmail.com
 main.lua      entry point the game runs
 plugin.json   plugin manifest
 src/          plugin modules, loaded with require("src/...")
+  bosses/     one data file per boss (src/bosses.lua lists them)
+  rates/      drop rates, one file per game update
+  core/       game reading, tallies and luck math
+  ui/         the panel, window and settings page (src/ui.lua runs them)
+  utils/      helpers with no boss knowledge
 resources/    images and sounds, if added later (a folder name the game reserves)
-spec/         tests
+spec/         tests, in the same folders as src/
 tools/        sync.sh (copy to the beta env locally), package.sh (build the mod.io zip)
 ```
 

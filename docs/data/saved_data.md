@@ -1,8 +1,8 @@
 # Saved data
 
 What Boss RNG saves with `PersistentDB`, and how to read it. Code:
-`src/saved.lua` (per-character records), `src/tracker.lua` (version and
-conversion) and `src/tallies.lua` (the tallies format).
+`src/utils/saved.lua` (per-character records), `src/core/tracker.lua` (version and
+conversion) and `src/core/tallies.lua` (the tallies format).
 
 ## Entries
 
@@ -99,7 +99,7 @@ nothing else: every streak gets longer by being read again.
 ## Conversion
 
 A `char:` record from an older version is converted when it loads
-(`codec.Decode` in `src/tracker.lua`), and saved in the new form at the next
+(`codec.Decode` in `src/core/tracker.lua`), and saved in the new form at the next
 change.
 
 - **Version 4** kept each streak's kills, `dry = { [key] = { [mode] = { [day] = n } } }`,
@@ -123,7 +123,7 @@ keys and values are saved data: never rename them.
 - **Loading** decodes each mode's text once, when the character's record loads.
 - **Saving** happens after every kill and drop. Each boss's encoded tallies are
   kept and only the changed boss is encoded again (`talliesFor` in
-  `src/tracker.lua`).
+  `src/core/tracker.lua`).
 - **Drawing** lists bosses from their kill counts only, and works out stats
   for the picked boss alone. Those stats are kept until the boss, its tallies
   (`tracker.Changes`), the game's totals or the picks change (`withStats` in

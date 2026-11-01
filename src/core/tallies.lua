@@ -1,9 +1,9 @@
 -- A boss's tallies as data, and how they're saved. Plain Lua, so it can be
--- tested offline. src/tracker.lua keeps them up to date.
+-- tested offline. src/core/tracker.lua keeps them up to date.
 --
 -- Tallies: { kills, dryFrom, items }. Keys are text, the only kind Jagex's saved
 -- data examples use.
---   kills    { [mode name] = { [day] = kills } }, by day (see src/days.lua; 0 when
+--   kills    { [mode name] = { [day] = kills } }, by day (see src/utils/days.lua; 0 when
 --            the day couldn't be read)
 --   dryFrom  { [streak key] = start }: where each dry streak (the boss's, and each
 --            unique's) starts, if not at the first tracked kill. A streak is the

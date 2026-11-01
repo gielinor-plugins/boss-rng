@@ -2,7 +2,7 @@
 -- is over it. The details window uses it for the assumptions behind a boss's
 -- numbers.
 
-local safe = require("src/safe")
+local safe = require("src/utils/safe")
 local widgets = require("src/ui/widgets")
 
 local info = {}

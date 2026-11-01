@@ -1,7 +1,7 @@
 -- The words and numbers Boss RNG shows the player. Plain Lua, so it can be tested
 -- offline, and shared by every view so the wording lives in one place.
 
-local days = require("src/days")
+local days = require("src/utils/days")
 
 local format = {}
 
@@ -53,7 +53,7 @@ local function groupPercent(share)
     return math.max(1, math.ceil(share * 100 - 1e-9)) .. "%"
 end
 
--- A day (see src/days.lua) as a date: "29 Oct 2026".
+-- A day (see src/utils/days.lua) as a date: "29 Oct 2026".
 function format.Date(day)
     local year, month, date = days.ToDate(day)
     return date .. " " .. MONTHS[month] .. " " .. year

@@ -5,9 +5,9 @@
 -- fits its contents, showing at most MAX_ROWS rows; the rest scroll with the
 -- mouse wheel.
 
-local choices = require("src/choices")
-local format = require("src/format")
-local pickers = require("src/pickers")
+local choices = require("src/core/choices")
+local format = require("src/ui/format")
+local pickers = require("src/ui/pickers")
 local frame = require("src/ui/frame")
 local info = require("src/ui/info")
 local widgets = require("src/ui/widgets")

@@ -4,11 +4,11 @@ describe("safe.Call", function()
     local safe, printed, realPrint
 
     before_each(function()
-        package.loaded["src/safe"] = nil
-        safe = require("src/safe")
+        package.loaded["src/utils/safe"] = nil
+        safe = require("src/utils/safe")
         printed = {}
         -- busted runs each spec file with its own globals, so the real print
-        -- that src/safe.lua calls has to be replaced through _G.
+        -- that src/utils/safe.lua calls has to be replaced through _G.
         realPrint = _G.print
         _G.print = function(text) table.insert(printed, text) end
     end)

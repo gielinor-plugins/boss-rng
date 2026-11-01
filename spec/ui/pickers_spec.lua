@@ -1,6 +1,6 @@
 -- Run from the project root with: busted
 
-local pickers = require("src/pickers")
+local pickers = require("src/ui/pickers")
 
 local KERAPAC = require("src/bosses/kerapac")
 

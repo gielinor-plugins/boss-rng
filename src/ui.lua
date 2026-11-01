@@ -4,11 +4,11 @@
 -- All UI code lives in src/ui.lua and src/ui/, using Jagex's native components.
 
 local bosses = require("src/bosses")
-local choices = require("src/choices")
-local gamevars = require("src/gamevars")
-local safe = require("src/safe")
-local stats = require("src/stats")
-local tracker = require("src/tracker")
+local choices = require("src/core/choices")
+local gamevars = require("src/core/gamevars")
+local safe = require("src/utils/safe")
+local stats = require("src/core/stats")
+local tracker = require("src/core/tracker")
 local panel = require("src/ui/panel")
 local settings = require("src/ui/settings")
 local window = require("src/ui/window")

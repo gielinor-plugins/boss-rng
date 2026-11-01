@@ -1,9 +1,9 @@
 -- The settings page (Plugin Hub > Manage > Boss RNG's gear): a section per boss
--- with choices (see src/choices.lua), each a slider. The game gives an empty
+-- with choices (see src/core/choices.lua), each a slider. The game gives an empty
 -- layer (572 x 300 when measured), cleared each time the page opens.
 
-local choices = require("src/choices")
-local pickers = require("src/pickers")
+local choices = require("src/core/choices")
+local pickers = require("src/ui/pickers")
 local widgets = require("src/ui/widgets")
 
 local settings = {}

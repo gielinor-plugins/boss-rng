@@ -15,8 +15,8 @@ describe("tracker", function()
 
     -- Loads a fresh copy of the tracker, like a plugin reload.
     local function reload()
-        package.loaded["src/tracker"] = nil
-        tracker = require("src/tracker")
+        package.loaded["src/core/tracker"] = nil
+        tracker = require("src/core/tracker")
     end
 
     before_each(function()

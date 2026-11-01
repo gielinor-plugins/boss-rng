@@ -1,10 +1,10 @@
 -- Jagex's Late-Game Rebalance (design preview: "late November 2026"), the rates
--- it changed for supported bosses, by boss key (see src/rates.lua).
+-- it changed for supported bosses, by boss key (see src/core/rates.lua).
 -- Decided where the post doesn't say: God Wars 1 armor includes the shields,
 -- and a kill still gives at most one table item; God Wars 2 hard mode crests
 -- change like normal mode's; Croesus's rates are per loot roll.
 
-local days = require("src/days")
+local days = require("src/utils/days")
 
 local CREST = 1 / 128
 local HILT = 1 / 384

@@ -48,8 +48,8 @@ describe("gamevars", function()
         mock.AddVarbit("LOG_ARMOR", -4, logVar, 0xFF00)
         mock.AddVarbit("LOG_SHARED", -5, logVar, 0xFF0000)
 
-        package.loaded["src/gamevars"] = nil
-        gamevars = require("src/gamevars")
+        package.loaded["src/core/gamevars"] = nil
+        gamevars = require("src/core/gamevars")
         reports, tick = {}, 1000
         mock.inGame = true
         gamevars.Start({ BOSS }, function(_, mode, count)

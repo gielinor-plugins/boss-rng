@@ -10,8 +10,8 @@ describe("choices", function()
 
     -- Loads a fresh copy, like a plugin reload.
     local function reload()
-        package.loaded["src/choices"] = nil
-        choices = require("src/choices")
+        package.loaded["src/core/choices"] = nil
+        choices = require("src/core/choices")
     end
 
     before_each(function()

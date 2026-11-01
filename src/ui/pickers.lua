@@ -1,4 +1,4 @@
--- The sliders for a boss's picks (see src/choices.lua), as plain data, for the
+-- The sliders for a boss's picks (see src/core/choices.lua), as plain data, for the
 -- views to draw: { label, min, max, step, current, onPick } each. Plain Lua, so it
 -- can be tested offline.
 

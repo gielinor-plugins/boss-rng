@@ -1,6 +1,6 @@
 -- Run from the project root with: busted
 
-local format = require("src/format")
+local format = require("src/ui/format")
 
 describe("format", function()
     it("adds thousands separators", function()

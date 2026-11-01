@@ -13,8 +13,8 @@
 -- holding it falling to 0, their old value being how much, when every bit of it
 -- was seen arriving with a kill.
 
-local days = require("src/days")
-local safe = require("src/safe")
+local days = require("src/utils/days")
+local safe = require("src/utils/safe")
 
 local gamevars = {}
 
@@ -300,7 +300,7 @@ end
 
 local CLOCK = "CLOCK_TIME_DATE_MINUTES" -- minutes since 1 January 1970 (UTC)
 
--- Today, from the game clock (see src/days.lua), or 0 if it can't be read.
+-- Today, from the game clock (see src/utils/days.lua), or 0 if it can't be read.
 local function today()
     local minutes = value(CLOCK)
     return minutes and days.FromMinutes(minutes) or 0

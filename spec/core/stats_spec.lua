@@ -1,8 +1,8 @@
 -- Run from the project root with: busted
 
-local luck = require("src/luck")
-local rates = require("src/rates")
-local stats = require("src/stats")
+local luck = require("src/core/luck")
+local rates = require("src/core/rates")
+local stats = require("src/core/stats")
 
 local DAY = 20756 -- 30 Oct 2026
 
