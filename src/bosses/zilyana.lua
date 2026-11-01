@@ -1,6 +1,5 @@
--- Commander Zilyana, God Wars Dungeon. Rates: see src/bosses/godwars.lua. Her
--- unique table has five entries at 1/5 each: the sword, an Armadyl crossbow (the
--- main hand and off-hand split that entry evenly), and three of her amulets.
+-- Commander Zilyana, God Wars Dungeon. Rates: see src/bosses/godwars.lua. The two
+-- Armadyl crossbows split one table entry evenly.
 
 local common = require("src/bosses/common")
 local godwars = require("src/bosses/godwars")
@@ -17,7 +16,6 @@ local WHISPER, HISS, MURMUR, HUM, HILT = 25028, 25031, 25034, 61117, 11706
 
 local OTHERS = { SWORD, WHISPER, HISS, MURMUR }
 local CROSSBOWS = { CROSSBOW, OFFHAND_CROSSBOW }
--- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return godwars.Rolls(common.Each(CROSSBOWS, r.crossbow, common.Each(OTHERS, r.other)), HILT, r)
 end
@@ -29,8 +27,6 @@ return {
 
     modes = common.Modes(VARS, rolls),
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = godwars.Items({
         [SWORD] = { log = VARS.log .. "SWORD", kind = "unique" },
         [CROSSBOW] = { log = VARS.log .. "CROSSBOW", kind = "unique" },

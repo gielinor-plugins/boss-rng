@@ -1,19 +1,17 @@
--- Loot that waits in a chest until claimed (see claims in src/bosses.lua):
--- when its bits fall to 0, their old value is how much was claimed. A claim
--- counts only if every bit of it was seen arriving with a kill; loot waiting
--- from before, or a kill that didn't raise it, leaves that claim uncounted.
+-- Loot that waits in a chest until claimed (see claims in src/bosses.lua): when
+-- its bits fall to 0, their old value is the claim. A claim counts only if all of
+-- it was seen arriving with kills; loot waiting from before, or a kill that didn't
+-- raise it, leaves that claim uncounted.
 
 local bits = require("src/utils/bits")
 
 local claims = {}
 
--- Each { base, mask, shift, report, seen, trusted, kills, rises }: seen is the
--- loot seen arriving since the bits were last 0, and kills and rises count this
--- tick's kills and loot rises. By base var id, and as a list.
+-- seen: loot seen since the bits were last 0; kills, rises: this tick's counts.
 local byVar, list = {}, {}
 
--- Watches mask bits of base (a var). report(old, held) is called for a counted
--- claim. Returns a function to call with each kill's count.
+-- Watches mask bits of var base; report(old, held) gets each counted claim.
+-- Returns a function to call with each kill's count.
 function claims.Add(base, mask, report)
     local claim = {
         base = base, mask = mask, shift = bits.LowestBit(mask), report = report,
@@ -25,8 +23,7 @@ function claims.Add(base, mask, report)
     return function(count) claim.kills = claim.kills + count end
 end
 
--- Notes a change to var id from old to new. A counted claim is passed to
--- queue(report, held).
+-- Passes a counted claim to queue(report, held).
 function claims.OnVar(id, old, new, queue)
     for _, claim in ipairs(byVar[id] or {}) do
         local from, to = (old & claim.mask) >> claim.shift, (new & claim.mask) >> claim.shift
@@ -41,7 +38,6 @@ function claims.OnVar(id, old, new, queue)
     end
 end
 
--- Ends a tick: a kill that didn't raise its claim's loot makes it untrusted.
 function claims.EndTick()
     for _, claim in ipairs(list) do
         if claim.kills > claim.rises then
@@ -51,8 +47,7 @@ function claims.EndTick()
     end
 end
 
--- Once vars can be trusted: loot already waiting arrived unseen, so only an
--- empty chest is trusted.
+-- Loot already waiting arrived unseen, so only an empty chest is trusted.
 function claims.Ready()
     for _, claim in ipairs(list) do
         local held = claim.base.value

@@ -1,5 +1,3 @@
--- Run from the project root with: busted
-
 local mock = require("spec/mock_api")
 
 local PILES = { key = "piles", label = "Normal Mode", unit = " loot piles per kill", default = 1.5, min = 1, max = 3, step = 0.1 }

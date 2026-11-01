@@ -1,9 +1,4 @@
--- Rasial, the First Necromancer. A solo fight.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-29: each kill makes
--- two rolls at once, a 1/320 weapon roll (the Omni guard or the Soulbound
--- lantern) and a 1/128 armor roll (one of five First Necromancer pieces), so
--- every unique is 1/640 per kill.
+-- Rasial. A solo fight. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-29.
 
 local common = require("src/bosses/common")
 
@@ -17,7 +12,6 @@ local CROWN, TOP, BOTTOM, HANDS, FEET = 55488, 55490, 55492, 55494, 55496
 local WEAPONS = common.Even({ GUARD, LANTERN })
 local ARMOR = common.Even({ CROWN, TOP, BOTTOM, HANDS, FEET })
 
--- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         { chance = r.weapon, items = WEAPONS },
@@ -30,13 +24,11 @@ return {
     name = "Rasial, the First Necromancer",
     assumptions = {},
 
-    -- Mode names are saved with the player's data: never change them.
+    -- Mode names are saved: never change them.
     modes = {
         { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [GUARD] = { log = VARS.log .. "ARMGUARD_T95", kind = "unique" },
         [LANTERN] = { log = VARS.log .. "LANTERN_T95", kind = "unique" },

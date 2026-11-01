@@ -1,4 +1,4 @@
--- Checks every boss file follows the data format. Run from the project root: busted
+-- Checks every boss file follows the data format.
 
 local bosses = require("src/bosses")
 local choices = require("src/core/choices")
@@ -8,7 +8,6 @@ local stats = require("src/core/stats")
 -- A day before the Late-Game Rebalance (30 Oct 2026), and the day it went live.
 local BEFORE, AFTER = 20756, require("src/core/rates/late_game_rebalance").day
 
--- Each of a boss's choices at its default: { [choice key] = value }.
 local function defaults(boss)
     local picks = {}
     for _, choice in ipairs(boss.choices or {}) do
@@ -77,9 +76,8 @@ describe("boss data", function()
     end
 end)
 
--- Each boss's boss log item count, and its wiki rates per kill for a few items,
--- in its first two modes, or the modes named in modes (made by its kill events),
--- before the Late-Game Rebalance; after and afterHard, the ones it changed.
+-- Each boss's log item count and wiki rates for a few items in its first two
+-- modes (or modes), before the Late-Game Rebalance; after and afterHard, after it.
 local HILT = 63 / 64 / 512 -- a general's hilt: only rolled when the unique table misses
 local NEX = 1 / 384
 local CASES = {
@@ -114,8 +112,8 @@ local CASES = {
     -- Solo, then duo: a leg and an add-on, each group split evenly.
     { file = "araxxi", items = 15, modes = { "Solo", "Duo" },
         rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 }, hard = { [31719] = 1 / 70 / 3, [31724] = 1 / 200 / 3 } },
-    -- A chest with all seven brothers (7 rolls at 1/73) and Linza (1/96 over
-    -- her five items), plus the amulet at 1/480. Dharok has 4 items, Ahrim 6.
+    -- All seven brothers (7 rolls at 1/73), Linza (1/96 over five items) and the
+    -- amulet (1/480). Dharok has 4 items, Ahrim 6.
     { file = "barrows", items = 39, modes = { "Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza" },
         rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5, [39061] = 1 / 480 },
         after = { [39061] = 1 / 240, [37449] = 1 / 96 / 5 } },
@@ -123,10 +121,9 @@ local CASES = {
     { file = "vorkath", items = 5, rates = { [56079] = 1 / 45, [56068] = 1 / 249 },
         hard = { [56079] = 1 / 15, [56068] = 1 / 150, [56321] = 1 / 150 } },
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
-    -- Astellarn solo, then in a duo.
     { file = "dragonkin", items = 7, modes = { "Astellarn, solo", "Astellarn, 2 players" },
         rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
-    -- The Ambassador solo, then in a trio: any crossbow piece, split evenly.
+    -- Any crossbow piece, split evenly.
     { file = "shadow_reef", items = 7, modes = { "The Ambassador, solo", "The Ambassador, 3 players" },
         rates = { [47490] = 1 / 55 / 3, [47492] = 1 / 55 / 3 }, hard = { [47494] = 1 / 166 / 3 } },
     { file = "corp", items = 7, rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 } },
@@ -156,7 +153,6 @@ local CASES = {
         hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 } },
 }
 
--- A boss's mode by name: one of its own, or one its kill events make.
 local function modeNamed(boss, name)
     for _, mode in ipairs(boss.modes) do
         if mode.name == name then
@@ -178,7 +174,7 @@ for _, case in ipairs(CASES) do
             assert.are.equal(case.items, count)
         end)
 
-        -- Checks each mode's chances on day against expected, { rates, hard rates }.
+        -- expected is { rates, hard rates }.
         local function check(day, expected)
             for modeIndex, rates in pairs(expected) do
                 local mode = case.modes and modeNamed(boss, case.modes[modeIndex]) or boss.modes[modeIndex]
@@ -290,8 +286,7 @@ describe("Barrows", function()
     local boss = require("src/bosses/barrows")
     local SIX = { "Ahrim", "Dharok", "Guthan", "Karil", "Torag", "Verac" }
 
-    -- The tracked chest's mode name from the game's values as it's looted, for
-    -- these originals, Akrisae and Linza.
+    -- The chest's mode name from the game's values for these brothers.
     local function opened(originals, akrisae, linza)
         local values = { Ahrim = 0, Dharok = 0, Guthan = 0, Karil = 0, Torag = 0, Verac = 0 }
         for _, name in ipairs(originals) do

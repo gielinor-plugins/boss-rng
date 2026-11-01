@@ -1,8 +1,5 @@
--- K'ril Tsutsaroth, God Wars Dungeon. Rates: see src/bosses/godwars.lua. His
--- unique table has eight entries at 1/8 each: the six subjugation pieces, the
--- spear and the steam battlestaff. The wiki's K'ril page doesn't say how the
--- hilt is rolled, so like Kree'arra's it's assumed to work as the other
--- generals' do.
+-- K'ril Tsutsaroth, God Wars Dungeon. Rates: see src/bosses/godwars.lua. The wiki doesn't
+-- say how his hilt rolls, so it's assumed to work as the other generals' do.
 
 local common = require("src/bosses/common")
 local godwars = require("src/bosses/godwars")
@@ -19,7 +16,6 @@ local HOOD, GARB, GOWN, GLOVES, BOOTS, WARD = 24992, 24995, 24998, 25007, 25004,
 local SPEAR, STAFF, HILT = 11716, 11736, 11708
 
 local ARMOR = { HOOD, GARB, GOWN, GLOVES, BOOTS, WARD }
--- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return godwars.Rolls(common.Each(ARMOR, r.armor, { [SPEAR] = r.spear, [STAFF] = r.staff }), HILT, r)
 end
@@ -31,8 +27,6 @@ return {
 
     modes = common.Modes(VARS, rolls),
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = godwars.Items({
         [HOOD] = { log = VARS.log .. "HEAD", kind = "unique" },
         [GARB] = { log = VARS.log .. "BODY", kind = "unique" },

@@ -1,18 +1,8 @@
--- Amascut, the Devourer.
---
--- From Jagex's "Drop Rates Revealed: Amascut, Goddess of Destruction", via the
--- RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-27: every player gets their
--- own unique rolls each kill, whatever the team size. One roll is for weapons and
--- armor (armor three times in four, split over its five pieces; else one of
--- the two weapons), one for the Nexus and, in enrage mode, one for the Shard of
--- Genesis Essence. Enrage rates depend on the enrage tier, so each tier is a
--- mode of its own.
---
--- Each kill makes five loot piles, each with its own unique rolls: one per player
--- in a team of five, and in smaller teams the rest go to the top damagers. The
--- piles wait in the player's chest, adding up over kills, until claimed, and a
--- new instance can't start until they are. So Boss RNG counts piles claimed,
--- with their drops (see docs/bosses/amascut.md for the tests behind this).
+-- Amascut. Rates: Jagex's "Drop Rates Revealed" via the RuneScape Wiki (CC BY-NC-SA 3.0),
+-- checked 2026-10-27. Each player rolls gear, the Nexus and, in enrage, the Shard; each
+-- enrage tier has its own rates, so its own mode. A kill makes five loot piles (spares go
+-- to top damagers) that wait in the chest until claimed, so piles claimed are counted
+-- (tests: docs/bosses/amascut.md).
 
 local common = require("src/bosses/common")
 
@@ -24,9 +14,8 @@ local VARS = {
     log = "ITEMLOG_ITEM_", -- then each unique's log count name
 }
 
--- Bits of VARS.loot: the player's loot piles waiting in the chest (varbit
--- AMASCUT_BOSS_COMMON_LOOT_AVAILABLE), and its difficulty (_LOOT_DIFFICULTY): 0
--- in normal mode. Its rare fields (which uniques are waiting) are never read.
+-- Bits of VARS.loot: piles waiting (AMASCUT_BOSS_COMMON_LOOT_AVAILABLE) and difficulty
+-- (_LOOT_DIFFICULTY, 0 in normal mode). Its rare fields are never read.
 local PILES, DIFFICULTY = 0x70000, 0xF0000000
 
 local MASK, TOP, BOTTOM, GLOVES, BOOTS = 59344, 59336, 59346, 59342, 59340
@@ -34,15 +23,11 @@ local LIGHT, GUARD, NEXUS = 59350, 59354, 59358
 
 local ARMOR, WEAPONS = { MASK, TOP, BOTTOM, GLOVES, BOOTS }, { LIGHT, GUARD }
 
--- The gear roll's items, by their share of it: armor's share split over its
--- pieces, and the rest over the weapons.
 local function gear(r)
     return common.Each(ARMOR, r.armorShare / #ARMOR, common.Each(WEAPONS, (1 - r.armorShare) / #WEAPONS))
 end
 
--- The rolls at rate values r (see src/core/rates/base.lua), by the names of the
--- rates for weapons and armor, the Nexus and the Shard (normal mode has no
--- Shard roll).
+-- Rolls by rate names for gear, the Nexus and the Shard (none in normal mode).
 local function rolls(gearRate, nexus, shard)
     return function(r)
         local list = {
@@ -56,7 +41,6 @@ local function rolls(gearRate, nexus, shard)
     end
 end
 
--- The enrage tiers.
 local TIERS = {
     { enrage = 100, label = "100%" },
     { enrage = 500, label = "500%" },
@@ -65,8 +49,7 @@ local TIERS = {
     { enrage = 2000, label = "2,000%+" },
 }
 
--- Normal mode and each tier's mode, by name. Mode names are saved with the
--- player's data: never change them.
+-- Mode names are saved: never change them.
 local MODES = { Normal = { name = "Normal", kc = VARS.kc, byEvent = true, rolls = rolls("gear", "nexus") } }
 for _, tier in ipairs(TIERS) do
     local name = "Enrage " .. tier.label
@@ -74,8 +57,7 @@ for _, tier in ipairs(TIERS) do
     MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
 end
 
--- The mode name of the tier an enrage falls in: the highest tier at or below it
--- (4,000% is 2,000%+), or the lowest tier below them all.
+-- The highest tier at or below enrage (4,000% is 2,000%+), else the lowest.
 local function tierMode(enrage)
     local found = TIERS[1]
     for _, tier in ipairs(TIERS) do
@@ -86,9 +68,7 @@ local function tierMode(enrage)
     return "Enrage " .. found.label
 end
 
--- The mode of piles claimed, from the loot var's old value and the enrage set
--- for the instance (a chest's piles share one: a new instance can't start until
--- they're claimed).
+-- A chest's piles share one enrage: a new instance can't start until they're claimed.
 local function claimedMode(values, old)
     return (old & DIFFICULTY) == 0 and "Normal" or tierMode(values.enrage)
 end
@@ -100,8 +80,7 @@ return {
     unit = "pile", -- what luck counts: loot piles claimed (see claims)
     tip = "Claim loot each kill so it counts",
 
-    -- Mode names are saved with the player's data: never change them. Each is
-    -- counted through piles claimed, not its kill count.
+    -- Mode names are saved: never change them. Counted through piles claimed.
     modes = {
         MODES.Normal,
         { name = "Enrage", kc = VARS.kcEnrage, byEvent = true },
@@ -112,8 +91,6 @@ return {
     } },
     modeFor = function(name) return MODES[name] end,
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [MASK] = { log = VARS.log .. "MAGIC_DEVOURER_HEAD_T95", kind = "unique" },
         [TOP] = { log = VARS.log .. "MAGIC_DEVOURER_BODY_T95", kind = "unique" },

@@ -1,9 +1,5 @@
--- The details window, from the top: the boss dropdown and a headline for the
--- picked boss (its luck as a sentence, a wide bar once there's enough to show
--- it, its dry streak, its tracked totals, an average player's, the game's
--- all-time totals), then a table with one row per unique (item, luck, dry). It
--- fits its contents, showing at most MAX_ROWS rows; the rest scroll with the
--- mouse wheel.
+-- The details window: the boss dropdown, a headline for the picked boss, then a
+-- table with one row per unique, showing at most MAX_ROWS before it scrolls.
 
 local choices = require("src/core/choices")
 local format = require("src/ui/format")
@@ -15,13 +11,13 @@ local widgets = require("src/ui/widgets")
 local window = {}
 
 local WIDTH = 400
-local INNER_WIDTH = WIDTH - 2 * frame.INSET -- keeps the margins even (see frame.INSET)
+local INNER_WIDTH = WIDTH - 2 * frame.INSET -- see frame.INSET
 local PAD = 8
 local TABLE_WIDTH = INNER_WIDTH - 2 * PAD
 local TITLE_HEIGHT = frame.TITLE_HEIGHT
 local LINE_HEIGHT = 18 -- between lines of small text
 
--- Table rows, and the x of each column from the table's left edge.
+-- Table rows. Column x values are from the table's left edge.
 local MAX_ROWS = 6
 local ROW_HEIGHT = 34
 local ROW_GAP = 2
@@ -33,8 +29,7 @@ local ROW_WIDTH = TABLE_WIDTH - frame.SCROLLBAR_SPACE
 local ROW_BAR_WIDTH = 50
 local NAME_X = SLOT_SIZE + 10
 local LUCK_X = 180
--- Dry counts are right aligned in a box ending just inside the row, wide enough
--- for "12,345+".
+-- Dry counts are right aligned, wide enough for "12,345+".
 local DRY_X = 300
 local DRY_WIDTH = ROW_WIDTH - 8 - DRY_X
 
@@ -42,11 +37,10 @@ local ROW = Vector4.new(1.0, 1.0, 1.0, 0.06)
 local HEADER = Vector4.new(0.0, 0.0, 0.0, 0.35) -- the band behind the column names
 local ACCENT = Vector4.new(0.85, 0.7, 0.35, 0.8) -- the line beside the headline
 
-local box = nil -- the window while it's open; destroying it removes its contents
+local box = nil -- the window while open
 local position = { x = 200, y = 120 } -- kept while the plugin runs, so it reopens in place
-local luckColumn = "luck" -- what the luck column shows: "luck" or "totals"; kept too
+local luckColumn = "luck" -- "luck" or "totals", also kept
 
--- The luck column's two views, picked in its heading.
 local COLUMNS = { { value = "luck", label = "Luck" }, { value = "totals", label = "Totals" } }
 local COLUMN_PICKER_WIDTH = 100
 
@@ -62,8 +56,7 @@ end
 
 local itemName = widgets.ItemName
 
--- The uniques in card order: unluckiest first, then by name. A group of uniques
--- (see src/bosses.lua) shows its own name, and its first item's icon.
+-- Unluckiest first, then by name. A group uses its name and first item's icon.
 local function sortedItems(result)
     local rows = {}
     for itemID, item in pairs(result.items) do
@@ -80,30 +73,26 @@ local function sortedItems(result)
     return rows
 end
 
--- Text in SMALL_FONT and colour, grey by default.
 local function addGreyText(parent, content, x, y, width, colour)
     local text = widgets.AddText(parent, content, x, y, width, widgets.SMALL_FONT)
     text.colour = colour or widgets.GREY
     return text
 end
 
--- A dry count or the Dry heading, right aligned in the dry column. The API's
--- align modes have no plain "right": BOTTOMRIGHT on the horizontal axis is right.
+-- The align modes have no plain "right"; horizontal BOTTOMRIGHT is right.
 local function addDryText(parent, content, x, y)
     local text = widgets.AddText(parent, content, x, y, DRY_WIDTH, widgets.SMALL_FONT)
     text.alignHorizontal = ui.AlignMode.BOTTOMRIGHT
     return text
 end
 
--- Makes text, at the top of a row as tall as a dropdown, as tall as the row and
--- centered down it, in line with the dropdown's own text.
+-- Centers text down a dropdown-height row, in line with the dropdown's text.
 local function centerInDropdownRow(text, width)
     text:SetSize(width, widgets.DROPDOWN_HEIGHT)
     text.alignVertical = ui.AlignMode.CENTRE
 end
 
--- Adds lines of grey text at x, y, skipping empty ones, each { text, colour? }.
--- Returns the y below them.
+-- Lines are { text, colour? }; empty ones are skipped. Returns the y below.
 local function addLines(parent, lines, x, y, width)
     for _, line in ipairs(lines) do
         if line[1] ~= "" then
@@ -114,11 +103,8 @@ local function addLines(parent, lines, x, y, width)
     return y
 end
 
--- The headline for the picked boss, below room left for the boss dropdown: its
--- luck as a sentence with an "i" for its assumptions and a full width bar once
--- luck shows, then its dry streak, tracked totals, what an average player
--- would have, its tip if any and the game's all-time totals. Returns the y
--- below it.
+-- Luck with an "i" for its assumptions and a bar, then the dry streak, tracked
+-- totals, average, tip and the game's totals. Returns the y below.
 local function addHeadline(parent, state, y)
     local entry = state.list[state.selected]
     local result = entry.stats
@@ -150,25 +136,18 @@ local function addHeadline(parent, state, y)
     return y + 8
 end
 
--- A row for a unique: a faint background, its slot with the game's own count on
--- it, like the boss log (dimmed until one is tracked), then its name, its luck
--- column (a short luck bar with its group, "top 3%", once there's enough to show
--- it, or its tracked counts, "12 · avg 19.4") and its dry streak, each in its
--- column. Until the boss has tracked kills (tracked false), the luck column says
--- so and the dry column is left empty.
+-- A unique's row: slot and icon, name, luck or totals column, and dry streak.
+-- Until the boss has tracked kills, the luck column says so and dry is empty.
 local function addItemRow(view, row, y, width, tracked)
     widgets.AddRect(view, 0, y, width, ROW_HEIGHT, ROW)
     local slotY = y + (ROW_HEIGHT - SLOT_SIZE) // 2
     widgets.AddSprite(view, "RS3_INV_ICON_SLOT", SLOT_X, slotY, SLOT_SIZE, SLOT_SIZE)
     local icon = ui.Sprite.new(view)
-    -- Tracked drops only, matching the luck beside it; the game's all-time
-    -- totals are in the headline lines.
+    -- Tracked drops only, to match the luck beside it.
     local received = row.item.received
-    -- The game only accepts whole numbers here, and saved ids can load back as
-    -- decimals (1.0), so convert. With the count as the quantity, the game draws
-    -- its own yellow number on the icon, like the boss log, once one is tracked.
-    -- (The optional quantity argument of SetAssociatedObject is rejected in game,
-    -- so the quantity is set on its own.)
+    -- The game takes only integers, and saved ids can load as 1.0. Setting the
+    -- quantity draws the game's yellow count on the icon. SetAssociatedObject's
+    -- quantity argument is rejected in game, so it's set separately.
     icon:SetAssociatedObject(math.tointeger(row.id))
     icon.associatedObjectQuantity = math.tointeger(received)
     icon.associatedObjectQuantityMode = received > 0 and ui.ObjectQuantityDisplayMode.ALWAYS
@@ -198,10 +177,8 @@ local function addItemRow(view, row, y, width, tracked)
     addDryText(view, format.DryCount(row.item), DRY_X, textY)
 end
 
--- The table's column names on a dark band as tall as a dropdown, with a line
--- under it, each at its column's edge. The luck column's heading is a dropdown,
--- queued in dropdowns, switching it between luck and totals; picking calls
--- onSwitch. The other names match the dropdown's text, so the row reads as one.
+-- Column names on a band as tall as a dropdown. The luck heading is a dropdown
+-- (queued in dropdowns) that switches between luck and totals and calls onSwitch.
 local function addColumnNames(parent, y, onSwitch, dropdowns)
     widgets.AddRect(parent, PAD, y, TABLE_WIDTH, widgets.DROPDOWN_HEIGHT, HEADER)
     widgets.AddSeparator(parent, PAD, y + widgets.DROPDOWN_HEIGHT - 1, TABLE_WIDTH)
@@ -221,7 +198,6 @@ local function rowsHeight(count)
     return math.max(0, count * ROW_STEP - ROW_GAP)
 end
 
--- Opens the window showing state (see src/ui.lua), or redraws it in place.
 function window.Draw(state)
     window.Close()
     box = frame.New("BOSS RNG", WIDTH, position, window.Close)
@@ -231,9 +207,8 @@ function window.Draw(state)
         return
     end
 
-    -- Dropdowns are queued from the top down and added last, bottom one first:
-    -- components added later are drawn on top and take clicks first, so each
-    -- open list comes after everything it covers.
+    -- Dropdowns are added last, bottom one first: components added later are drawn
+    -- on top and take clicks first, so each open list covers what's below it.
     local dropdowns = {}
 
     local pickerY = TITLE_HEIGHT + 8
@@ -244,7 +219,6 @@ function window.Draw(state)
     addColumnNames(box, headerY, state.onRedraw, dropdowns)
     y = headerY + widgets.DROPDOWN_HEIGHT + 3
 
-    -- The uniques, in a scrolling view.
     local result = state.list[state.selected].stats
     local tracked = result.kills + result.extraKills > 0
     local rows = sortedItems(result)
@@ -255,7 +229,7 @@ function window.Draw(state)
     end
     y = y + viewHeight
 
-    -- Below the rows: the box's insets, plus a small gap.
+    -- The box's insets plus a small gap.
     box:SetSize(WIDTH, y + 4 + 2 * frame.INSET)
 
     for i = #dropdowns, 1, -1 do

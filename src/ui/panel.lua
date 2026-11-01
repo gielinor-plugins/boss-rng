@@ -1,9 +1,5 @@
--- The ribbon panel. It can be very small, so it shows only the essentials for
--- one boss: the boss, its luck, its tracked kills and uniques, and its dry
--- streak (with nothing tracked yet, the game's totals instead), its tip under a
--- divider if it has one, and a button at
--- the bottom that opens the details window. The button stays in view however
--- small the panel is; lines that don't fit above it are left out.
+-- The ribbon panel: one boss's essentials and a "View details" button that stays
+-- in view however small the panel is. Lines that don't fit are left out.
 
 local format = require("src/ui/format")
 local safe = require("src/utils/safe")
@@ -16,10 +12,9 @@ local LINE_HEIGHT = 22
 local BUTTON_LABEL, BUTTON_HEIGHT = "View details", 30
 
 local layer = nil -- the game's panel layer, once the player has opened it
-local content = nil -- one layer holding everything we drew, so one Destroy clears it
+local content = nil -- holds everything drawn, so one Destroy clears it
 
--- Uses the layer the game just gave us. The game clears it each time it opens or
--- resizes the panel, taking our content with it.
+-- The game clears this layer each time it opens or resizes the panel.
 function panel.Attach(newLayer)
     layer = newLayer
     content = nil
@@ -29,18 +24,15 @@ function panel.IsOpen()
     return layer ~= nil
 end
 
--- Swaps the content for a new, empty layer to draw into.
 local function newContent()
     widgets.Destroy(content)
     content = ui.Layer.new(layer)
     content:SetSize(0, 0, 1.0, 1.0) -- the whole panel
-    -- Let clicks pass through the layer itself to what's drawn in it, so it
-    -- doesn't catch clicks meant for the dropdown.
+    -- Clickthrough, so the layer doesn't catch clicks meant for the dropdown.
     content.clickthrough = true
     return content
 end
 
--- Draws state (see src/ui.lua) into the panel.
 function panel.Draw(state)
     local parent = newContent()
     if not state.selected then
@@ -52,7 +44,6 @@ function panel.Draw(state)
     local result = entry.stats
     local width = layer.width - 2 * PAD
 
-    -- The panel can be narrow, so text wraps to its width.
     local y = widgets.AddLuckHeadline(parent, PAD, PAD + 32, width, result) + 2
     widgets.AddSeparator(parent, PAD, y, width)
     y = y + 6
@@ -68,7 +59,6 @@ function panel.Draw(state)
             y = widgets.AddWrapped(parent, line, PAD, y, width, widgets.SMALL_FONT, LINE_HEIGHT)
         end
     end
-    -- The boss's tip, set apart under a divider, muted as in the window.
     local tip = entry.boss.tip
     if tip and fits(8 + LINE_HEIGHT) then
         widgets.AddSeparator(parent, PAD, y + 2, width)
@@ -83,12 +73,10 @@ function panel.Draw(state)
         safe.Call("opening the window", state.onDetails)
     end)
 
-    -- The dropdown is added last: components added later are drawn on top and
-    -- take clicks first, so its open list must come after everything it covers.
+    -- Added last: components added later are drawn on top and take clicks first.
     widgets.AddBossPicker(parent, state, PAD, PAD)
 end
 
--- One plain line, shown instead of half a panel when drawing fails.
 function panel.ShowError()
     widgets.AddText(newContent(), "Boss RNG couldn't draw this panel.", PAD, PAD)
 end

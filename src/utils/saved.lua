@@ -1,10 +1,8 @@
--- Data saved on this computer for the logged in character. Saved data is shared
--- by every character on this computer, so each character gets its own entry,
--- keyed by display name. A display name change starts a new entry.
+-- Data saved on this computer, shared by every character on it, so each gets its
+-- own entry by display name. A display name change starts a new entry.
 
 local saved = {}
 
--- The logged in character's display name, or nil.
 local function characterName()
     if not Player.IsAvailable() then
         return nil
@@ -17,13 +15,10 @@ local function characterName()
 end
 
 -- A store of one record per character, saved under prefix .. display name.
---   store.Load()  the logged in character's record and name, loaded if needed,
---                 or nil if nobody is logged in. A missing record, or one saved
---                 by another version, starts again as fresh().
---   store.Save()  saves the loaded record
--- With codec, records are saved in another form: codec.Encode(record) gives
--- what to save, and codec.Decode(saved) the record back, from this version or
--- an older one it can convert (nil to start again).
+-- store.Load() gives the character's record and name (nil if nobody is logged in);
+-- a missing record, or one from another version, starts as fresh(). With codec,
+-- codec.Encode(record) is what's saved and codec.Decode(saved) gives the record
+-- back, converting older versions it can (nil to start again).
 function saved.ForCharacter(prefix, version, fresh, codec)
     local store = {}
     local name, record = nil, nil

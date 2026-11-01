@@ -1,11 +1,5 @@
--- Solak, Guardian of the Grove.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28: each kill rolls
--- the unique table at 1/100, for Erethdor's grimoire (1/200) or a Blightbound
--- crossbow, main-hand or off-hand (1/400 each). Merethiel's stave and the purple
--- mushroom are 1/500 each, on their own rolls. Every player in the team gets
--- their own rolls, at the same rates for any team size. Jagex's Late-Game
--- Rebalance raises each crossbow to 1/200 (src/core/rates/).
+-- Solak. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. Every player gets
+-- their own rolls, at the same rates for any team size.
 
 local common = require("src/bosses/common")
 
@@ -17,7 +11,6 @@ local VARS = {
 local GRIMOIRE, CROSSBOW, OFFHAND = 42785, 42770, 42774
 local STAVE, MUSHROOM = 42767, 42782
 
--- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         common.OneOf(common.Each({ CROSSBOW, OFFHAND }, r.crossbow, { [GRIMOIRE] = r.grimoire })),
@@ -31,13 +24,11 @@ return {
     name = "Solak",
     assumptions = {},
 
-    -- Mode names are saved with the player's data: never change them.
+    -- Mode names are saved: never change them.
     modes = {
         { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [GRIMOIRE] = { log = VARS.log .. "PRAYER_BOOK", kind = "unique" },
         [CROSSBOW] = { log = VARS.log .. "CROSSBOW", kind = "unique" },

@@ -1,12 +1,5 @@
--- Croesus, in the Elder God Wars Dungeon.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28: each loot roll
--- has a 1/600 chance of a unique, one of nine evenly (1/5,400 each). Rolls go up
--- with contribution (ROLLS), to 12 at full contribution, and below 60 there are
--- no unique rolls. Every player gets their own rolls. Jagex's Late-Game
--- Rebalance raises each roll's weapons, spore sack and scripture to 1/2,500
--- each and Cryptbloom pieces to 1/3,000 each (src/core/rates/). Each tracked kill
--- counts at the player's contribution, its last value before the kill (the
+-- Croesus. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. Unique rolls rise
+-- with contribution. Each kill counts at the player's last contribution before it (the
 -- game resets it after), so its rolls are exact.
 
 local common = require("src/bosses/common")
@@ -17,8 +10,7 @@ local VARS = {
     contribution = "EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION", -- the player's, through the fight
 }
 
--- Unique rolls by contribution, from the wiki: the fewest contribution for each
--- number of rolls (below 60, none).
+-- The fewest contribution for each number of unique rolls (below 60, none).
 local ROLLS = {
     { 420, 12 }, { 400, 11 }, { 380, 10 }, { 360, 9 }, { 345, 8 }, { 330, 7 },
     { 310, 6 }, { 280, 5 }, { 230, 4 }, { 180, 3 }, { 100, 2 }, { 60, 1 },
@@ -29,16 +21,13 @@ local SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE = 52244, 52248, 52213, 52345
 local ARMOR = { HELM, TOP, BOTTOMS, GLOVES, BOOTS }
 local OTHERS = { SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE }
 
--- A kill's n unique rolls at rate values r: each item's chance per loot roll
--- (see src/core/rates/base.lua).
 local function rolls(n)
     return function(r)
         return common.Repeat({}, n, common.OneOf(common.Each(ARMOR, r.armor, common.Each(OTHERS, r.other))))
     end
 end
 
--- Each kill's mode by its unique rolls ("12 rolls"). Mode names are saved with
--- the player's data: never change them.
+-- Modes by unique rolls ("12 rolls"). Names are saved: never change them.
 local MODES = {}
 local function modeName(n)
     return n .. (n == 1 and " roll" or " rolls")
@@ -70,8 +59,6 @@ return {
     killEvents = { { var = VARS.kc, reads = {}, lasts = { contribution = VARS.contribution }, mode = contributionMode } },
     modeFor = function(name) return MODES[name] end,
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [HELM] = { log = VARS.log .. "BOSS_MAGIC_HELM", kind = "unique" },
         [TOP] = { log = VARS.log .. "BOSS_MAGIC_BODY", kind = "unique" },

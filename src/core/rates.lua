@@ -1,29 +1,21 @@
--- Drop rates over time, as named values in the files of src/core/rates/, one per
--- game update, oldest first (UPDATES): base.lua has each boss's published rates
--- when it was added, and each later file the day its update went live and only
--- the values it changed, by boss key. A boss's rolls are built from its values
--- (see src/bosses.lua), and each tracked kill uses the values of its day.
---
--- Rates are worked out from each kill's saved day whenever they're shown, so a
--- plugin update that ships after a game update re-rates every kill since.
--- Plain Lua, so it can be tested offline.
+-- Drop rates over time, as named values in src/core/rates/, one file per game
+-- update, oldest first (UPDATES). base.lua has each boss's published rates when it
+-- was added; each later file has the day its update went live and only the values
+-- it changed, by boss key. Each tracked kill uses its day's values, worked out when
+-- shown, so a plugin update after a game update re-rates every kill since.
 
 local rates = {}
 
--- The update files in src/core/rates/, oldest first.
 rates.UPDATES = { "base", "late_game_rebalance" }
 
 local History = {}
 History.__index = History
 
--- Values that error on a name they don't have, so a misspelled rate fails
--- loudly instead of reading as nil.
+-- Errors on an unknown name, so a misspelled rate fails loudly instead of reading nil.
 local STRICT = setmetatable({}, { __index = function(_, name) error("No rate named " .. tostring(name), 2) end })
 
--- A history from versions, oldest first, each { since, values }: since is the
--- day its update went live (nil for the first, false for an update not live
--- yet, which is left out). Each version holds only its own values and looks up
--- the rest in the version before it.
+-- A history from versions, oldest first, each { since, values }: since is the day it
+-- went live (nil for the first; false if not live yet). Missing values come from the last.
 function rates.History(versions)
     local history, previous = setmetatable({ versions = {} }, History), STRICT
     for _, version in ipairs(versions) do
@@ -39,9 +31,8 @@ function rates.History(versions)
     return history
 end
 
--- The values on a day: the newest version live by then. A day of 0 or nil (not
--- known) gets the newest. The same table is returned for every day of a
--- version, so rolls built from it can be reused.
+-- The values of the newest version live on day (0 or nil: the newest). Each version
+-- returns the same table every day, so rolls built from it can be reused.
 function History:On(day)
     for i = #self.versions, 1, -1 do
         local version = self.versions[i]
@@ -54,8 +45,7 @@ end
 
 local histories = {} -- by boss key, built once
 
--- A boss's history, from every update file's values for its key, or nil if no
--- file has any (or there's no key).
+-- A boss's history from every update file, or nil if none has its key.
 function rates.For(key)
     if key == nil then
         return nil

@@ -14,7 +14,6 @@ local HELMET, CHESTPLATE, TASSETS = 25022, 11724, 11726
 local GLOVES, BOOTS, WARSHIELD, HILT = 25025, 11728, 25019, 11704
 
 local ARMOR = { HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }
--- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return godwars.Rolls(common.Each(ARMOR, r.armor), HILT, r)
 end
@@ -26,8 +25,6 @@ return {
 
     modes = common.Modes(VARS, rolls),
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = godwars.Items({
         [HELMET] = { log = VARS.log .. "HEAD", kind = "unique" },
         [CHESTPLATE] = { log = VARS.log .. "BODY", kind = "unique" },

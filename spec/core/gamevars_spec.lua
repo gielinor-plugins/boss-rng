@@ -1,5 +1,3 @@
--- Run from the project root with: busted
-
 local mock = require("spec/mock_api")
 
 -- A test boss: two KC varbits sharing one base var, and two unique items plus a

@@ -1,7 +1,6 @@
--- Loot kept in an item to open later (see containers in src/bosses.lua): each
--- one opened counts as a kill, seen as the backpack's count of it falling in
--- the tick a reward window opens. Banking one lowers the count too, but opens
--- no reward window.
+-- Loot kept in an item to open later (see containers in src/bosses.lua): each one
+-- opened is a kill, seen as its backpack count falling in the tick a reward window
+-- opens. Banking one lowers the count too, but opens no reward window.
 
 local containers = {}
 
@@ -9,8 +8,7 @@ local byItem = {} -- [item id] = { window, report }
 local held = {} -- the backpack's count of each, as last read
 local opening = { windows = {}, fell = {} } -- this tick's windows opened (by inventory name) and counts that fell (by item id)
 
--- Watches itemID, opened with reward window (an inventory name). report(count)
--- is called for each tick's openings.
+-- Watches itemID, opened with window (an inventory name); report(count) per tick.
 function containers.Add(itemID, window, report)
     byItem[itemID] = { window = window, report = report }
 end
@@ -28,7 +26,6 @@ local function readHeld()
     return counts
 end
 
--- Notes containers leaving the backpack, and any other inventory opening.
 function containers.OnInventory(event)
     if event.inv.id == config.Inv.INV.id then
         for itemID, count in pairs(readHeld() or {}) do
@@ -44,8 +41,7 @@ function containers.OnInventory(event)
     end
 end
 
--- Passes this tick's openings to queue(report, count): each container that left
--- the backpack in the tick its reward window opened, one per window.
+-- Passes this tick's openings to queue(report, count), one per window.
 function containers.EndTick(queue)
     for itemID, fell in pairs(opening.fell) do
         local container = byItem[itemID]
@@ -58,12 +54,11 @@ function containers.EndTick(queue)
     opening = { windows = {}, fell = {} }
 end
 
--- Once vars can be trusted: reads the backpack's counts afresh.
 function containers.Ready()
     held = readHeld() or {}
 end
 
--- On leaving the game: forgets the counts, maybe of another character.
+-- On leaving the game: the next login may be another character.
 function containers.Forget()
     held = {}
 end

@@ -1,9 +1,5 @@
--- The Barrows: Rise of the Six.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28: each chest rolls
--- a 1/80 chance of a kiteshield, one of three evenly (1/240 each). Every player
--- in the team gets their own chest and rolls. Malevolent energy (one or two per
--- chest) is a guaranteed drop, not a rare one, so it's not counted.
+-- Rise of the Six. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. Every
+-- player gets their own chest and rolls.
 
 local common = require("src/bosses/common")
 
@@ -15,7 +11,6 @@ local VARS = {
 local MALEVOLENT, MERCILESS, VENGEFUL = 30014, 30022, 30018 -- magic, melee and ranged
 local UNIQUES = common.Even({ MALEVOLENT, MERCILESS, VENGEFUL })
 
--- A chest's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return { { chance = r.table, items = UNIQUES } }
 end
@@ -26,13 +21,11 @@ return {
     -- The kill count can go up without the chest being looted.
     assumptions = { "Every chest looted" },
 
-    -- Mode names are saved with the player's data: never change them.
+    -- Mode names are saved: never change them.
     modes = {
         { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [MALEVOLENT] = { log = VARS.log .. "SHIELD_MAGIC", kind = "unique" },
         [MERCILESS] = { log = VARS.log .. "SHIELD_MELEE", kind = "unique" },

@@ -1,75 +1,41 @@
--- Every boss Boss RNG supports. Each file in src/bosses/ is plain data: see
--- src/bosses/kreearra.lua for the format, and src/bosses/amascut.lua and
--- sanctum.lua for the optional parts. (src/bosses/common.lua, godwars.lua and
--- godwars2.lua are helpers, not bosses.)
---
--- Uniques can share a group, { name = "Leg pieces" }: one table row adding up
--- their counts and chances, shown with its lowest item's icon. For items whose
--- split depends on something the player chose (Araxxi's path) or that varies
--- (Araxxor's style): the group's total chance doesn't, so its luck is exact.
---
--- A boss can read vars for its rolls and assumptions: reads = { [key] = var }.
--- Once read, each value is passed with the picks under its key (TzKal-Zuk's
--- Igneous stones). Until then it's nil.
---
--- A boss can count each tracked kill for a mode made from the game's values at
--- the kill (Barrows chests by the brothers killed, Araxxi kills by team):
---   killEvents   a list of { var, mask, reads = { [key] = var }, lasts = { [key] =
---                varbit }, mode = function(values) }: when var (or with mask,
---                those bits of it) goes up, the reads are read, each of lasts
---                gives its last value above 0 since the previous kill (nil if
---                none: for a value the game resets at the kill, like Croesus's
---                contribution), and mode gives the mode's name, or nil to leave
---                the kill uncounted
---   modeFor      function(name): that mode ({ name, kc, rolls }); kc is nil for
---                kills outside the kill count, shown apart as extraKills (a
---                label, "partial")
--- The boss's own mode for that kill count is then marked byEvent: its kill count
--- isn't watched, since the events count its kills. It has no rolls unless kills
--- are counted for it directly (by containers, or a kill event naming it).
---
--- A boss whose loot comes in an item kept to open later (a container, such as
--- a chest) counts containers opened, not kills, so each is counted with its drop:
---   containers   { [item id] = { mode, window } }: the mode, marked byEvent,
---                counts one kill each time the item leaves the backpack in the
---                tick its reward window (an inventory name) opens (see
---                src/core/gamevars.lua)
---   unit         what the boss's kills are called in its numbers ("chest")
---   tip          a short line shown with the boss's numbers, for how to play so
---                they're counted (Amascut's claims)
---
--- A boss whose loot waits in a chest until claimed, with a var holding how much
--- (Amascut's loot piles), counts the loot claimed, so it's counted with its drops:
---   claims       a list of { var, mask, kills = { kill count varbits },
---                reads = { [key] = var }, mode = function(values, old) }: when
---                those bits of var (a base var) fall to 0, their old value is
---                counted as that many kills for the mode given, from the reads
---                and var's old value (nil to leave it uncounted). Only if all of
---                it was seen arriving, each kill raising it: loot waiting from
---                before, or a kill that didn't raise it, leaves that claim
---                uncounted, drops and all. The boss's modes are marked byEvent
---
--- A unique dropped in stacks has stack = { most, word }: a rise of its log count
--- of up to most is one drop, and its log count (items, not drops) shows apart
--- from the boss's other uniques, as a count of word ("spike").
---
--- Rates are named values in src/core/rates/, by boss key (see src/core/rates.lua). A
--- mode's rolls are a function of a day's values and the player's picks, so
--- each tracked kill uses the rates of its day.
---
--- A boss's assumptions can be a function of the player's picks too, for ones
--- that only hold for some picks.
---
--- A mode's rolls are a function of the rate values (see above) and the
--- player's picks for the boss's choices (see src/core/choices.lua), for rates set by
--- one, such as Kerapac's loot piles; or a plain table for a mode with fixed
--- rolls. On the settings page, choicesHelp (paragraphs) says why and how to set
--- them.
---
--- A unique listed by more than one boss has one boss log count for all of them,
--- so its drops can't be told apart. Such a unique is pooled: it gets pooledBy,
--- the bosses that list it, and a tracked drop counts for the boss killed last
--- (see tracker.AddDrops).
+-- Every boss Boss RNG supports. Each file in src/bosses/ is plain data (common.lua,
+-- godwars.lua, godwars2.lua and elite_dungeon.lua are helpers). Fields:
+--   key          saved data key: never change
+--   name         shown name
+--   assumptions  a list of lines, or function(picks) giving one, for ones that hold for some picks
+--   modes        a list of { name, kc, rolls, byEvent }. name: saved, never change. kc: kill count
+--                varbit. rolls: a plain list, or function(r, picks) of a day's rate values (named
+--                in src/core/rates/, by boss key) and the player's picks, so each kill uses its
+--                day's rates. byEvent: kills are counted by killEvents, containers or claims, so
+--                kc isn't watched; it has no rolls unless kills are counted for it directly
+--   items        { [item id] = { log, kind, group, stack } }, every item on the boss log page.
+--                log: its log count varbit. kind:
+--                  unique    counted in luck
+--                  shared    log count includes other monsters' drops, so not counted
+--                  lore      not counted (no log count varbit found)
+--                  pet       not counted (no log count varbit found)
+--                  excluded  on the page but not counted, e.g. no published drop rate
+--                group = { name }: uniques shown as one row, with the lowest item's icon; for a
+--                split that varies (Araxxi's path), the group's total chance is still exact.
+--                stack = { most, word }: a log rise of up to most is one drop, and the log count
+--                (items, not drops) shows apart as a count of word ("spike")
+--   pooledBy     set below: a unique listed by more than one boss has one log count, so a drop
+--                counts for the boss killed last (see tracker.AddDrops)
+--   reads        { [key] = var }: each value is passed with the picks under key (nil until read)
+--   choices      player picks for rates set by one (src/core/choices.lua); choicesHelp: paragraphs
+--                on the settings page saying why and how to set them
+--   killEvents   a list of { var, mask, reads, lasts, mode }: when var (or its mask bits) rises,
+--                mode(values) names the kill's mode, or nil to leave it uncounted. lasts = { [key]
+--                = varbit } gives its last value above 0 since the previous kill (for values the
+--                game resets at the kill, like Croesus's contribution)
+--   modeFor      function(name): an event's mode; kc nil means outside the kill count
+--   extraKills   label for kills outside the kill count ("partial")
+--   containers   { [item id] = { mode, window } }: counts containers opened, not kills (see
+--                src/core/containers.lua)
+--   claims       a list of { var, mask, kills, reads, mode(values, old) }: counts loot claimed
+--                from a chest, not kills (see src/core/claims.lua)
+--   unit         what kills are called in the numbers ("chest"); tip: a line on how to play so
+--                they're counted
 
 local BOSS_FILES = {
     "graardor", "kreearra", "kril", "nex", "zilyana", -- God Wars

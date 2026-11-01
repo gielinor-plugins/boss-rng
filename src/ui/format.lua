@@ -1,5 +1,4 @@
--- The words and numbers Boss RNG shows the player. Plain Lua, so it can be tested
--- offline, and shared by every view so the wording lives in one place.
+-- The words and numbers Boss RNG shows, shared by every view.
 
 local format = {}
 
@@ -15,23 +14,20 @@ local function count(n, word)
     return format.Number(n) .. " " .. word .. (n == 1 and "" or "s")
 end
 
--- "bottom 12% luck" becomes "Bottom 12% luck", for a headline.
 function format.Capitalize(text)
     return text:sub(1, 1):upper() .. text:sub(2)
 end
 
--- What a boss's luck counts: "kill", or its own unit ("chest", see src/bosses.lua).
+-- "kill", or the boss's own unit ("chest").
 local function unit(result)
     return result.unit or "kill"
 end
 
--- True if result has no tracked kills, in the kill counts or outside them.
 local function untracked(result)
     return result.kills == 0 and (result.extraKills or 0) == 0
 end
 
--- A share from 0 to 1 as a whole percentage, rounded down ("4% go this long").
--- Below 1% shows as "under 1%".
+-- A 0 to 1 share as a whole percent, rounded down; below 1% is "under 1%".
 function format.Percent(share)
     if share < 0.01 then
         return "under 1%"
@@ -42,19 +38,15 @@ end
 -- Luck between these shares reads as average.
 local AVERAGE_LOW, AVERAGE_HIGH = 0.4, 0.6
 
--- A share as a whole percentage rounded up, at least 1%, so the player is never
--- placed in a smaller group than they're really in. The tiny offset keeps
--- float noise (0.12 * 100 = 12.000000000000002) from rounding up a whole step.
+-- Rounded up, at least 1%, so the player is never placed in a smaller group.
+-- The offset keeps float noise (12.000000000000002) from rounding up a step.
 local function groupPercent(share)
     return math.max(1, math.ceil(share * 100 - 1e-9)) .. "%"
 end
 
--- Luck in a few words, for a column headed "luck": "top 3%", "average",
--- "bottom 12%", "no kills"; or before it's rated (see stats.MIN_EXPECTED), the
--- share of players who would still be dry, "91% are still dry", or "too early"
--- when none of the kills could drop it. Luck is the share of players with
--- fewer uniques, so the top group is everyone luckier than that share and the
--- bottom group is that share.
+-- Luck for the table column: "top 3%", "average", "bottom 12%", "no kills";
+-- before it's rated, the share still dry or "too early". Luck is the share
+-- of players with fewer uniques.
 function format.LuckShort(result)
     if result.luck == nil then
         if result.kills == 0 then
@@ -71,11 +63,8 @@ function format.LuckShort(result)
     return "average"
 end
 
--- Luck as a sentence: "top 3% luck", "about average luck", "bottom 12% luck",
--- "no tracked kills yet", or until there are enough, when it will show (at the
--- first unique, or once an average player would have one), short enough for the
--- panel: "luck: next unique or 40 kills". Bosses with their own unit use it
--- ("chests").
+-- Luck as a sentence, or until it's rated, when it will show:
+-- "luck: next unique or 40 kills".
 function format.Luck(result)
     if untracked(result) then
         return "no tracked " .. unit(result) .. "s yet"
@@ -88,8 +77,7 @@ function format.Luck(result)
     return (short == "average" and "about average" or short) .. " luck"
 end
 
--- A dry streak's tracked kills: "12", "12+" when it may be longer (see stats),
--- or "?" when nothing is tracked yet and kills before tracking aren't known.
+-- "12", "12+" when it may be longer, or "?" when nothing is known.
 function format.DryCount(result)
     if result.dryKills == 0 and result.dryAtLeast then
         return "?"
@@ -97,9 +85,7 @@ function format.DryCount(result)
     return format.Number(result.dryKills) .. (result.dryAtLeast and "+" or "")
 end
 
--- The dry streak: "12 kills dry · 4% go this long", "12+ kills dry · ...", or
--- "unique on your last kill", in the boss's unit. The percentage is the share
--- of players who would still be dry after as many kills.
+-- "12 kills dry · 4% go this long", or "unique on your last kill".
 function format.Dry(result)
     if result.kills == 0 then
         return ""
@@ -112,16 +98,14 @@ function format.Dry(result)
     return kills .. " dry · " .. format.Percent(1 - result.dryShare) .. " go this long"
 end
 
--- Tracked kills, as count(n, word), with any kills outside the kill count
--- after them ("(+4 partial)"), then tracked uniques.
+-- "212 kills (+4 partial) · 2 uniques".
 local function trackedCounts(result, word)
     local extra = (result.extraKills or 0) > 0
         and (" (+" .. format.Number(result.extraKills) .. " " .. (result.extraLabel or "other") .. ")") or ""
     return count(result.kills, word) .. extra .. " · " .. count(result.received, "unique")
 end
 
--- What luck is based on, the kills and drops Boss RNG tracked: "Tracked: 212
--- kills (+4 partial) · 2 uniques", or "" with none (the headline says so).
+-- "Tracked: 212 kills (+4 partial) · 2 uniques", or "" with none.
 function format.Tracked(result)
     return untracked(result) and "" or ("Tracked: " .. trackedCounts(result, unit(result)))
 end
@@ -131,10 +115,8 @@ function format.TrackedShort(result)
     return untracked(result) and "" or trackedCounts(result, "tracked " .. unit(result))
 end
 
--- The game's own totals (kill counts and boss log counts), shown as facts and
--- never used for luck: "Boss log: 924 kills · 9 uniques", or "" until they can
--- be read. A stacked unique's log counts items, not drops, so it comes first as
--- its own count, and the rest are "other uniques": "· 184 spikes · 3 other uniques".
+-- The game's own totals, shown as facts but never used for luck. A stacked
+-- unique's log counts items, so it gets its own count before "other uniques".
 function format.AllTime(result)
     if result.allTime == nil then
         return ""
@@ -148,10 +130,8 @@ function format.AllTime(result)
     return table.concat(parts, " · ")
 end
 
--- How many uniques an average player would have after the same kills, to
--- compare with the player's own: "Average player: 2.3 uniques". Shown to one
--- decimal place, and below 1 as "under 1 unique". (Not "<1": the game reads "<"
--- as the start of a formatting tag and hides the rest of the text.)
+-- "Average player: 2.3 uniques". Below 1 it says "under 1 unique", not "<1":
+-- the game reads "<" as a formatting tag and hides the rest of the text.
 function format.Average(result)
     if untracked(result) then
         return ""
@@ -162,8 +142,7 @@ function format.Average(result)
     return "Average player: " .. average .. (average == "1.0" and " unique" or " uniques")
 end
 
--- An average player's count in a few words, for table rows: "avg 2.3", "avg 0"
--- with none expected, or "avg under 0.1" when it would round to zero.
+-- "avg 2.3", "avg 0", or "avg under 0.1" when it would round to zero.
 function format.AverageShort(result)
     if result.expected == 0 then
         return "avg 0"
@@ -173,7 +152,7 @@ function format.AverageShort(result)
     return string.format("avg %.1f", result.expected)
 end
 
--- A row's counts in a few words: "12 · avg 19.4" (see format.AverageShort).
+-- "12 · avg 19.4".
 function format.CountShort(result)
     return format.Number(result.received) .. " · " .. format.AverageShort(result)
 end

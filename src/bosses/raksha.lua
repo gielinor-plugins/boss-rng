@@ -1,10 +1,5 @@
--- Raksha, the Shadow Colossus. Solo or duo; in a duo, each player gets their own
--- drop at the same rates as solo.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-29: each kill rolls
--- a 1/50 unique table, split in 13ths: the Fleeting boots 5 (1/130 per kill) and
--- each other unique 2 (1/325). These rates date from 14 July 2025, before Boss
--- RNG came out.
+-- Raksha. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-29. In a duo each
+-- player gets their own drop at solo rates.
 
 local common = require("src/bosses/common")
 
@@ -17,7 +12,6 @@ local BOOTS, SPIKE = 51082, 51086
 local RICOCHET, CHAIN, DIVERT = 51094, 51096, 51098
 local OTHERS = { SPIKE, RICOCHET, CHAIN, DIVERT }
 
--- A kill's rolls at rate values r (see src/core/rates/base.lua): one table roll.
 local function rolls(r)
     return { common.OneOf(common.Each(OTHERS, r.other, { [BOOTS] = r.boots })) }
 end
@@ -27,14 +21,12 @@ return {
     name = "Raksha, the Shadow Colossus",
     assumptions = {},
 
-    -- Mode names are saved with the player's data: never change them.
+    -- Mode names are saved: never change them.
     modes = {
         { name = "Solo", kc = VARS.kc .. "SOLO", rolls = rolls },
         { name = "Duo", kc = VARS.kc .. "DUO", rolls = rolls },
     },
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [BOOTS] = { log = VARS.log .. "DINO_SLAYER_RANGED_BOOTS", kind = "unique" },
         [SPIKE] = { log = VARS.log .. "DINO_BOSS_BOOTS_ATTACHMENT", kind = "unique" },

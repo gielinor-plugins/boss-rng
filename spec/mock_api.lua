@@ -1,5 +1,5 @@
--- A small stand-in for the parts of the Client API our modules use, for specs.
--- Call Reset() before each test.
+-- A stand-in for the Client API parts our modules use. Call Reset() before each
+-- test. Run specs from the project root with: busted
 
 local mock = {}
 
@@ -7,8 +7,7 @@ local subscribers = {} -- [event name] = { [ref] = handler }
 local vars = {}        -- [var name] = VarType-like table
 local saved = {}       -- PersistentDB entries
 
--- Copies a table, so saved data can't be changed by accident (like the real thing,
--- which serializes it).
+-- Copies a table, like the real API, which serializes saved data.
 local function copy(value)
     if type(value) ~= "table" then
         return value
@@ -72,12 +71,10 @@ function mock.SetSaved(key, value)
     saved[key] = copy(value)
 end
 
--- A saved entry, for checking what was written.
 function mock.Saved(key)
     return saved[key]
 end
 
--- Sends an event to every subscriber.
 function mock.Fire(name, payload)
     for _, handler in pairs(subscribers[name] or {}) do
         handler(payload)
@@ -95,7 +92,6 @@ function mock.SubscriptionCount()
     return count
 end
 
--- Opens an interface with the given components, { [index] = component }.
 -- Sets a var's value, adding the var if needed.
 function mock.SetValue(name, value)
     vars[name] = vars[name] or { configName = name }

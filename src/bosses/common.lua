@@ -2,12 +2,10 @@
 
 local common = {}
 
--- An assumption: group kills share loot, but kill counts don't say who was in
--- the group, so bosses whose kills can't be told apart assume solo kills.
+-- Kill counts don't say who was in the group, so solo kills are assumed.
 common.SOLO_KILLS = "Solo kills"
 
--- The Shard of Genesis Essence, dropped by Amascut and by Nakatra in the
--- Sanctum of Rebirth, with one boss log count for both.
+-- Shard of Genesis Essence: Amascut and Nakatra share one boss log count.
 common.SHARD = 57128
 common.SHARD_ITEM = {
     log = "ITEMLOG_ITEM_COMBATV2_INNATE_MASTERY_UNLOCK_T95_WEAPON_STAT_UPGRADE_T1",
@@ -22,8 +20,7 @@ function common.Repeat(rolls, n, roll)
     return rolls
 end
 
--- A boss's normal and hard mode, by vars.kc and vars.kcHard, with their rolls
--- (hard defaults to normal's). Mode names are saved data: never change them.
+-- Normal and hard mode; hard's rolls default to normal's. Names are saved: never change.
 function common.Modes(vars, normal, hard)
     return {
         { name = "Normal", kc = vars.kc, rolls = normal },
@@ -31,7 +28,7 @@ function common.Modes(vars, normal, hard)
     }
 end
 
--- Each of ids at chance, { [item id] = chance }, added to into if given.
+-- { [item id] = chance } for each of ids, added to into if given.
 function common.Each(ids, chance, into)
     local chances = into or {}
     for _, itemID in ipairs(ids) do
@@ -40,8 +37,7 @@ function common.Each(ids, chance, into)
     return chances
 end
 
--- One roll that gives at most one of its items, from each item's chance:
--- { [item id] = chance } as the weights, and their sum as the roll's chance.
+-- One roll giving at most one item: chances are the weights, their sum the roll's chance.
 function common.OneOf(chances)
     local chance = 0
     for _, itemChance in pairs(chances) do
@@ -50,7 +46,6 @@ function common.OneOf(chances)
     return { chance = chance, items = chances }
 end
 
--- Weights for a roll's items split evenly between ids.
 function common.Even(ids)
     local weights = {}
     for _, itemID in ipairs(ids) do

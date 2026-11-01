@@ -1,5 +1,3 @@
--- Run from the project root with: busted
-
 local sliders = require("src/ui/sliders")
 
 local KERAPAC = require("src/bosses/kerapac")

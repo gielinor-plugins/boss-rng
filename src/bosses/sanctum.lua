@@ -1,13 +1,6 @@
--- The Sanctum of Rebirth: Vermyx, Kezalam and Nakatra, fought in one run, with
--- one boss log page. Each boss has its own Beasts tab page and kill counts.
---
--- From the RuneScape Wiki's boss pages (rates from Jagex; CC BY-NC-SA 3.0),
--- checked 2026-10-27: every player gets their own rolls. Each boss rolls a book
--- table (1/125, hard mode 1/100): the Divine Rage prayer codex or the Scripture of
--- Amascut. Nakatra also rolls her weapons (1/75, hard mode 1/60): Roar of
--- Awakening or Ode to Deceit; and in hard mode the Shard of Genesis Essence (1/75).
---
--- These rates date from the 9 March 2026 update, before Boss RNG came out.
+-- Sanctum of Rebirth: three bosses in one run with one boss log page, each with its own
+-- kill counts. Rates: RuneScape Wiki (from Jagex; CC BY-NC-SA 3.0), checked 2026-10-27.
+-- Every player gets their own rolls.
 
 local common = require("src/bosses/common")
 
@@ -18,8 +11,7 @@ local VARS = {
 
 local CODEX, SCRIPTURE, ROAR, ODE = 57156, 57124, 57162, 57158
 
--- A boss's rolls at rate values r (see src/core/rates/base.lua), by the names of
--- its rates: a book, then for Nakatra a weapon and, in hard mode, the Shard.
+-- Rolls by rate names: a book, then for Nakatra a weapon and, in hard mode, the Shard.
 local function rolls(books, weapons, shard)
     return function(r)
         local list = { { chance = r[books], items = common.Even({ CODEX, SCRIPTURE }) } }
@@ -40,7 +32,7 @@ return {
     name = "Sanctum of Rebirth",
     assumptions = {},
 
-    -- Mode names are saved with the player's data: never change them.
+    -- Mode names are saved: never change them.
     modes = {
         { name = "Vermyx", kc = VARS.kc .. "WYRM_BOSS", rolls = BOOKS },
         { name = "Vermyx hard mode", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = HARD_BOOKS },
@@ -51,8 +43,6 @@ return {
             rolls = rolls("hardBooks", "hardWeapons", "hardShard") },
     },
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [CODEX] = { log = VARS.log .. "COMBATV2_PRAYER_CODEX_DIVINE_RAGE", kind = "unique" },
         [SCRIPTURE] = { log = VARS.log .. "RAID_REBIRTH1_AMASCUT_BOOK_UNLOCK_TOKEN", kind = "unique" },

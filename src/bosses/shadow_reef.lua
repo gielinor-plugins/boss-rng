@@ -1,11 +1,6 @@
--- The Shadow Reef (elite dungeon 3): only the Ambassador's Eldritch crossbow
--- pieces are tracked, so only its kills are counted.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-31: each kill rolls
--- for a crossbow piece, per player, at 1/55 solo, 1/111 duo and 1/166 trio. The
--- first piece is random and each next one is a piece not yet received, so they're
--- shown as one group. Solo and group kills are counted as in
--- src/bosses/elite_dungeon.lua.
+-- The Shadow Reef: only the Ambassador's crossbow pieces are tracked. Rates: RuneScape
+-- Wiki (CC BY-NC-SA 3.0), checked 2026-10-31. Pieces drop in sequence, so they're one
+-- group. Kills count as in src/bosses/elite_dungeon.lua.
 
 local common = require("src/bosses/common")
 local eliteDungeon = require("src/bosses/elite_dungeon")
@@ -19,7 +14,6 @@ local LIMB, MECHANISM, STOCK = 47490, 47494, 47492
 local PIECES = common.Even({ LIMB, MECHANISM, STOCK })
 local CROSSBOW = { name = "Crossbow pieces" }
 
--- A kill's piece roll at rate values r, for a team's rate name.
 local function pieces(team)
     return function(r)
         return { { chance = r[team], items = PIECES } }
@@ -37,8 +31,6 @@ return {
     killEvents = dungeon.killEvents,
     modeFor = dungeon.ModeFor,
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [LIMB] = { log = VARS.log .. "LIMB", kind = "unique", group = CROSSBOW },
         [MECHANISM] = { log = VARS.log .. "MECHANISM", kind = "unique", group = CROSSBOW },

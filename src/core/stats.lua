@@ -1,7 +1,5 @@
--- Turns a boss's tracked tallies into the numbers Boss RNG shows: expected and
--- received uniques, luck, and dry streaks, each kill at the rates of its day.
--- The game's all-time totals are passed through as facts, never used for luck.
--- Plain Lua, so it can be tested offline.
+-- Turns a boss's tracked tallies into the numbers Boss RNG shows, each kill at its
+-- day's rates. The game's all-time totals are passed through, never used for luck.
 
 local luck = require("src/core/luck")
 local rates = require("src/core/rates")
@@ -9,23 +7,19 @@ local tracker = require("src/core/tracker")
 
 local stats = {}
 
--- Luck is shown once an average player would have at least this many uniques
--- after the same kills, or from the first unique received. Before either, a
--- dry streak is normal, so it shows how many players would still be dry.
+-- Luck shows once an average player would have this many uniques, or from the first
+-- unique. Before that a dry streak is normal, so it shows how many would still be dry.
 local MIN_EXPECTED = 1
 
 local NO_RATES = {} -- the rate values of a boss without any
 
--- A boss's rate values on a day (see src/core/rates.lua): from boss.rates, a test
--- boss's own history, or its key's.
+-- A boss's rate values on a day, from boss.rates (a test boss's history) or its key's.
 local function valuesOn(boss, day)
     local history = boss.rates or rates.For(boss.key)
     return history and history:On(day) or NO_RATES
 end
 
--- A boss's mode's rolls on a day (nil or 0: today's), for the player's picks:
--- a table, or a function of the boss's rate values that day and the picks.
--- None for a mode counted only through its kill events.
+-- A mode's rolls on a day (nil or 0: today); mode.rolls may be a function of (values, picks).
 function stats.Rolls(boss, mode, picks, day)
     local rolls = mode.rolls or {}
     if type(rolls) == "function" then
@@ -34,13 +28,10 @@ function stats.Rolls(boss, mode, picks, day)
     return rolls
 end
 
--- Rolls and chances per kill by mode and day, for picks, worked out once per
--- mode and rate version: Rolls(mode, day) and Chances(mode, day), { [item id]
--- = chance }.
+-- Rolls(mode, day) and Chances(mode, day) for picks, worked out once per rate version.
 local function ratesTable(boss, picks)
     local rolls, chances = {}, {}
     local lookup = {}
-    -- The cache for a mode on a day: one per rate version.
     local function cache(store, mode, day)
         local version = valuesOn(boss, day)
         store[mode] = store[mode] or {}
@@ -59,9 +50,8 @@ local function ratesTable(boss, picks)
     return lookup
 end
 
--- A boss's modes: its own, then one per mode its kill events counted kills
--- for (see killEvents in src/bosses.lua). Saved kills of a mode the boss no
--- longer has are left out.
+-- A boss's modes, then each mode its kill events counted (see src/bosses.lua). Saved
+-- kills of a mode the boss no longer has are left out.
 local function modesOf(boss, tallies)
     local modes, known = {}, {}
     for _, mode in ipairs(boss.modes) do
@@ -84,8 +74,6 @@ local function modesOf(boss, tallies)
     return modes
 end
 
--- Calls fn(mode, day, kills) for each of modes' kills in byMode,
--- { [mode name] = { [day] = kills } }.
 local function eachKill(modes, byMode, fn)
     for _, mode in ipairs(modes) do
         for day, kills in pairs(byMode[mode.name] or {}) do
@@ -94,7 +82,6 @@ local function eachKill(modes, byMode, fn)
     end
 end
 
--- Kills in byMode of modes that could drop itemID on their day.
 local function killsThatCanDrop(modes, rates, byMode, itemID)
     local total = 0
     eachKill(modes, byMode, function(mode, day, kills)
@@ -105,9 +92,7 @@ local function killsThatCanDrop(modes, rates, byMode, itemID)
     return total
 end
 
--- Share of players who would have had one of counted (a set of item ids)
--- within the dry kills in byMode: 1 minus the chance of missing on every one,
--- each kill at its own mode's rates on its day.
+-- Share of players who would have had one of counted (item ids) within byMode's kills.
 local function dryShare(modes, rates, byMode, counted)
     local missAll = 1
     eachKill(modes, byMode, function(mode, day, kills)
@@ -117,8 +102,7 @@ local function dryShare(modes, rates, byMode, counted)
     return 1 - missAll
 end
 
--- Luck for expected and received uniques, or nil until expected reaches
--- MIN_EXPECTED or a unique is received.
+-- Nil until expected reaches MIN_EXPECTED or a unique is received.
 local function luckOf(expected, received)
     if expected > 0 and (expected >= MIN_EXPECTED or received > 0) then
         return luck.Percentile(expected, received)
@@ -126,20 +110,17 @@ local function luckOf(expected, received)
     return nil
 end
 
--- More kills before an average player would have MIN_EXPECTED uniques, given
--- expected so far and kills at rate (uniques a kill). Nil without a rate yet.
+-- Kills until expected reaches MIN_EXPECTED at rate uniques a kill; nil without a rate.
 local function killsToLuck(expected, rate)
     if rate <= 0 then
         return nil
     end
-    -- Less a hair, so float error (3.0000000004) doesn't round up a whole kill.
+    -- Less a hair, so float error doesn't round up a whole kill.
     return math.max(1, math.ceil((MIN_EXPECTED - expected) / rate - 1e-9))
 end
 
--- Uniques sharing a group (see src/bosses.lua) become one row, under the group's
--- lowest item id, with the group: counts add up, and the dry streak is the
--- shortest of its items' (a drop of any of them ends it). shareOf(itemID,
--- counted) gives the dry share over an item's streak for a set of item ids.
+-- Uniques sharing a group become one row under its lowest item id: counts add up,
+-- and its dry streak is its items' shortest. shareOf(itemID, ids) gives a dry share.
 local function grouped(boss, items, shareOf)
     local members = {} -- [group] = item ids
     for itemID in pairs(items) do
@@ -171,7 +152,6 @@ local function grouped(boss, items, shareOf)
     end
 end
 
--- The sum of a table's values.
 local function sum(values)
     local total = 0
     for _, n in pairs(values) do
@@ -180,8 +160,7 @@ local function sum(values)
     return total
 end
 
--- The game's totals for a boss: { kills, received, stacks }. A stacked unique's
--- log count is items, not drops, so it's its own count in stacks, { word, count }.
+-- A stacked unique's log count is items, not drops, so it goes in stacks.
 local function allTimeTotals(boss, allTime)
     local totals = { kills = sum(allTime.kills), received = 0, stacks = {} }
     for key, count in pairs(allTime.items) do
@@ -197,28 +176,18 @@ local function allTimeTotals(boss, allTime)
     return totals
 end
 
--- Stats for one boss from its entry, { boss, tallies, picks, allTime }: its
--- tallies (see tracker.Tallies), the player's picks for its choices (see
--- choices.For) and the game's all-time totals (see gamevars.AllTime, nil until
--- they can be read). Nil without tallies.
---   kills        tracked kills in the boss's kill counts
---   extraKills   tracked kills outside them (partial Barrows chests), counted in
---                the rest, called extraLabel ("partial")
---   since        the day of the first tracked kill (see src/utils/days.lua), or nil
---   expected     uniques an average player would have after the tracked kills
---   received     uniques tracked
---   luck         share of players with fewer uniques, from 0 to 1, or nil until
---                expected reaches MIN_EXPECTED or a unique is received
---   killsToLuck  tracked kills until luck shows, while it doesn't
---   dryKills     tracked kills since the last unique
---   dryAtLeast   true if the streak may be longer: no unique tracked yet, and
---                there may be kills from before tracking
---   dryShare     share of players who would have had a unique within dryKills
---   allTime      { kills, received, stacks } from the game, or nil until read
---   unit         what the boss's kills are ("chest"), or nil for kills
---   items        { [itemID] = { expected, received, luck, dryKills, dryAtLeast,
---                dryShare, allTime } } per unique, or per group of uniques (with
---                its group)
+-- Stats from { boss, tallies, picks, allTime }, or nil without tallies:
+--   kills, extraKills   tracked kills in the kill counts, and outside them (partial
+--                       Barrows chests, called extraLabel)
+--   since               day of the first tracked kill, or nil
+--   expected, received  uniques an average player would have, and uniques tracked
+--   luck, killsToLuck   share of players with fewer uniques (or nil, see luckOf),
+--                       and kills until it shows
+--   dryKills, dryShare  kills since the last unique, and share who'd have had one
+--   dryAtLeast          true if no unique is tracked and there may be earlier kills
+--   allTime, unit       the game's totals (nil until read); what a kill is ("chest")
+--   items               per unique, or group (with its group): { expected, received,
+--                       luck, dryKills, dryAtLeast, dryShare, allTime }
 function stats.ForBoss(entry)
     local boss, tallies, allTime = entry.boss, entry.tallies, entry.allTime
     if tallies == nil then
@@ -251,7 +220,6 @@ function stats.ForBoss(entry)
 
     result.expected, result.received = 0, 0
     local counted = {} -- the uniques in the boss's dry streak
-    -- The dry share over an item's dry streak, for a set of item ids.
     local function shareOf(itemID, ids)
         return dryShare(modes, rates, tracker.Dry(tallies, tostring(itemID)), ids)
     end
@@ -276,8 +244,7 @@ function stats.ForBoss(entry)
 
     result.luck = luckOf(result.expected, result.received)
     if result.luck == nil then
-        -- At the rate of kills in the kill counts, so a kill outside them (a
-        -- partial chest, with lower rates) doesn't swing the estimate.
+        -- At the kill counts' rate, so a partial chest's lower rates don't swing it.
         local rate = result.kills > 0 and countedExpected / result.kills
             or result.expected / math.max(1, result.extraKills)
         result.killsToLuck = killsToLuck(result.expected, rate)

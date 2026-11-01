@@ -1,5 +1,3 @@
--- Run from the project root with: busted
-
 local format = require("src/ui/format")
 
 describe("format", function()
@@ -37,8 +35,7 @@ describe("format", function()
         assert.are.equal("average", format.LuckShort({ luck = 0.48 }))
         assert.are.equal("bottom 12%", format.LuckShort({ luck = 0.12 }))
         assert.are.equal("no kills", format.LuckShort({ kills = 0 }))
-        -- An item before luck shows: the share of players still dry, or too
-        -- early when no kill could drop it.
+        -- Before luck shows: the share still dry, or too early when no kill could drop it.
         assert.are.equal("91% are still dry", format.LuckShort({ expected = 0.1, dryShare = 0.09 }))
         assert.are.equal("too early", format.LuckShort({ expected = 0, dryShare = 0 }))
     end)

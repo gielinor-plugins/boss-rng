@@ -1,14 +1,9 @@
--- What each character picks for a boss's choices: what the game can't tell Boss
--- RNG about their tracked kills, such as Kerapac's team. Picks are the player's
--- own, so they're saved apart from the tallies.
---
--- A boss file can declare choices (see src/bosses/kerapac.lua), each a number
--- set on a slider:
---   key            saved data key: never change it
---   label          shown by its slider, and with the pick in the assumptions
---   unit           follows the label in the assumptions (" loot piles per kill")
---   default        the value until the player picks one
---   min, max, step the slider's range and step
+-- Each character's picks for a boss's choices, what the game can't tell Boss RNG
+-- (such as Kerapac's team), saved apart from the tallies. A boss file declares
+-- choices (see src/bosses/kerapac.lua), each a slider:
+--   key                     saved data key: never change it
+--   label, unit             shown by the slider and with the pick in the assumptions
+--   default, min, max, step the slider's start value and range
 
 local saved = require("src/utils/saved")
 
@@ -17,7 +12,6 @@ local choices = {}
 -- Saved as { bosses = { [boss key] = { [choice key] = value } } }.
 local store = saved.ForCharacter("choices:", 4, function() return { bosses = {} } end)
 
--- True if value is a number the choice's slider can show.
 local function valid(choice, value)
     if type(value) ~= "number" or value < choice.min or value > choice.max then
         return false
@@ -26,8 +20,7 @@ local function valid(choice, value)
     return math.abs(steps - math.floor(steps + 0.5)) < 1e-9
 end
 
--- The logged in character's picks for a boss, { [choice key] = value }, with
--- each choice's default where nothing (or an option that no longer exists) is picked.
+-- The character's picks for a boss, with defaults for missing or invalid picks.
 function choices.For(boss)
     local record = store.Load()
     local picks = record and record.bosses[boss.key] or {}
@@ -39,8 +32,7 @@ function choices.For(boss)
     return values
 end
 
--- A boss's assumptions for these picks: its own (a list, or a function of the
--- picks), then each choice's pick ("Normal Mode loot piles per kill: 2.5").
+-- A boss's own assumptions (a list, or a function of picks), then each pick.
 function choices.Assumptions(boss, picks)
     local notes = {}
     local own = boss.assumptions
@@ -53,7 +45,6 @@ function choices.Assumptions(boss, picks)
     return notes
 end
 
--- Saves the logged in character's pick for one of a boss's choices.
 function choices.Set(boss, choice, value)
     local record = store.Load()
     if record == nil then

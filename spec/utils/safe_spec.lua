@@ -1,5 +1,3 @@
--- Run from the project root with: busted
-
 describe("safe.Call", function()
     local safe, printed, realPrint
 

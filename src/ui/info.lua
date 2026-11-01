@@ -1,6 +1,4 @@
--- A small gold "i" that shows a box of notes, and maybe a footer, while the mouse
--- is over it. The details window uses it for the assumptions behind a boss's
--- numbers.
+-- A small gold "i" that shows a box of notes while the mouse is over it.
 
 local safe = require("src/utils/safe")
 local widgets = require("src/ui/widgets")
@@ -10,8 +8,7 @@ local info = {}
 local SIZE = 16 -- the "i" badge
 local BADGE_BACK = Vector4.new(0.0, 0.0, 0.0, 0.6)
 
--- The box copies the game's own hover boxes: a near-black fill with a thin
--- warm-grey border, an orange title over a line, and white text.
+-- Styled like the game's own hover boxes.
 local BOX_WIDTH = 270
 local PAD = 6
 local LINE_HEIGHT = 16
@@ -28,21 +25,17 @@ function info.Hide()
     shown = nil
 end
 
--- Adds text wrapped to width at x, y in box. Returns the y below it.
 local function addWrapped(box, content, x, y, width, colour)
     return widgets.AddWrapped(box, content, x, y, width, widgets.SMALL_FONT, LINE_HEIGHT, colour or TEXT)
 end
 
--- Adds a line across the box under the text above it. Returns the y below it.
 local function addDivider(box, y, width)
     widgets.AddRect(box, PAD, y, width, 1, BORDER)
     return y + 4
 end
 
--- Opens the box at x, y in parent: title, each note as a bullet, then footer (if
--- any) under a divider. A note too long for one line wraps, its later lines
--- lined up under its text. The border and fill are added first, so they're
--- drawn underneath, and sized once the lines are drawn.
+-- The border and fill are added first, so they're drawn underneath, and
+-- sized once the lines are drawn.
 local function show(parent, x, y, title, notes, footer)
     info.Hide()
     local box = widgets.Place(ui.Layer.new(parent), x, y, BOX_WIDTH, 0)
@@ -68,9 +61,7 @@ local function show(parent, x, y, title, notes, footer)
     back:SetSize(BOX_WIDTH - 2, height - 2)
 end
 
--- Adds an "i" with its top-left corner at x, y in parent. While the mouse is over
--- it, a box with title, one bullet per note and footer (optional) opens just
--- below it, its right edge lined up with the "i".
+-- Adds an "i" at x, y in parent. The box opens below it, right edges aligned.
 function info.Add(parent, x, y, title, notes, footer)
     widgets.AddRect(parent, x, y, SIZE, SIZE, widgets.GOLD) -- a 1 px gold border
     widgets.AddRect(parent, x + 1, y + 1, SIZE - 2, SIZE - 2, BADGE_BACK)

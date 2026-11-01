@@ -1,13 +1,11 @@
--- Building blocks shared by the ribbon panel and the details window: fonts,
--- colors, and small helpers that create the game's own components.
+-- Fonts, colors and helpers for the game's own components, shared by the views.
 
 local format = require("src/ui/format")
 local safe = require("src/utils/safe")
 
 local widgets = {}
 
--- Fonts and colors match the game's collection log: Cinzel headings, Noto Sans
--- text and gold headings.
+-- Fonts and colors match the game's collection log.
 local FONT = id.Font.NOTOSANS_14
 widgets.SMALL_FONT = id.Font.NOTOSANS_12
 widgets.TITLE_FONT = id.Font.CINZEL_13PT_BOLD
@@ -15,7 +13,7 @@ widgets.CARD_FONT = id.Font.NOTOSANS_SEMIBOLD_14 -- labels and headlines
 widgets.ROW_FONT = id.Font.NOTOSANS_SEMIBOLD_12 -- names in table rows
 widgets.GOLD = Vector4.new(0.94, 0.75, 0.47, 1.0) -- the log's title and headings
 widgets.GREY = Vector4.new(0.75, 0.75, 0.75, 1.0) -- secondary text
-widgets.MUTED = Vector4.new(0.6, 0.6, 0.6, 1.0) -- notes beside the numbers: all-time totals, tips
+widgets.MUTED = Vector4.new(0.6, 0.6, 0.6, 1.0) -- all-time totals, tips
 widgets.TEXT_HEIGHT = 20
 widgets.BAR_HEIGHT = 10
 widgets.DROPDOWN_HEIGHT = 25
@@ -23,26 +21,22 @@ widgets.DROPDOWN_HEIGHT = 25
 local SEPARATOR = Vector4.new(1.0, 1.0, 1.0, 0.12)
 local BAR_BACK = Vector4.new(0.0, 0.0, 0.0, 0.6)
 local TICK = Vector4.new(1.0, 1.0, 1.0, 0.9) -- marks average luck on a bar
--- A solid gold timer bar fill. It stretches to any width without marks that
--- could be mistaken for values (the adrenaline bar's segment notches could).
+-- A plain gold fill, with no notches that could be mistaken for values.
 local BAR_FILL = "TIMERBAR_120_S_1"
 
--- The game's name for an item, or its id if that can't be read.
 function widgets.ItemName(itemID)
     local ok, name = pcall(function() return config.Obj.FromID(math.tointeger(itemID)).name end)
     return ok and name or ("Item " .. tostring(itemID))
 end
 
--- Destroys a component and everything in it, if there is one. It may already be
--- gone (the game clears a panel layer when it's resized), so failures are ignored.
+-- Ignores failures: the game may already have cleared it (a resized panel).
 function widgets.Destroy(component)
     if component then
         pcall(function() component:Destroy() end)
     end
 end
 
--- Positions and sizes a component, then returns it. Without a width it spans
--- its parent.
+-- Without a width it spans its parent.
 function widgets.Place(component, x, y, width, height)
     component:SetPos(x, y)
     if width then
@@ -53,7 +47,6 @@ function widgets.Place(component, x, y, width, height)
     return component
 end
 
--- A line of text. The font defaults to FONT.
 function widgets.AddText(parent, content, x, y, width, font)
     local text = widgets.Place(ui.Text.new(parent), x, y, width, widgets.TEXT_HEIGHT)
     text.font = font or FONT
@@ -61,9 +54,8 @@ function widgets.AddText(parent, content, x, y, width, font)
     return text
 end
 
--- How many pixels wide content is in font (an id.Font value), or nil if the
--- font can't be measured. Text draws past the end of its box, so text that may
--- be long is measured to fit it.
+-- Pixels wide, or nil if the font can't be measured. Text draws past the end
+-- of its box, so long text is measured to fit.
 local function textWidth(content, font)
     local ok, width = pcall(function()
         return config.Font.FromID(font):GetStringWidth(content)
@@ -71,8 +63,7 @@ local function textWidth(content, font)
     return ok and width or nil
 end
 
--- content shortened with "..." so it fits in width pixels in font. If the font
--- can't be measured, content comes back whole.
+-- Shortened with "..." to fit width, or whole if the font can't be measured.
 function widgets.Fit(content, font, width)
     if (textWidth(content, font) or 0) <= width then
         return content
@@ -84,8 +75,7 @@ function widgets.Fit(content, font, width)
     return (cut:gsub("%s+$", "")) .. "..."
 end
 
--- content split between words into lines that fit in width pixels in font. If
--- the font can't be measured, content comes back as one line.
+-- Lines that fit width, or one line if the font can't be measured.
 local function wrap(content, font, width)
     if textWidth(content, font) == nil then
         return { content }
@@ -104,8 +94,7 @@ local function wrap(content, font, width)
     return lines
 end
 
--- Adds content wrapped to width at x, y in parent, a line every lineHeight
--- pixels, in font and colour. Returns the y below it.
+-- Returns the y below the wrapped text.
 function widgets.AddWrapped(parent, content, x, y, width, font, lineHeight, colour)
     for _, line in ipairs(wrap(content, font, width)) do
         local text = widgets.AddText(parent, line, x, y, width, font)
@@ -117,7 +106,6 @@ function widgets.AddWrapped(parent, content, x, y, width, font, lineHeight, colo
     return y
 end
 
--- Centers text in its box, across and down.
 function widgets.Center(text)
     text:AlignTo(ui.AlignMode.CENTRE)
 end
@@ -129,30 +117,25 @@ function widgets.AddRect(parent, x, y, width, height, colour)
     return rect
 end
 
--- A faint horizontal line between sections.
 function widgets.AddSeparator(parent, x, y, width)
     return widgets.AddRect(parent, x, y, width, 1, SEPARATOR)
 end
 
--- The gap between lines of a headline.
 local HEADLINE_LINE_HEIGHT = 22
 
--- A boss's luck as a headline: "Bottom 12% luck", in the log's gold, wrapped to
--- width. Returns the y below it.
+-- "Bottom 12% luck" in gold, wrapped. Returns the y below it.
 function widgets.AddLuckHeadline(parent, x, y, width, result)
     local headline = format.Capitalize(format.Luck(result))
     return widgets.AddWrapped(parent, headline, x, y, width, widgets.CARD_FONT, HEADLINE_LINE_HEIGHT, widgets.GOLD)
 end
 
--- One of the game's sprites, by its name in id.Sprite.
 function widgets.AddSprite(parent, name, x, y, width, height)
     local sprite = widgets.Place(ui.Sprite.new(parent), x, y, width, height)
     sprite.sprite = id.Sprite[name]
     return sprite
 end
 
--- A luck bar: a gold timer bar fill on a dark back, filled to the luck share,
--- with a tick at the middle, where an average player would be.
+-- Filled to the luck share, with a tick at the middle for an average player.
 function widgets.AddLuckBar(parent, x, y, share, width)
     local height = widgets.BAR_HEIGHT
     widgets.AddRect(parent, x, y, width, height, BAR_BACK)
@@ -163,12 +146,10 @@ function widgets.AddLuckBar(parent, x, y, share, width)
     widgets.AddRect(parent, x + width // 2, y, 2, height, TICK)
 end
 
--- The most entries an open dropdown shows before it scrolls.
 local DROPDOWN_MAX_VISIBLE = 6
 
--- Calls onPick with the option a change selected, unless it's already current.
--- The combo box reports a change twice, the old entry with 0 and the new one
--- with 1, each by its id: here its index in options.
+-- The combo box reports a change twice by id (here the index in options):
+-- the old entry with 0, then the new one with 1.
 local function onChange(dropdown, options, current, onPick)
     dropdown:Subscribe(ui.Hook.ONSELECTIONCHANGED, function(_, index, selected)
         local option = options[index]
@@ -178,17 +159,14 @@ local function onChange(dropdown, options, current, onPick)
     end)
 end
 
--- The game's combo box of options ({ value, label } each), showing the one
--- whose value is current. It lists them alphabetically, whatever their order.
--- Picking another calls onPick with its value. Add a dropdown after anything its
--- open list covers, so it's drawn on top and takes clicks first.
+-- The combo box lists options alphabetically, whatever their order. Add it after
+-- anything its open list covers, so it's drawn on top and takes clicks first.
 function widgets.AddDropdown(parent, x, y, width, options, current, onPick)
     local combo = ui.ComboField.new(parent)
     combo.stylesheetID = id.StyleSheet.COMBO_DEFAULT
     combo.dropdownMaxVisibleEntries = math.min(#options, DROPDOWN_MAX_VISIBLE)
     widgets.Place(combo, x, y, width, widgets.DROPDOWN_HEIGHT)
-    -- The combo box reports picks by their place in its list, so it's given its
-    -- options in that order.
+    -- Picks are reported by place in the list, so ids follow the sorted order.
     local sorted = {}
     for i, option in ipairs(options) do
         sorted[i] = option
@@ -208,9 +186,7 @@ end
 
 widgets.SLIDER_HEIGHT = 50 -- as in the docs' examples
 
--- The game's slider from min to max in steps of step (at most 1), at current.
--- Values are whole steps to the slider, which shows them divided back. Moving it
--- calls onPick with the new value.
+-- The slider takes whole steps, so values are scaled by 1 / step (at most 1).
 function widgets.AddSlider(parent, x, y, width, min, max, step, current, onPick)
     local slider = ui.Slider.new(parent)
     slider.stylesheetID = id.StyleSheet.SLIDER_DEFAULT
@@ -227,8 +203,6 @@ function widgets.AddSlider(parent, x, y, width, min, max, step, current, onPick)
     return slider
 end
 
--- A dropdown of the bosses in state.list, showing state.selected. Picking one
--- calls state.onPick with that boss's key.
 function widgets.AddBossPicker(parent, state, x, y, width)
     local options = {}
     for i, entry in ipairs(state.list) do

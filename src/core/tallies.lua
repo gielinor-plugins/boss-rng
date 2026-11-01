@@ -1,21 +1,12 @@
--- A boss's tallies as data, and how they're saved. Plain Lua, so it can be
--- tested offline. src/core/tracker.lua keeps them up to date.
---
--- Tallies: { kills, dryFrom, items }. Keys are text, the only kind Jagex's saved
--- data examples use.
---   kills    { [mode name] = { [day] = kills } }, by day (see src/utils/days.lua; 0 when
---            the day couldn't be read)
---   dryFrom  { [streak key] = start }: where each dry streak (the boss's, and each
---            unique's) starts, if not at the first tracked kill. A streak is the
---            kills since its start (tallies.Dry), so only its start is kept, not a
---            copy of its kills:
+-- A boss's tallies, { kills, dryFrom, items }, and how they're saved; tracker keeps
+-- them up to date. Keys are text, the only kind Jagex's saved data examples use.
+--   kills    { [mode name] = { [day] = kills } } (day 0 when it couldn't be read)
+--   dryFrom  { [streak key] = start } for each dry streak (the boss's, and each
+--            unique's), read as the kills since its start (tallies.Dry):
 --              (no entry)        from the first tracked kill
---              { day, at }       from a drop: day, the latest day with kills
---                                then (0 if none), and at, the kills then on
---                                that day and on day 0, which later kills can
---                                still add to, { [mode] = { [day] = kills } }
---              { dry = kills }   counted kills, kept as they were (a version 4
---                                streak that couldn't be turned into a start)
+--              { day, at }       from a drop: day, the latest day with kills then
+--                                (0 if none), and at, the kills then on that day and 0
+--              { dry = kills }   counted kills (a version 4 streak with no start)
 --   items    { [item id] = drops }
 -- Days only go forward, so kills after a start are on its day or later (or 0).
 
@@ -25,7 +16,6 @@ function tallies.Empty()
     return { kills = {}, dryFrom = {}, items = {} }
 end
 
--- Adds n kills of a mode on a day to byMode, { [mode name] = { [day] = kills } }.
 function tallies.AddKills(byMode, modeName, day, n)
     local byDay = byMode[modeName] or {}
     local key = tostring(day)
@@ -33,7 +23,6 @@ function tallies.AddKills(byMode, modeName, day, n)
     byMode[modeName] = byDay
 end
 
--- The total of { [mode name] = { [day] = kills } }.
 function tallies.Total(byMode)
     local total = 0
     for _, byDay in pairs(byMode) do
@@ -55,8 +44,7 @@ local function latestDay(byMode)
     return latest
 end
 
--- The kills in byMode on day and on day 0, as { [mode] = { [day] = kills } },
--- less what's in minus (the same shape), keeping only counts above 0.
+-- byMode's kills on day and day 0, less minus, keeping counts above 0.
 local function onStartDays(byMode, day, minus)
     local result = {}
     for mode, byDay in pairs(byMode) do
@@ -71,15 +59,12 @@ local function onStartDays(byMode, day, minus)
     return result
 end
 
--- A streak starting now, after the kills so far.
 function tallies.StartNow(kills)
     local day = latestDay(kills)
     return { day = day, at = onStartDays(kills, day, {}) }
 end
 
--- A streak's kills since its start, { [mode] = { [day] = kills } }: every kill
--- after its day, and on its day and day 0, the kills beyond those at its start.
--- No start means every kill.
+-- A streak's kills since its start (nil: every kill).
 local function since(kills, start)
     if start == nil then
         return kills
@@ -104,13 +89,11 @@ local function since(kills, start)
     return since
 end
 
--- A dry streak's kills (see dryFrom).
 function tallies.Dry(t, key)
     return since(t.kills, t.dryFrom[key])
 end
 
--- True if a and b, both { [mode] = { [day] = kills } }, have the same counts
--- (missing and 0 alike).
+-- True if a and b have the same counts (missing and 0 alike).
 local function sameKills(a, b)
     for _, pair in ipairs({ { a, b }, { b, a } }) do
         for mode, byDay in pairs(pair[1]) do
@@ -124,10 +107,8 @@ local function sameKills(a, b)
     return true
 end
 
--- The start of a version 4 streak, dry, its counted kills since its start:
--- nil (from the first kill) if it's every kill, else from its earliest day
--- with kills (or after every kill, if it has none on a known day). Kept as
--- counted if no start gives exactly the same kills.
+-- A start for a version 4 streak's counted kills, dry: nil if it's every kill, else
+-- its earliest known day (or after every kill). Kept as counted if none matches.
 local function startOf(kills, dry)
     if sameKills(dry, kills) then
         return nil
@@ -146,8 +127,8 @@ local function startOf(kills, dry)
     return sameKills(since(kills, start), dry) and start or { dry = dry }
 end
 
--- Kills by day as saved: "20756:13,20757:2", days in order. A string per mode
--- is far smaller saved than a table entry per day.
+-- Kills by day as saved: "20756:13,20757:2", days in order. A string per mode is
+-- far smaller than a table entry per day.
 local function encodeDays(byDay)
     local keys = {}
     for key in pairs(byDay) do
@@ -169,7 +150,6 @@ local function decodeDays(text)
     return byDay
 end
 
--- Applies code to each mode's days in byMode, returning a new table.
 local function eachMode(byMode, code)
     local result = {}
     for mode, days in pairs(byMode) do
@@ -178,7 +158,6 @@ local function eachMode(byMode, code)
     return result
 end
 
--- Tallies as saved: kills (and counted streaks) as text per mode.
 function tallies.Encode(t)
     local dryFrom = {}
     for key, start in pairs(t.dryFrom) do

@@ -1,10 +1,7 @@
--- The sliders for a boss's picks (see src/core/choices.lua), as plain data, for the
--- views to draw: { label, min, max, step, current, onPick } each. Plain Lua, so it
--- can be tested offline.
+-- A boss's sliders as plain data: { label, min, max, step, current, onPick } each.
 
 local sliders = {}
 
--- A boss's sliders, one per choice, at its picks (see choices.For).
 -- onChoose(boss, choice, value) saves a pick.
 function sliders.For(boss, picks, onChoose)
     local list = {}
@@ -21,8 +18,7 @@ function sliders.For(boss, picks, onChoose)
     return list
 end
 
--- The assumptions' footer for a boss with choices: where to change them. Nil
--- for a boss without.
+-- The assumptions' footer: where to change them, or nil without choices.
 function sliders.WhereToChange(boss)
     return boss.choices and "Change these in Plugin Hub > Manage > Boss RNG settings" or nil
 end

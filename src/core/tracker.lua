@@ -1,7 +1,6 @@
--- Keeps each character's boss tallies and saves them on this computer: every
--- kill and drop gamevars reports, by the day it happened, since Boss RNG was
--- installed. Luck comes only from these tracked kills; the game's all-time
--- totals are shown as facts (see gamevars.AllTime).
+-- Keeps each character's boss tallies, saved on this computer only: every kill and
+-- drop gamevars reports, by day, since Boss RNG was installed. Luck comes only from
+-- these; the game's all-time totals are shown as facts.
 
 local safe = require("src/utils/safe")
 local saved = require("src/utils/saved")
@@ -14,12 +13,9 @@ local VERSION = 5 -- of the saved shape (see src/core/tallies.lua); version 4 is
 -- The key of the dry streak counting every unique; the others are item ids.
 tracker.ANY = "any"
 
--- Each record as saved: every boss's tallies encoded (see tallies.Encode).
 local codec = {}
 local encoded = {} -- each boss's encoded tallies, kept until they change (see talliesFor)
 
--- Applies convert(tallies, boss key) to each boss's tallies in a record,
--- returning a new record.
 local function eachBoss(from, convert, version)
     local to = { version = version, lastBoss = from.lastBoss, bosses = {} }
     for key, t in pairs(from.bosses or {}) do
@@ -49,8 +45,7 @@ local record = nil -- the logged in character's, once loaded
 local listeners = {}
 local changes = 0 -- counts every change to the tallies, and every character switch
 
--- Loads the logged in character's record if needed. Returns false if nobody is
--- logged in.
+-- Loads the logged in character's record if needed; false if nobody is logged in.
 local function load()
     local loaded = store.Load()
     if loaded ~= record then
@@ -68,8 +63,7 @@ local function save()
     end
 end
 
--- A boss's tallies, created if needed, to change: its saved form is encoded
--- again at the next save.
+-- A boss's tallies to change, created if needed; re-encoded at the next save.
 local function talliesFor(boss)
     encoded[boss.key] = nil
     local t = record.bosses[boss.key]
@@ -80,14 +74,11 @@ local function talliesFor(boss)
     return t
 end
 
--- The total of { [mode name] = { [day] = kills } }.
 tracker.Total = tallies.Total
 
--- A dry streak's kills, { [mode name] = { [day] = kills } }: key is ANY or an
--- item id as text (see src/core/tallies.lua).
+-- A dry streak's kills; key is ANY or an item id as text.
 tracker.Dry = tallies.Dry
 
--- The dry streak keys of a boss: ANY, and each unique's id as text.
 function tracker.DryKeys(boss)
     local keys = { [tracker.ANY] = true }
     for itemID, item in pairs(boss.items) do
@@ -98,9 +89,8 @@ function tracker.DryKeys(boss)
     return keys
 end
 
--- count kills of a boss's mode on a day (see src/utils/days.lua). Each kill adds to
--- every dry streak (the boss's, and each of its uniques'): they're read as the
--- kills since their start, so only streaks kept as counted need adding to.
+-- Adds kills. Streaks are read as the kills since their start, so only those kept
+-- as counted need adding to.
 function tracker.AddKills(boss, mode, count, day)
     if not load() then
         return
@@ -117,12 +107,10 @@ function tracker.AddKills(boss, mode, count, day)
     save()
 end
 
--- count drops of a unique, ending the boss's dry streak and the item's. gamevars
--- reports a tick's kills before its drops, so a drop that lands with a kill ends
--- the streak after that kill. A pooled unique's one log count goes up for every
--- boss that lists it (see src/bosses.lua), so its drop is tracked only for the
--- boss killed last: the one it came from, unless its loot was left until after
--- killing another.
+-- Ends the boss's and the item's dry streaks. gamevars reports a tick's kills first,
+-- so a drop ends the streak after the kill it landed with. A pooled unique's log
+-- count rises for every boss listing it, so it's tracked only for the boss killed
+-- last: the one it came from, unless its loot was left until after another kill.
 function tracker.AddDrops(boss, itemID, count)
     if not load() then
         return
@@ -137,8 +125,7 @@ function tracker.AddDrops(boss, itemID, count)
     save()
 end
 
--- The logged in character's tallies for a boss (empty ones if it has none yet),
--- or nil while nobody is logged in.
+-- The character's tallies for a boss (empty if none yet), or nil if nobody's logged in.
 function tracker.Tallies(boss)
     if not load() then
         return nil
@@ -146,7 +133,6 @@ function tracker.Tallies(boss)
     return record.bosses[boss.key] or tallies.Empty()
 end
 
--- The key of the boss the logged in character killed most recently, or nil.
 function tracker.LastBossKey()
     if not load() then
         return nil
@@ -154,14 +140,12 @@ function tracker.LastBossKey()
     return record.lastBoss
 end
 
--- A number that changes whenever any tallies the tracker gives out might have,
--- so something worked out from them can tell when to work it out again.
+-- Changes whenever any tallies given out might have.
 function tracker.Changes()
     load()
     return changes
 end
 
--- Calls listener() after every change.
 function tracker.OnChange(listener)
     table.insert(listeners, listener)
 end

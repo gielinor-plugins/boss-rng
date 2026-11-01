@@ -1,15 +1,12 @@
 -- Each boss's published rates when Boss RNG added it, by boss key (see
--- src/core/rates.lua): every number a game update could change, as named values its
--- boss file builds rolls from. Boss files only say which items share a roll,
--- and split a roll evenly unless a rate here says otherwise. Sources and dates
--- are in each boss file's header. Rates are chances per kill unless the name
--- says otherwise.
+-- src/core/rates.lua): every number a game update could change. Boss files say
+-- which items share a roll, split evenly unless a rate here says otherwise, and
+-- give sources and dates in their header. Rates are per kill unless named otherwise.
 
 -- A God Wars general's hilt: 1/512, rolled only when its 1/64 unique table misses.
 local GWD_HILT = (1 - 1 / 64) / 512
 
--- A God Wars 2 boss's rates: every table item, its crest and its essence roll,
--- by mode, with own written over them.
+-- A God Wars 2 boss's table item, crest and essence rates by mode, with own over them.
 local function godWars2(own)
     local values = { normal = 1 / 256, normalEssence = 1 / 64, hard = 1 / 179, hardEssence = 1 / 44 }
     for name, value in pairs(own or {}) do

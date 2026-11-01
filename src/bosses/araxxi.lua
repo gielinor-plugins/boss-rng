@@ -1,13 +1,5 @@
--- Araxxi (Araxxor's kill count).
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28: each kill rolls
--- a spider leg at 1/40 solo and 1/70 duo, which leg depending on the path taken,
--- and a weapon add-on at 1/120 solo and 1/200 duo, which add-on depending on
--- Araxxor's style. The rolls are independent. Legs and add-ons are each shown as
--- one group, whose chance doesn't depend on path or style.
---
--- The game keeps one kill count for solo and duo, so each tracked kill counts
--- for Solo or Duo by the fight's duo flag.
+-- Araxxi. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. The game keeps
+-- one kill count for solo and duo, so each kill counts by the fight's duo flag.
 
 local common = require("src/bosses/common")
 
@@ -22,8 +14,7 @@ local FANG, EYE, WEB = 31722, 31723, 31724
 local LEGS = { name = "Leg pieces" }
 local ADD_ONS = { name = "Noxious add-ons" }
 
--- A kill's rolls for a team ("solo" or "duo") at rate values r (see
--- src/core/rates/base.lua): a leg and an add-on.
+-- A team's rolls ("solo" or "duo"): a leg and an add-on.
 local function rolls(team)
     return function(r)
         return {
@@ -33,8 +24,7 @@ local function rolls(team)
     end
 end
 
--- Tracked kills' modes, by name. Mode names are saved with the player's data:
--- never change them.
+-- Tracked kills' modes. Names are saved: never change them.
 local TRACKED = {
     Solo = { name = "Solo", kc = VARS.kc, rolls = rolls("solo") },
     Duo = { name = "Duo", kc = VARS.kc, rolls = rolls("duo") },
@@ -45,7 +35,7 @@ return {
     name = "Araxxi",
     assumptions = {},
 
-    -- The kill count's mode, counted only through its kill event (Solo or Duo).
+    -- Counted only through its kill event.
     modes = {
         { name = "Normal", kc = VARS.kc, byEvent = true },
     },
@@ -54,8 +44,6 @@ return {
     end } },
     modeFor = function(name) return TRACKED[name] end,
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [LEG_TOP] = { log = VARS.log .. "LEG_TOP", kind = "unique", group = LEGS },
         [LEG_MIDDLE] = { log = VARS.log .. "LEG_MIDDLE", kind = "unique", group = LEGS },

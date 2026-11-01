@@ -1,13 +1,9 @@
--- Reads boss kill counts and boss log counts from the game: their all-time
--- totals, and each kill and drop as the count goes up. It stores nothing, and
--- it's the only module that reads game vars. These counts aren't hidden (the
--- Beasts tab and boss log show them, and Jagex confirmed they may be read without
--- either open); hidden values such as bad luck mitigation are never read.
---
--- Kill counts and log counts are varbits: slices of a bigger "base" var. At a kill
--- or drop the game sends the base var's old and new value (VarTransmit), and the
--- change in each slice is a kill or drop. Containers and claims count loot
--- opened or claimed instead (src/core/containers.lua, src/core/claims.lua).
+-- Reads boss kill counts and boss log counts: all-time totals, and each kill and
+-- drop as a count goes up. It stores nothing and is the only module that reads game
+-- vars. These counts aren't hidden (the Beasts tab and boss log show them, and Jagex
+-- confirmed they may be read without either open); hidden values such as bad luck
+-- mitigation are never read. Counts are varbits, slices of a base var whose old and
+-- new value VarTransmit sends. For containers and claims, see their modules.
 
 local bits = require("src/utils/bits")
 local claims = require("src/core/claims")
@@ -19,14 +15,12 @@ local gamevars = {}
 
 local REF = "bossrng_gamevars"
 
--- After entering the game, wait this long before trusting vars, so the ones sent
--- at login aren't mistaken for kills or drops, or read before they've arrived.
--- The client runs 50 ticks per second.
+-- Wait this long (50 ticks per second) after entering the game before trusting
+-- vars, so those sent at login aren't taken for kills or drops or read too early.
 local SETTLE_TICKS = 5 * 50
 
--- Each KC varbit rises by 1 per kill, and an item's count by a little per drop
--- (more for a stack, see src/bosses.lua). Bigger jumps (like a login sync) and
--- any decrease are ignored.
+-- A KC rises by 1 per kill, a log count by a little per drop (more for a stack).
+-- Bigger jumps (like a login sync) and any decrease are ignored.
 local MAX_CHANGE = 3
 
 local watched = {} -- [base var id] = slices to check when that var changes
@@ -37,32 +31,26 @@ local onReady = nil -- called once vars can be trusted after entering the game
 local announced = false -- whether onReady was called since entering the game
 local killedThisSession = {} -- [boss] = true once a kill is reported since entering the game
 
--- Varbits kept at their last value above 0 (see lasts in killEvents): [base var
--- id] = { name, keep(value) }.
+-- [base var id] = { name, keep(value) }: values the game resets at the kill (see
+-- lasts in src/bosses.lua), kept at their last value above 0.
 local lasts = {}
 
--- Queues a kill report for the next tick.
 local function queueKill(report, change)
     table.insert(pending.kills, { report = report, change = change })
 end
 
--- The current value of a var by name, or nil if the game doesn't have it.
 local function value(name)
     local found = var.VarPlayer[name]
     return found and found.value
 end
 
--- True once vars can be trusted: in the game, and settled after entering it.
 local function isReady()
     return readyAtTick ~= nil and tick >= readyAtTick
 end
 
--- Watches a varbit by name, or with mask, bits of a var the game doesn't name
--- as a varbit. report(change) is called whenever it goes up, by up to most
--- (MAX_CHANGE by default). group is "kills" or "drops". A count (a kill count
--- or a boss log count, never mask bits) only goes up, so it reports only rises
--- above the highest value it's had this session: the game can send counts
--- again from 0, and those aren't kills or drops.
+-- Watches a varbit by name, or mask bits of a var; report(change) gets each rise of
+-- up to most (default MAX_CHANGE). A count reports only rises above its highest this
+-- session, since the game can send counts again from 0.
 local function watch(name, group, report, mask, most)
     local found = var.VarPlayer[name]
     if found == nil or (mask == nil and not found.isVarBit) then
@@ -78,7 +66,6 @@ local function watch(name, group, report, mask, most)
     })
 end
 
--- Calls fn(slice) for every watched slice that's a count.
 local function eachCount(fn)
     for _, slices in pairs(watched) do
         for _, slice in ipairs(slices) do
@@ -89,8 +76,6 @@ local function eachCount(fn)
     end
 end
 
--- How much a slice went up from old to new: for a count, from the highest it's
--- had this session (which it then keeps).
 local function rise(slice, old, new)
     local from, to = (old & slice.mask) >> slice.shift, (new & slice.mask) >> slice.shift
     if slice.count == nil then
@@ -137,9 +122,8 @@ local function onInventory(event)
     end
 end
 
--- When a kill and a drop change in the same tick they can arrive in either order
--- (at Kree'arra the drop came first). Reporting a tick's changes together, kills
--- first, means a drop is always counted after the kill it landed with.
+-- A tick's kill and drop can arrive in either order (at Kree'arra the drop came
+-- first), so kills are reported first: a drop counts after the kill it landed with.
 local function flush()
     containers.EndTick(queueKill)
     for _, group in ipairs({ "kills", "drops" }) do
@@ -165,8 +149,7 @@ local function onLogic(event)
     end
 end
 
--- A boss's all-time kills, the sum of its kill counts, or nil until vars can be
--- trusted or if any can't be read. Cheaper than AllTime, for listing bosses.
+-- A boss's all-time kills, or nil until vars can be trusted or if any can't be read.
 function gamevars.AllTimeKills(boss)
     if not isReady() then
         return nil
@@ -182,9 +165,8 @@ function gamevars.AllTimeKills(boss)
     return total
 end
 
--- A boss's all-time totals, read from the game: { kills = { [kill count var] = n },
--- items = { [item id text] = n } for its uniques, values = { [key] = n } for its
--- reads (see src/bosses.lua) }. Nil until vars can be trusted, or if any can't be read.
+-- A boss's all-time totals, nil as above: { kills = { [kill count var] = n },
+-- items = { [unique's id text] = n }, values = { [reads key] = n } }.
 function gamevars.AllTime(boss)
     if not isReady() then
         return nil
@@ -222,9 +204,8 @@ local function today()
     return minutes and days.FromMinutes(minutes) or 0
 end
 
--- The mode a boss's kill event or claim says the kill was (see killEvents and
--- claims in src/bosses.lua), from the game's values as it's reported (and for
--- a claim, its var's old value), or nil if any can't be read or it gives none.
+-- The mode a kill event or claim says the kill was (see src/bosses.lua), given a
+-- claim var's old value, or nil if a value can't be read or it gives none.
 local function eventMode(boss, event, old, kept)
     local values = {}
     for key, name in pairs(event.reads) do
@@ -240,22 +221,11 @@ local function eventMode(boss, event, old, kept)
     return name and boss.modeFor(name)
 end
 
--- Starts reporting changes for every boss in bosses (the list from src/bosses.lua),
--- on the logic tick after they happen:
---   onKills(boss, mode, count, day)  a KC varbit of that mode went up (modes
---                                    counted by kill events or containers
---                                    aren't watched), one of the boss's kill
---                                    event vars did, for the mode it says, or
---                                    one of its containers was opened or its
---                                    loot claimed; day is today (see today)
---   onDrops(boss, itemID, count)     the log count of a unique item went up,
---                                    for a boss killed since entering the game
---                                    (a stack's rise is one drop)
--- and calls ready() each time vars can be trusted after entering the game.
---
--- The game can send boss log counts again long after login, as jumps from 0
--- that look like drops. Counts only report rises above their highest this
--- session (see watch), and only bosses killed this session can have drops.
+-- Reports changes for every boss in bosses on the logic tick after they happen:
+--   onKills(boss, mode, count, day)  a KC rise, kill event, opened container or claim
+--   onDrops(boss, itemID, count)     a unique's log count rose (a stack's rise is one)
+-- and calls ready() each time vars can be trusted. The game can resend log counts long
+-- after login as jumps from 0, so only bosses killed this session can have drops.
 function gamevars.Start(bosses, onKills, onDrops, ready)
     onReady = ready
     local function killed(boss, mode, count)
@@ -325,8 +295,7 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
         end
     end
 
-    -- No state change arrives if the plugin starts while already in the game. Any
-    -- vars sent at login should have arrived by then, so they're trusted at once.
+    -- Started in the game: no state change arrives, and login vars are already in.
     readyAtTick = Player.IsAvailable() and 0 or nil
 
     Event.Logic.Subscribe(REF, onLogic)

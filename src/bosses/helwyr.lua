@@ -20,8 +20,6 @@ return {
     modes = common.Modes(VARS, godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),
         godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)),
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = godwars2.Items({
         [CREST] = { log = VARS.log .. "CREST", kind = "unique" },
         [WAND] = { log = VARS.log .. "WEAPON", kind = "unique" },

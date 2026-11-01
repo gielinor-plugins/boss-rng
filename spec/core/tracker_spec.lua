@@ -1,5 +1,3 @@
--- Run from the project root with: busted
-
 local mock = require("spec/mock_api")
 
 local NORMAL, HARD = { name = "Normal", kc = "KC_NORMAL" }, { name = "Hard mode", kc = "KC_HARD" }

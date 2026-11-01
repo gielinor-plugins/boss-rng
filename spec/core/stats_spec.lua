@@ -1,13 +1,10 @@
--- Run from the project root with: busted
-
 local luck = require("src/core/luck")
 local rates = require("src/core/rates")
 local stats = require("src/core/stats")
 
 local DAY = 20756 -- 30 Oct 2026
 
--- A test boss: normal mode rolls item 1 at 1/100 and item 2 at 1/50; hard mode
--- rolls item 1 at 1/20.
+-- Normal mode rolls item 1 at 1/100 and item 2 at 1/50; hard mode item 1 at 1/20.
 local BOSS = {
     modes = {
         { name = "Normal", kc = "KC_NORMAL", rolls = { { chance = 3 / 100, items = { [1] = 1, [2] = 2 } } } },
@@ -16,7 +13,7 @@ local BOSS = {
     items = { [1] = { kind = "unique" }, [2] = { kind = "unique" }, [3] = { kind = "pet" } },
 }
 
--- Kills on one day, { [mode name] = { [day] = kills } }, from { [mode name] = kills }.
+-- { [mode name] = kills } as kills on one day.
 local function onDay(kills, day)
     local byMode = {}
     for name, n in pairs(kills) do
@@ -25,8 +22,7 @@ local function onDay(kills, day)
     return byMode
 end
 
--- Tallies with these kills on DAY, items ({ [item id text] = drops }) and dry
--- streaks ({ [key] = { [mode name] = kills } }, each defaulting to all kills).
+-- Tallies on DAY. Each dry streak ({ [key] = kills by mode }) defaults to all kills.
 local function tallies(kills, items, dry)
     local result = { kills = onDay(kills), items = items or {}, dryFrom = {} }
     for _, key in ipairs({ "any", "1", "2" }) do
@@ -35,12 +31,10 @@ local function tallies(kills, items, dry)
     return result
 end
 
--- All-time totals as the game gives them: kills per kill count var, log counts per item.
 local function totals(kills, items)
     return { kills = kills, items = items }
 end
 
--- Stats for boss from tallies, all-time totals (optional) and picks (optional).
 local function forBoss(boss, t, allTime, picks)
     return stats.ForBoss({ boss = boss, tallies = t, allTime = allTime, picks = picks })
 end

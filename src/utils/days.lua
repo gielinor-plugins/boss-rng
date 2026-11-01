@@ -1,16 +1,12 @@
--- Days as whole numbers: days since 1 January 1970 (UTC), the game clock's
--- epoch. Tracked kills are saved by day, and boss rates change on a day. Plain
--- Lua, so it can be tested offline.
+-- Days as whole numbers since 1 January 1970 (UTC), the game clock's epoch.
 
 local days = {}
 
--- The day for minutes since 1 January 1970, as the game clock gives them.
 function days.FromMinutes(minutes)
     return minutes // (24 * 60)
 end
 
--- The day for a date, e.g. days.FromDate(2026, 11, 24). Uses the usual civil
--- calendar algorithm: years start in March, so leap days fall at the end.
+-- By the civil calendar algorithm: years start in March, so leap days fall last.
 function days.FromDate(year, month, day)
     year = month <= 2 and year - 1 or year
     local era = year // 400

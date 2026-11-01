@@ -1,11 +1,7 @@
--- The Gate of Elidinis, a skilling boss.
---
--- From Jagex's "Gate of Elidinis Drop Rates" (via the RuneScape Wiki, CC BY-NC-SA
--- 3.0), checked 2026-10-31: each cleanse rolls 1/120 for the rare table, then one
--- of its four uniques evenly (1/480 each), and 1/71 for a Latent Offering (one a
--- drop, so its log count is its drops). Jagex's Late-Game Rebalance raises each
--- rare to 1/256, taken as still one roll. Nearly every kill is solo, so solo is
--- assumed.
+-- Gate of Elidinis. Rates: Jagex's "Gate of Elidinis Drop Rates" via the RuneScape Wiki
+-- (CC BY-NC-SA 3.0), checked 2026-10-31. Each Offering is one drop, so its log count is
+-- its drops. The rebalanced
+-- rares are taken as still one roll. Nearly every kill is solo, so solo is assumed.
 
 local common = require("src/bosses/common")
 
@@ -18,7 +14,6 @@ local VARS = {
 local ATTUNER, DOWSER, SCRIPTURE, CODEX, OFFERING = 57519, 57521, 57524, 57544, 57528
 local RARES = { ATTUNER, DOWSER, SCRIPTURE, CODEX }
 
--- A cleanse's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         common.OneOf(common.Each(RARES, r.rare)),
@@ -31,13 +26,11 @@ return {
     name = "The Gate of Elidinis",
     assumptions = { common.SOLO_KILLS },
 
-    -- Mode names are saved with the player's data: never change them.
+    -- Mode names are saved: never change them.
     modes = {
         { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [ATTUNER] = { log = VARS.log .. "SKILLING_OFFHAND_RUNECRAFTING", kind = "unique" },
         [DOWSER] = { log = VARS.log .. "SKILLING_OFFHAND_DIVINATION", kind = "unique" },

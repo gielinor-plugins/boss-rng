@@ -1,9 +1,5 @@
--- The Magister, a Slayer boss in the Sophanem Slayer Dungeon. A solo fight.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-31: on top of its
--- main drop, each kill rolls 1/18 for a Phylactery and 1/500 for the Gloves of
--- passage. Jagex's Late-Game Rebalance raises them to 1/10 and 1/128. A
--- Phylactery is one item a drop, so its log count is its drops.
+-- The Magister. A solo fight. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked
+-- 2026-10-31. A Phylactery is one item a drop, so its log count is its drops.
 
 local VARS = {
     kc = "BSLAY_KILLS_MENAPHOS_SLAYER_BOSS",
@@ -12,7 +8,6 @@ local VARS = {
 
 local PHYLACTERY, GLOVES = 40650, 40320
 
--- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         { chance = r.phylactery, items = { [PHYLACTERY] = 1 } },
@@ -25,13 +20,11 @@ return {
     name = "The Magister",
     assumptions = {},
 
-    -- Mode names are saved with the player's data: never change them.
+    -- Mode names are saved: never change them.
     modes = {
         { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [PHYLACTERY] = { log = VARS.log .. "PHYLACTERY", kind = "unique" },
         [GLOVES] = { log = VARS.log .. "HANDS", kind = "unique" },

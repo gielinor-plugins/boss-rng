@@ -1,19 +1,9 @@
--- The Barrows brothers. A run kills some of the six original brothers, maybe
--- Akrisae and Linza, then loots a chest.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28: with n brothers
--- killed (Linza not counted), a chest makes min(n + 1, 7) rolls, each a
--- 1/max(450 - 58n, 73) chance of Barrows equipment: one of the killed brothers
--- evenly, then one of their items evenly. Linza, if killed, adds one roll at
--- 1/96 for one of her five items (since 20 July 2026, before Boss RNG came out).
--- Jagex's Late-Game Rebalance design preview gives the amulet of the forsaken
--- as 1/480 per chest, 1/240 after it. It doesn't say whether partial chests are
--- included, so they're assumed to be.
---
--- Each tracked chest is counted as it's looted, for a mode named by the brothers
--- killed, so it's exact. The kill count only counts chests with 6 or more
--- brothers (Akrisae counts, Linza doesn't); partial chests, with fewer, are
--- tracked outside it.
+-- Barrows brothers. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. With n
+-- brothers killed (Linza not counted), a chest rolls min(n + 1, 7) times for a killed
+-- brother's item; Linza adds her own roll. The amulet's rate is from Jagex's Late-Game
+-- Rebalance design preview, which doesn't say whether partial chests roll it, so they're
+-- assumed to. Each chest counts as looted, for a mode
+-- named by the brothers killed. The kill count only counts chests with 6+ brothers.
 
 local common = require("src/bosses/common")
 
@@ -27,7 +17,6 @@ local VARS = {
 }
 local LOOTED = 0x4000000 -- the bit of VARS.run set when the chest is looted (no varbit name)
 
--- The chance of Barrows equipment per roll with n brothers killed, at rate values r.
 local function pieceChance(n, r)
     return 1 / math.max(r.pieceBase - r.piecePerBrother * n, r.pieceBest)
 end
@@ -38,8 +27,7 @@ local CHEST = "Chest: " -- tracked chests' mode names start with this
 local AMULET = 39061 -- Amulet of the forsaken
 local SIGIL = 36156 -- Corruption sigil
 
--- A brother: their name (as in tracked chests' mode names), their name in game
--- vars, and their items, { [item id] = log var }, with how many there are.
+-- A brother: name (as in mode names), name in game vars, items { [item id] = log var }.
 local function brother(name, varName, pieces)
     local items, size = {}, 0
     for itemID, piece in pairs(pieces) do
@@ -49,7 +37,6 @@ local function brother(name, varName, pieces)
     return { name = name, varName = varName, items = items, size = size }
 end
 
--- The six originals, each with a flag var for this run.
 local ORIGINALS = {
     brother("Ahrim", "AHRIM", { -- hood, top, skirt, staff, wand, book
         [4708] = "HEAD", [4712] = "BODY", [4714] = "LEGS", [4710] = "STAFF", [25652] = "WAND", [25672] = "OFFHAND" }),
@@ -69,8 +56,7 @@ local LINZA = brother("Linza", "SISTER", { -- helm, cuirass, greaves, hammer, sh
 local BROTHERS = { table.unpack(ORIGINALS) }
 table.insert(BROTHERS, AKRISAE)
 
--- Item weights for a roll that picks one of brothers evenly, then one of their
--- items evenly.
+-- Weights picking one brother evenly, then one of their items evenly.
 local function weights(brothers)
     local result = {}
     for _, b in ipairs(brothers) do
@@ -81,9 +67,6 @@ local function weights(brothers)
     return result
 end
 
--- A chest's rolls at rate values r (see src/core/rates/base.lua): the amulet's, one
--- equipment roll per brother killed plus one (up to maxRolls), and Linza's if
--- she was killed.
 local function chestRolls(brothers, linza, r)
     local rolls = { { chance = r.amulet, items = { [AMULET] = 1 } } }
     local n = #brothers
@@ -97,8 +80,7 @@ local function chestRolls(brothers, linza, r)
     return rolls
 end
 
--- A tracked chest's mode name: CHEST, then the brothers killed in BROTHERS'
--- order, then Linza. Saved with the player's tallies: never change the format.
+-- CHEST, then the brothers in BROTHERS' order, then Linza. Saved: never change the format.
 local function chestName(brothers, linza)
     local names = {}
     for _, b in ipairs(brothers) do
@@ -110,8 +92,6 @@ local function chestName(brothers, linza)
     return CHEST .. table.concat(names, ", ")
 end
 
--- The mode for a tracked chest's name: exactly its brothers' rolls, in the kill
--- count only if it's a full chest.
 local function chestMode(name)
     local killed = {}
     for b in name:sub(#CHEST + 1):gmatch("[^, ]+") do
@@ -131,9 +111,8 @@ local function chestMode(name)
     return { name = name, kc = kc, rolls = rolls }
 end
 
--- The chest's mode name from the game's values as it's looted: the originals'
--- flags, Linza's, and Akrisae from the count less those. (Not as it opens: the
--- first search brings out the tunnel brother, who isn't dead yet.)
+-- Read as the chest is looted, not as it opens: the first search brings out the tunnel
+-- brother, who isn't dead yet. Akrisae is the count less the others.
 local function chestLooted(values)
     local brothers = {}
     for _, b in ipairs(ORIGINALS) do
@@ -147,7 +126,6 @@ local function chestLooted(values)
     return chestName(brothers, values.linzaKilled == 1)
 end
 
--- The vars chestLooted reads: the count, Linza's flag and each original's flag.
 local function lootReads()
     local reads = { killedCount = VARS.killedCount, linzaKilled = VARS.linzaKilled }
     for _, b in ipairs(ORIGINALS) do
@@ -156,8 +134,6 @@ local function lootReads()
     return reads
 end
 
--- Every item on the boss log page, with its log count varbit and kind (see
--- src/bosses/kreearra.lua for what each kind means).
 local function logItems()
     local items = {
         [AMULET] = { log = VARS.log .. "AMULET", kind = "unique" },
@@ -176,8 +152,7 @@ return {
     name = "Barrows brothers",
     assumptions = { "Amulet of the forsaken from partial chests too" },
 
-    -- The kill count's mode, counted only through its kill event: each tracked
-    -- chest gets a mode of its own (killEvents, modeFor).
+    -- Counted only through its kill event: each chest gets its own mode.
     modes = {
         { name = "Normal", kc = VARS.kc, byEvent = true },
     },

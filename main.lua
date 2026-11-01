@@ -1,5 +1,4 @@
 -- Boss RNG: how lucky have you been at bosses?
--- The game runs this file when the plugin is turned on.
 
 local bosses = require("src/bosses")
 local gamevars = require("src/core/gamevars")

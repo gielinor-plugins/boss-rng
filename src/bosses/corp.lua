@@ -1,9 +1,5 @@
--- The Corporeal Beast.
---
--- From the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28: the holy elixir
--- is 3/512, and since 20 July 2026 the sigil table is 1/256, for one of four
--- sigils evenly (1/1,024 each). Boss RNG came out after that change, so every
--- tracked kill has these rates. Each kill gives one drop, to one player.
+-- Corporeal Beast. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. Each
+-- kill gives one drop, to one player.
 
 local common = require("src/bosses/common")
 
@@ -16,7 +12,6 @@ local SPECTRAL, ARCANE, ELYSIAN, DIVINE = 13752, 13746, 13750, 13748
 local ELIXIR = 13754
 local SIGILS = common.Even({ SPECTRAL, ARCANE, ELYSIAN, DIVINE })
 
--- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         { chance = r.sigil, items = SIGILS },
@@ -29,13 +24,11 @@ return {
     name = "Corporeal Beast",
     assumptions = { common.SOLO_KILLS },
 
-    -- Mode names are saved with the player's data: never change them.
+    -- Mode names are saved: never change them.
     modes = {
         { name = "Normal", kc = VARS.kc, rolls = rolls },
     },
 
-    -- Every item on the boss log page, with its log count varbit and kind (see
-    -- src/bosses/kreearra.lua for what each kind means).
     items = {
         [SPECTRAL] = { log = VARS.log .. "SIGIL_SPECTRAL", kind = "unique" },
         [ARCANE] = { log = VARS.log .. "SIGIL_ARCANE", kind = "unique" },

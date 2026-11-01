@@ -1,7 +1,5 @@
--- Boss RNG's UI: the ribbon panel (src/ui/panel.lua), the details window
--- (src/ui/window.lua) and the settings page (src/ui/settings.lua). This module decides which boss the views show and
--- redraws them when that, the player's picks or tallies change.
--- All UI code lives in src/ui.lua and src/ui/, using Jagex's native components.
+-- Boss RNG's UI: picks the boss the panel, details window and settings page
+-- show, and redraws them when that, the picks or tallies change.
 
 local bosses = require("src/bosses")
 local choices = require("src/core/choices")
@@ -20,10 +18,9 @@ local REDRAW_REF = "bossrng_ui_redraw"
 
 local selectedKey = nil -- the boss picked in a dropdown
 local lastKillKey = nil -- the last boss killed when we last drew
-local currentState -- defined below, after the actions it refers to
+local currentState
 
--- A boss's picks for its choices, with, once the game is read, the values it
--- reads (see src/bosses.lua).
+-- A boss's picks, overridden by any values read from the game.
 local function picksFor(boss, allTime)
     local picks = choices.For(boss)
     for key, value in pairs(allTime and allTime.values or {}) do
@@ -32,9 +29,7 @@ local function picksFor(boss, allTime)
     return picks
 end
 
--- Bosses with tracked kills or all-time kills from the game, in alphabetical
--- order, each { boss, tallies }. Only the picked boss's stats are worked out
--- (see withStats), so listing reads only kill counts.
+-- Bosses with tracked or all-time kills, by name, each { boss, tallies }.
 local function bossesWithKills()
     local list = {}
     for _, boss in ipairs(bosses) do
@@ -64,13 +59,10 @@ local function asText(values)
     return table.concat(parts, ",")
 end
 
--- The last stats worked out, and what they were worked out from.
 local cached = { inputs = nil, stats = nil }
 
--- Fills in an entry's all-time totals, picks and stats. Stats are worked out
--- again only when something they're worked out from changed: the boss, its
--- tallies (tracker.Changes), the game's totals or the picks. Nothing is kept
--- but the last result, and nothing from it is saved.
+-- Fills in an entry's all-time totals, picks and stats, reusing the last
+-- stats while their inputs are unchanged.
 local function withStats(entry)
     entry.allTime = gamevars.AllTime(entry.boss)
     entry.picks = picksFor(entry.boss, entry.allTime)
@@ -85,7 +77,6 @@ local function withStats(entry)
     return entry
 end
 
--- The index in list of the boss with this key, or nil.
 local function indexOf(list, key)
     for i, entry in ipairs(list) do
         if entry.boss.key == key then
@@ -95,8 +86,8 @@ local function indexOf(list, key)
     return nil
 end
 
--- The picked boss's index in list: the boss picked in a dropdown, else the boss
--- killed most recently, else the first. A kill at another boss picks that boss.
+-- The boss picked in a dropdown, else the last killed, else the first.
+-- A kill at another boss clears the dropdown pick.
 local function selectedIndex(list)
     local last = tracker.LastBossKey()
     if last ~= lastKillKey then
@@ -106,22 +97,19 @@ local function selectedIndex(list)
     return indexOf(list, selectedKey) or indexOf(list, last) or 1
 end
 
--- Redraws the panel if it's open. If drawing fails, it shows one plain line.
 local function redrawPanel()
     if panel.IsOpen() and not safe.Call("drawing the panel", panel.Draw, currentState()) then
         safe.Call("drawing the panel error", panel.ShowError)
     end
 end
 
--- Opens or redraws the window. If drawing fails, it closes rather than staying
--- half drawn.
+-- Closes the window if drawing fails, rather than leave it half drawn.
 local function showWindow()
     if not safe.Call("drawing the window", window.Draw, currentState()) then
         window.Close()
     end
 end
 
--- Redraws the settings page if it's open, or one plain line if drawing fails.
 local function redrawSettings()
     if settings.IsOpen() and not safe.Call("drawing the settings", settings.Draw, currentState()) then
         safe.Call("drawing the settings error", settings.ShowError)
@@ -136,8 +124,8 @@ local function redrawAll()
     end
 end
 
--- Redraws the views after ticks logic ticks (default 1), so a component isn't
--- destroyed while its own event is still running. Calling again restarts the wait.
+-- Redraws after ticks logic ticks (default 1), so a component isn't destroyed
+-- during its own event. Calling again restarts the wait.
 local function redrawSoon(ticks)
     local left = ticks or 1
     Event.Logic.Subscribe(REDRAW_REF, function()
@@ -149,26 +137,21 @@ local function redrawSoon(ticks)
     end)
 end
 
-local SLIDER_SETTLE_TICKS = 25 -- half a second still before redrawing a moved slider
+local SLIDER_SETTLE_TICKS = 25 -- half a second without moving
 
--- Shows the picked boss in both views.
 local function pick(key)
     selectedKey = key
     redrawSoon()
 end
 
--- Saves the player's pick for one of a boss's choices, and redraws with it once
--- the slider is left alone, so it isn't rebuilt while being dragged.
+-- Redraws once the slider settles, so it isn't rebuilt while being dragged.
 local function choose(boss, choice, value)
     choices.Set(boss, choice, value)
     redrawSoon(SLIDER_SETTLE_TICKS)
 end
 
--- What the views draw: the bosses with kills (list; only the picked one has
--- allTime, picks and stats), the index of the picked boss (selected, nil without kills),
--- what to do when the player picks a boss (onPick), picks for one of its
--- choices (onChoose) or asks for details (onDetails), and how to redraw after a
--- change made in a view (onRedraw).
+-- What the views draw. Only list[selected] has allTime, picks and stats;
+-- selected is nil without kills.
 function currentState()
     local list = bossesWithKills()
     local selected = #list > 0 and selectedIndex(list) or nil

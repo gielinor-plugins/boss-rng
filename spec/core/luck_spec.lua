@@ -1,5 +1,3 @@
--- Run from the project root with: busted
-
 local luck = require("src/core/luck")
 
 -- Rasial: a weapon roll (1/320, 2 items) and an armor roll (1/128, 5 items).
