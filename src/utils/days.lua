@@ -20,18 +20,4 @@ function days.FromDate(year, month, day)
     return era * 146097 + dayOfEra - 719468
 end
 
--- The year, month and day of a day, the reverse of days.FromDate.
-function days.ToDate(n)
-    n = n + 719468
-    local era = n // 146097
-    local dayOfEra = n - era * 146097
-    local yearOfEra = (dayOfEra - dayOfEra // 1460 + dayOfEra // 36524 - dayOfEra // 146096) // 365
-    local dayOfYear = dayOfEra - (365 * yearOfEra + yearOfEra // 4 - yearOfEra // 100)
-    local monthIndex = (5 * dayOfYear + 2) // 153
-    local day = dayOfYear - (153 * monthIndex + 2) // 5 + 1
-    local month = monthIndex < 10 and monthIndex + 3 or monthIndex - 9
-    local year = yearOfEra + era * 400 + (month <= 2 and 1 or 0)
-    return year, month, day
-end
-
 return days

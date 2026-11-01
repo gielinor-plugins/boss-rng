@@ -18,7 +18,7 @@ local VARS = {
 local ATTUNER, DOWSER, SCRIPTURE, CODEX, OFFERING = 57519, 57521, 57524, 57544, 57528
 local RARES = { ATTUNER, DOWSER, SCRIPTURE, CODEX }
 
--- A cleanse's rolls at rate values r (see src/rates/base.lua).
+-- A cleanse's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         common.OneOf(common.Each(RARES, r.rare)),
@@ -29,7 +29,6 @@ end
 return {
     key = "elidinis", -- saved data key: never change it
     name = "The Gate of Elidinis",
-    logPage = "COLLECTION_BOSS_ELIDINIS", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.

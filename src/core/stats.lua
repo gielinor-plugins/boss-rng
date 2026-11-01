@@ -12,7 +12,7 @@ local stats = {}
 -- Luck is shown once an average player would have at least this many uniques
 -- after the same kills, or from the first unique received. Before either, a
 -- dry streak is normal, so it shows how many players would still be dry.
-stats.MIN_EXPECTED = 1
+local MIN_EXPECTED = 1
 
 local NO_RATES = {} -- the rate values of a boss without any
 
@@ -120,7 +120,7 @@ end
 -- Luck for expected and received uniques, or nil until expected reaches
 -- MIN_EXPECTED or a unique is received.
 local function luckOf(expected, received)
-    if expected > 0 and (expected >= stats.MIN_EXPECTED or received > 0) then
+    if expected > 0 and (expected >= MIN_EXPECTED or received > 0) then
         return luck.Percentile(expected, received)
     end
     return nil
@@ -133,7 +133,7 @@ local function killsToLuck(expected, rate)
         return nil
     end
     -- Less a hair, so float error (3.0000000004) doesn't round up a whole kill.
-    return math.max(1, math.ceil((stats.MIN_EXPECTED - expected) / rate - 1e-9))
+    return math.max(1, math.ceil((MIN_EXPECTED - expected) / rate - 1e-9))
 end
 
 -- Uniques sharing a group (see src/bosses.lua) become one row, under the group's

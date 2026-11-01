@@ -6,7 +6,7 @@ local luck = require("src/core/luck")
 local stats = require("src/core/stats")
 
 -- A day before the Late-Game Rebalance (30 Oct 2026), and the day it went live.
-local BEFORE, AFTER = 20756, require("src/rates/late_game_rebalance").day
+local BEFORE, AFTER = 20756, require("src/core/rates/late_game_rebalance").day
 
 -- Each of a boss's choices at its default: { [choice key] = value }.
 local function defaults(boss)
@@ -34,8 +34,7 @@ describe("boss data", function()
 
     for _, boss in ipairs(bosses) do
         describe(boss.name, function()
-            it("names its log page and a KC varbit for each mode", function()
-                assert.is_true(startsWith(boss.logPage, "COLLECTION_BOSS_"))
+            it("names a KC varbit for each mode", function()
                 assert.is_true(#boss.modes > 0)
                 for _, mode in ipairs(boss.modes) do
                     assert.is_true(startsWith(mode.kc, "BSLAY_KILLS_"))

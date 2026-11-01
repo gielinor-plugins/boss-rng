@@ -14,7 +14,7 @@ local HELMET, CHESTPLATE, TASSETS = 25022, 11724, 11726
 local GLOVES, BOOTS, WARSHIELD, HILT = 25025, 11728, 25019, 11704
 
 local ARMOR = { HELMET, CHESTPLATE, TASSETS, GLOVES, BOOTS, WARSHIELD }
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return godwars.Rolls(common.Each(ARMOR, r.armor), HILT, r)
 end
@@ -22,7 +22,6 @@ end
 return {
     key = "graardor", -- saved data key: never change it
     name = "General Graardor",
-    logPage = "COLLECTION_BOSS_GRAARDOR", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     modes = common.Modes(VARS, rolls),

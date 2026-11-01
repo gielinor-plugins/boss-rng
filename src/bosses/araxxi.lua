@@ -23,7 +23,7 @@ local LEGS = { name = "Leg pieces" }
 local ADD_ONS = { name = "Noxious add-ons" }
 
 -- A kill's rolls for a team ("solo" or "duo") at rate values r (see
--- src/rates/base.lua): a leg and an add-on.
+-- src/core/rates/base.lua): a leg and an add-on.
 local function rolls(team)
     return function(r)
         return {
@@ -43,7 +43,6 @@ local TRACKED = {
 return {
     key = "araxxi", -- saved data key: never change it
     name = "Araxxi",
-    logPage = "COLLECTION_BOSS_ARAXXI", -- the boss log page's database row
     assumptions = {},
 
     -- The kill count's mode, counted only through its kill event (Solo or Duo).

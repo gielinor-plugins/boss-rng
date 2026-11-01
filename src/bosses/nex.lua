@@ -24,7 +24,7 @@ local UNIQUES = common.Even({
     VIRTUS_BOOK, VIRTUS_WAND, ZARYTE_BOW,
 })
 
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return { { chance = r.table, items = UNIQUES } }
 end
@@ -32,7 +32,6 @@ end
 return {
     key = "nex", -- saved data key: never change it
     name = "Nex",
-    logPage = "COLLECTION_BOSS_NEX", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.

@@ -31,7 +31,6 @@ local REWARD_WINDOW = "DROP_CASKET_REWARDINV" -- the inventory a chest opens int
 return {
     key = "vorkath", -- saved data key: never change it
     name = "Zemouregal & Vorkath",
-    logPage = "COLLECTION_BOSS_FORT_BOSS_ZEMO_VORKATH", -- the boss log page's database row
     assumptions = {},
     unit = "chest", -- what luck counts (see containers)
 

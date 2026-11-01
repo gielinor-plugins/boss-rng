@@ -40,7 +40,7 @@ local function gear(r)
     return common.Each(ARMOR, r.armorShare / #ARMOR, common.Each(WEAPONS, (1 - r.armorShare) / #WEAPONS))
 end
 
--- The rolls at rate values r (see src/rates/base.lua), by the names of the
+-- The rolls at rate values r (see src/core/rates/base.lua), by the names of the
 -- rates for weapons and armor, the Nexus and the Shard (normal mode has no
 -- Shard roll).
 local function rolls(gearRate, nexus, shard)
@@ -96,7 +96,6 @@ end
 return {
     key = "amascut", -- saved data key: never change it
     name = "Amascut, the Devourer",
-    logPage = "COLLECTION_BOSS_AMASCUT", -- the boss log page's database row
     assumptions = {},
     unit = "pile", -- what luck counts: loot piles claimed (see claims)
     tip = "Claim loot each kill so it counts",

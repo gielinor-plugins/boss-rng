@@ -3,13 +3,13 @@
 How to model changes to the game or to Boss RNG without losing or misreading
 saved data. Saved data (see `saved_data.md`) holds only kills by mode and day,
 drops, and where dry streaks start; every rate is applied when numbers are
-shown. So most changes are made in `src/rates/` and boss files, and saved data
+shown. So most changes are made in `src/core/rates/` and boss files, and saved data
 needs no conversion.
 
 ## Rules that keep saved data valid
 
 - Never rename a boss key, a mode name or an item id: they're keys in saved data.
-- Never rename a rate in `src/rates/base.lua` without renaming it in every
+- Never rename a rate in `src/core/rates/base.lua` without renaming it in every
   update file (`spec/core/rates_spec.lua` fails if an update changes a name base
   doesn't have, and reading a missing name raises an error).
 - A rate of 0 means the item isn't on the table that day: kills from that day
@@ -22,7 +22,7 @@ Add the new value to that update's file, by boss key. Kills before its day keep
 the old rate.
 
 ```lua
--- src/rates/late_game_rebalance.lua
+-- src/core/rates/late_game_rebalance.lua
 solak = { crossbow = 1 / 200 },
 ```
 
@@ -39,7 +39,7 @@ that's intended, since the boss can't give it any more. Kills stay.
 1. Delete the boots from the boss file: their log entry and their part of the
    roll. Stats only read a boss's own uniques, so the row and their part in
    luck go with them.
-2. Delete their rate from `src/rates/`. If the removal changed the other
+2. Delete their rate from `src/core/rates/`. If the removal changed the other
    items' rates, add those to the update's file as usual.
 3. Clean up saved data: drop the boots' entries from `items` and `dryFrom` the
    next time the boss's tallies change. Until that's built, they stay saved but

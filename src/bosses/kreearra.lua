@@ -17,7 +17,7 @@ local HELMET, CHESTPLATE, CHAINSKIRT = 11718, 11720, 11722
 local GLOVES, BOOTS, BUCKLER, HILT = 25016, 25010, 25013, 11702
 
 local ARMOR = { HELMET, CHESTPLATE, CHAINSKIRT, GLOVES, BOOTS, BUCKLER }
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return godwars.Rolls(common.Each(ARMOR, r.armor), HILT, r)
 end
@@ -25,7 +25,6 @@ end
 return {
     key = "kreearra", -- saved data key: never change it
     name = "Kree'arra",
-    logPage = "COLLECTION_BOSS_KREEARRA", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     modes = common.Modes(VARS, rolls),

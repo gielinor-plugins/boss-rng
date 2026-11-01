@@ -80,7 +80,7 @@ end
 -- A streak's kills since its start, { [mode] = { [day] = kills } }: every kill
 -- after its day, and on its day and day 0, the kills beyond those at its start.
 -- No start means every kill.
-function tallies.Since(kills, start)
+local function since(kills, start)
     if start == nil then
         return kills
     elseif start.dry then
@@ -106,7 +106,7 @@ end
 
 -- A dry streak's kills (see dryFrom).
 function tallies.Dry(t, key)
-    return tallies.Since(t.kills, t.dryFrom[key])
+    return since(t.kills, t.dryFrom[key])
 end
 
 -- True if a and b, both { [mode] = { [day] = kills } }, have the same counts
@@ -128,7 +128,7 @@ end
 -- nil (from the first kill) if it's every kill, else from its earliest day
 -- with kills (or after every kill, if it has none on a known day). Kept as
 -- counted if no start gives exactly the same kills.
-function tallies.StartOf(kills, dry)
+local function startOf(kills, dry)
     if sameKills(dry, kills) then
         return nil
     end
@@ -143,7 +143,7 @@ function tallies.StartOf(kills, dry)
     end
     day = day or latestDay(kills)
     local start = { day = day, at = onStartDays(kills, day, dry) }
-    return sameKills(tallies.Since(kills, start), dry) and start or { dry = dry }
+    return sameKills(since(kills, start), dry) and start or { dry = dry }
 end
 
 -- Kills by day as saved: "20756:13,20757:2", days in order. A string per mode
@@ -201,7 +201,7 @@ end
 function tallies.FromVersion4(old)
     local t = { kills = old.kills or {}, dryFrom = {}, items = old.items or {} }
     for key, dry in pairs(old.dry or {}) do
-        t.dryFrom[key] = tallies.StartOf(t.kills, dry)
+        t.dryFrom[key] = startOf(t.kills, dry)
     end
     return t
 end

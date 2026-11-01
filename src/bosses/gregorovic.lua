@@ -15,7 +15,6 @@ local WEAPONS = { GLAIVE, OFFHAND_GLAIVE }
 return {
     key = "gregorovic", -- saved data key: never change it
     name = "Gregorovic",
-    logPage = "COLLECTION_BOSS_SLISKE", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     modes = common.Modes(VARS, godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),

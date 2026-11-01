@@ -3,7 +3,7 @@
 -- layer (572 x 300 when measured), cleared each time the page opens.
 
 local choices = require("src/core/choices")
-local pickers = require("src/ui/pickers")
+local sliders = require("src/ui/sliders")
 local widgets = require("src/ui/widgets")
 
 local settings = {}
@@ -46,12 +46,12 @@ local function addSection(parent, boss, onChoose, y, width)
         y = widgets.AddWrapped(parent, paragraph, PAD, y, width, widgets.SMALL_FONT, LINE_HEIGHT, widgets.GREY) + 4
     end
     local sliderX = PAD + width - SLIDER_WIDTH
-    for _, picker in ipairs(pickers.For(boss, choices.For(boss), onChoose)) do
-        local label = widgets.AddText(parent, picker.label, PAD + 10, y, sliderX - PAD - 20)
+    for _, slider in ipairs(sliders.For(boss, choices.For(boss), onChoose)) do
+        local label = widgets.AddText(parent, slider.label, PAD + 10, y, sliderX - PAD - 20)
         label:SetSize(sliderX - PAD - 20, widgets.SLIDER_HEIGHT)
         label.alignVertical = ui.AlignMode.CENTRE
-        widgets.AddSlider(parent, sliderX, y, SLIDER_WIDTH, picker.min, picker.max, picker.step, picker.current,
-            picker.onPick)
+        widgets.AddSlider(parent, sliderX, y, SLIDER_WIDTH, slider.min, slider.max, slider.step, slider.current,
+            slider.onPick)
         y = y + widgets.SLIDER_HEIGHT + 2
     end
     return y + 8

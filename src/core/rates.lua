@@ -1,4 +1,4 @@
--- Drop rates over time, as named values in the files of src/rates/, one per
+-- Drop rates over time, as named values in the files of src/core/rates/, one per
 -- game update, oldest first (UPDATES): base.lua has each boss's published rates
 -- when it was added, and each later file the day its update went live and only
 -- the values it changed, by boss key. A boss's rolls are built from its values
@@ -10,7 +10,7 @@
 
 local rates = {}
 
--- The update files in src/rates/, oldest first.
+-- The update files in src/core/rates/, oldest first.
 rates.UPDATES = { "base", "late_game_rebalance" }
 
 local History = {}
@@ -62,7 +62,7 @@ function rates.For(key)
     elseif histories[key] == nil then
         local versions = {}
         for _, name in ipairs(rates.UPDATES) do
-            local update = require("src/rates/" .. name)
+            local update = require("src/core/rates/" .. name)
             if update.rates[key] then
                 table.insert(versions, { since = update.day, values = update.rates[key] })
             end

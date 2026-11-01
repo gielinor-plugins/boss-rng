@@ -49,7 +49,7 @@ local function books(chance)
     return { { chance = chance, items = { [CODEX] = 1 } }, { chance = chance, items = { [SCRIPTURE] = 1 } } }
 end
 
--- A hard mode kill's rolls at rate values r (see src/rates/base.lua): a sword
+-- A hard mode kill's rolls at rate values r (see src/core/rates/base.lua): a sword
 -- piece, at the share of runs without checkpoints read from the picks, then the books.
 local function hardRolls(r, picks)
     local share = noCheckpointShare(picks)
@@ -64,7 +64,6 @@ end
 return {
     key = "zuk", -- saved data key: never change it
     name = "TzKal-Zuk",
-    logPage = "COLLECTION_BOSS_EGWD_FUL_BOSS", -- the boss log page's database row
     reads = { stones = VARS.stones, normalKills = VARS.kc, hardKills = VARS.kcHard },
     assumptions = function(picks)
         return unclear(picks) and { "Checkpoints used as often in both modes" } or {}

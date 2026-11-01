@@ -16,7 +16,6 @@ local WEAPONS = { LANCE }
 return {
     key = "vindicta", -- saved data key: never change it
     name = "Vindicta & Gorvek",
-    logPage = "COLLECTION_BOSS_VINDICTA", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     modes = common.Modes(VARS, godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),

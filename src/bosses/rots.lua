@@ -15,7 +15,7 @@ local VARS = {
 local MALEVOLENT, MERCILESS, VENGEFUL = 30014, 30022, 30018 -- magic, melee and ranged
 local UNIQUES = common.Even({ MALEVOLENT, MERCILESS, VENGEFUL })
 
--- A chest's rolls at rate values r (see src/rates/base.lua).
+-- A chest's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return { { chance = r.table, items = UNIQUES } }
 end
@@ -23,7 +23,6 @@ end
 return {
     key = "rots", -- saved data key: never change it
     name = "Barrows: Rise of the Six",
-    logPage = "COLLECTION_BOSS_ROTS", -- the boss log page's database row
     -- The kill count can go up without the chest being looted.
     assumptions = { "Every chest looted" },
 

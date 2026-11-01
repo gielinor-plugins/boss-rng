@@ -38,7 +38,7 @@ describe("rates.History", function()
 end)
 
 describe("the rate files", function()
-    local base = require("src/rates/base")
+    local base = require("src/core/rates/base")
 
     it("give every boss its base rates", function()
         for _, boss in ipairs(bosses) do
@@ -52,7 +52,7 @@ describe("the rate files", function()
             keys[boss.key] = true
         end
         for i = 2, #rates.UPDATES do
-            local update = require("src/rates/" .. rates.UPDATES[i])
+            local update = require("src/core/rates/" .. rates.UPDATES[i])
             assert.is_true(update.day == false or type(update.day) == "number")
             for key, values in pairs(update.rates) do
                 assert.is_true(keys[key] == true)

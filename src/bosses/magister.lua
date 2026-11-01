@@ -12,7 +12,7 @@ local VARS = {
 
 local PHYLACTERY, GLOVES = 40650, 40320
 
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         { chance = r.phylactery, items = { [PHYLACTERY] = 1 } },
@@ -23,7 +23,6 @@ end
 return {
     key = "magister", -- saved data key: never change it
     name = "The Magister",
-    logPage = "COLLECTION_BOSS_MAGISTER", -- the boss log page's database row
     assumptions = {},
 
     -- Mode names are saved with the player's data: never change them.

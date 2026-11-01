@@ -17,7 +17,7 @@ local BOOTS, SPIKE = 51082, 51086
 local RICOCHET, CHAIN, DIVERT = 51094, 51096, 51098
 local OTHERS = { SPIKE, RICOCHET, CHAIN, DIVERT }
 
--- A kill's rolls at rate values r (see src/rates/base.lua): one table roll.
+-- A kill's rolls at rate values r (see src/core/rates/base.lua): one table roll.
 local function rolls(r)
     return { common.OneOf(common.Each(OTHERS, r.other, { [BOOTS] = r.boots })) }
 end
@@ -25,7 +25,6 @@ end
 return {
     key = "raksha", -- saved data key: never change it
     name = "Raksha, the Shadow Colossus",
-    logPage = "COLLECTION_BOSS_DINO", -- the boss log page's database row
     assumptions = {},
 
     -- Mode names are saved with the player's data: never change them.

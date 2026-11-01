@@ -5,7 +5,7 @@
 -- crossbow, main-hand or off-hand (1/400 each). Merethiel's stave and the purple
 -- mushroom are 1/500 each, on their own rolls. Every player in the team gets
 -- their own rolls, at the same rates for any team size. Jagex's Late-Game
--- Rebalance raises each crossbow to 1/200 (src/rates/).
+-- Rebalance raises each crossbow to 1/200 (src/core/rates/).
 
 local common = require("src/bosses/common")
 
@@ -17,7 +17,7 @@ local VARS = {
 local GRIMOIRE, CROSSBOW, OFFHAND = 42785, 42770, 42774
 local STAVE, MUSHROOM = 42767, 42782
 
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         common.OneOf(common.Each({ CROSSBOW, OFFHAND }, r.crossbow, { [GRIMOIRE] = r.grimoire })),
@@ -29,7 +29,6 @@ end
 return {
     key = "solak", -- saved data key: never change it
     name = "Solak",
-    logPage = "COLLECTION_BOSS_SOLAK", -- the boss log page's database row
     assumptions = {},
 
     -- Mode names are saved with the player's data: never change them.

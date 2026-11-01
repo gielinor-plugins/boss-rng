@@ -5,7 +5,7 @@
 -- with contribution (ROLLS), to 12 at full contribution, and below 60 there are
 -- no unique rolls. Every player gets their own rolls. Jagex's Late-Game
 -- Rebalance raises each roll's weapons, spore sack and scripture to 1/2,500
--- each and Cryptbloom pieces to 1/3,000 each (src/rates/). Each tracked kill
+-- each and Cryptbloom pieces to 1/3,000 each (src/core/rates/). Each tracked kill
 -- counts at the player's contribution, its last value before the kill (the
 -- game resets it after), so its rolls are exact.
 
@@ -30,7 +30,7 @@ local ARMOR = { HELM, TOP, BOTTOMS, GLOVES, BOOTS }
 local OTHERS = { SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE }
 
 -- A kill's n unique rolls at rate values r: each item's chance per loot roll
--- (see src/rates/base.lua).
+-- (see src/core/rates/base.lua).
 local function rolls(n)
     return function(r)
         return common.Repeat({}, n, common.OneOf(common.Each(ARMOR, r.armor, common.Each(OTHERS, r.other))))
@@ -64,7 +64,6 @@ end
 return {
     key = "croesus", -- saved data key: never change it
     name = "Croesus",
-    logPage = "COLLECTION_BOSS_EGWD_BIK_BOSS", -- the boss log page's database row
     assumptions = {},
 
     modes = { MODES["12 rolls"] }, -- counted only through its kill event

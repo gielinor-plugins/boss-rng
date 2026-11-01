@@ -58,8 +58,8 @@ main.lua      entry point the game runs
 plugin.json   plugin manifest
 src/          plugin modules, loaded with require("src/...")
   bosses/     one data file per boss (src/bosses.lua lists them)
-  rates/      drop rates, one file per game update
   core/       game reading, tallies and luck math
+    rates/    drop rates, one file per game update
   ui/         the panel, window and settings page (src/ui.lua runs them)
   utils/      helpers with no boss knowledge
 resources/    images and sounds, if added later (a folder name the game reserves)

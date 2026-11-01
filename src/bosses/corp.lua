@@ -16,7 +16,7 @@ local SPECTRAL, ARCANE, ELYSIAN, DIVINE = 13752, 13746, 13750, 13748
 local ELIXIR = 13754
 local SIGILS = common.Even({ SPECTRAL, ARCANE, ELYSIAN, DIVINE })
 
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         { chance = r.sigil, items = SIGILS },
@@ -27,7 +27,6 @@ end
 return {
     key = "corp", -- saved data key: never change it
     name = "Corporeal Beast",
-    logPage = "COLLECTION_BOSS_CORP", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     -- Mode names are saved with the player's data: never change them.

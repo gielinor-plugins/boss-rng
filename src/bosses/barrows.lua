@@ -81,7 +81,7 @@ local function weights(brothers)
     return result
 end
 
--- A chest's rolls at rate values r (see src/rates/base.lua): the amulet's, one
+-- A chest's rolls at rate values r (see src/core/rates/base.lua): the amulet's, one
 -- equipment roll per brother killed plus one (up to maxRolls), and Linza's if
 -- she was killed.
 local function chestRolls(brothers, linza, r)
@@ -174,7 +174,6 @@ end
 return {
     key = "barrows", -- saved data key: never change it
     name = "Barrows brothers",
-    logPage = "COLLECTION_BOSS_BARROWS", -- the boss log page's database row
     assumptions = { "Amulet of the forsaken from partial chests too" },
 
     -- The kill count's mode, counted only through its kill event: each tracked

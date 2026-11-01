@@ -32,7 +32,6 @@ dungeon.Add("The Ambassador", VARS.kc, pieces)
 return {
     key = "shadow_reef", -- saved data key: never change it
     name = "The Shadow Reef",
-    logPage = "COLLECTION_BOSS_DUNGEON_ULTHVEN", -- the boss log page's database row
     assumptions = { eliteDungeon.ASSUMPTION },
     modes = dungeon.modes, -- the group kill count's mode is counted only through its kill event
     killEvents = dungeon.killEvents,

@@ -19,7 +19,7 @@ local HOOD, GARB, GOWN, GLOVES, BOOTS, WARD = 24992, 24995, 24998, 25007, 25004,
 local SPEAR, STAFF, HILT = 11716, 11736, 11708
 
 local ARMOR = { HOOD, GARB, GOWN, GLOVES, BOOTS, WARD }
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return godwars.Rolls(common.Each(ARMOR, r.armor, { [SPEAR] = r.spear, [STAFF] = r.staff }), HILT, r)
 end
@@ -27,7 +27,6 @@ end
 return {
     key = "kril", -- saved data key: never change it
     name = "K'ril Tsutsaroth",
-    logPage = "COLLECTION_BOSS_KRIL", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     modes = common.Modes(VARS, rolls),

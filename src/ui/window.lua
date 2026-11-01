@@ -7,9 +7,9 @@
 
 local choices = require("src/core/choices")
 local format = require("src/ui/format")
-local pickers = require("src/ui/pickers")
 local frame = require("src/ui/frame")
 local info = require("src/ui/info")
+local sliders = require("src/ui/sliders")
 local widgets = require("src/ui/widgets")
 
 local window = {}
@@ -60,7 +60,7 @@ function window.Close()
     box = nil
 end
 
-local itemName = pickers.ItemName
+local itemName = widgets.ItemName
 
 -- The uniques in card order: unluckiest first, then by name. A group of uniques
 -- (see src/bosses.lua) shows its own name, and its first item's icon.
@@ -127,7 +127,7 @@ local function addHeadline(parent, state, y)
     local headlineY = y
     local notes = choices.Assumptions(entry.boss, entry.picks)
     if #notes > 0 then
-        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes, pickers.WhereToChange(entry.boss))
+        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes, sliders.WhereToChange(entry.boss))
     end
     y = widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 30, result) + 2
     if result.luck then
@@ -238,7 +238,7 @@ function window.Draw(state)
 
     local pickerY = TITLE_HEIGHT + 8
     table.insert(dropdowns, function() widgets.AddBossPicker(box, state, PAD, pickerY, TABLE_WIDTH) end)
-    y = addHeadline(box, state, pickerY)
+    local y = addHeadline(box, state, pickerY)
     widgets.AddSeparator(box, PAD, y, TABLE_WIDTH)
     local headerY = y + 4
     addColumnNames(box, headerY, state.onRedraw, dropdowns)

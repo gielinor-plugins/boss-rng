@@ -18,7 +18,7 @@ local VARS = {
 
 local CODEX, SCRIPTURE, ROAR, ODE = 57156, 57124, 57162, 57158
 
--- A boss's rolls at rate values r (see src/rates/base.lua), by the names of
+-- A boss's rolls at rate values r (see src/core/rates/base.lua), by the names of
 -- its rates: a book, then for Nakatra a weapon and, in hard mode, the Shard.
 local function rolls(books, weapons, shard)
     return function(r)
@@ -38,7 +38,6 @@ local BOOKS, HARD_BOOKS = rolls("books"), rolls("hardBooks")
 return {
     key = "sanctum", -- saved data key: never change it
     name = "Sanctum of Rebirth",
-    logPage = "COLLECTION_BOSS_RAID_REBIRTH1", -- the boss log page's database row
     assumptions = {},
 
     -- Mode names are saved with the player's data: never change them.

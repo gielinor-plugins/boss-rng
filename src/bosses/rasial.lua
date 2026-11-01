@@ -17,7 +17,7 @@ local CROWN, TOP, BOTTOM, HANDS, FEET = 55488, 55490, 55492, 55494, 55496
 local WEAPONS = common.Even({ GUARD, LANTERN })
 local ARMOR = common.Even({ CROWN, TOP, BOTTOM, HANDS, FEET })
 
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return {
         { chance = r.weapon, items = WEAPONS },
@@ -28,7 +28,6 @@ end
 return {
     key = "rasial", -- saved data key: never change it
     name = "Rasial, the First Necromancer",
-    logPage = "COLLECTION_BOSS_RASIAL", -- the boss log page's database row
     assumptions = {},
 
     -- Mode names are saved with the player's data: never change them.

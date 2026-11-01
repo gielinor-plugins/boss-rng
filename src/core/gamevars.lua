@@ -6,13 +6,12 @@
 --
 -- Kill counts and log counts are varbits: slices of a bigger "base" var. At a kill
 -- or drop the game sends the base var's old and new value (VarTransmit), and the
--- change in each slice is a kill or drop. A boss whose loot comes in an item
--- kept to open later (see containers in src/bosses.lua) counts each one opened
--- instead: the backpack's count of it falling as its reward window opens. A boss
--- whose loot waits in a chest (see claims) counts the loot claimed: the bits
--- holding it falling to 0, their old value being how much, when every bit of it
--- was seen arriving with a kill.
+-- change in each slice is a kill or drop. Containers and claims count loot
+-- opened or claimed instead (src/core/containers.lua, src/core/claims.lua).
 
+local bits = require("src/utils/bits")
+local claims = require("src/core/claims")
+local containers = require("src/core/containers")
 local days = require("src/utils/days")
 local safe = require("src/utils/safe")
 
@@ -38,37 +37,24 @@ local onReady = nil -- called once vars can be trusted after entering the game
 local announced = false -- whether onReady was called since entering the game
 local killedThisSession = {} -- [boss] = true once a kill is reported since entering the game
 
--- Containers opened: each container's report and reward window by item id,
--- the backpack's count of each as last read, and this tick's reward windows
--- opened (by inventory name) and container counts that fell (by item id).
-local containers = {}
-local heldCounts = {}
-local opening = { windows = {}, fell = {} }
-
--- Claims watched (see claims in src/bosses.lua), each { mask, shift, report(old,
--- held), seen, trusted, kills, rises }: seen is the loot seen arriving since its
--- bits were last 0, and trusted turns false if any arrived unseen (loot waiting
--- before it was watched, or a kill that didn't raise it). kills and rises count
--- this tick's kills and loot rises. By base var id, and as a list.
-local claims, claimList = {}, {}
-
 -- Varbits kept at their last value above 0 (see lasts in killEvents): [base var
 -- id] = { name, keep(value) }.
 local lasts = {}
 
+-- Queues a kill report for the next tick.
+local function queueKill(report, change)
+    table.insert(pending.kills, { report = report, change = change })
+end
+
+-- The current value of a var by name, or nil if the game doesn't have it.
+local function value(name)
+    local found = var.VarPlayer[name]
+    return found and found.value
+end
+
 -- True once vars can be trusted: in the game, and settled after entering it.
 local function isReady()
     return readyAtTick ~= nil and tick >= readyAtTick
-end
-
--- Number of zero bits below a mask's lowest set bit, e.g. 0xFFFF0000 gives 16.
-local function lowestBit(mask)
-    local shift = 0
-    while mask ~= 0 and mask & 1 == 0 do
-        mask = mask >> 1
-        shift = shift + 1
-    end
-    return shift
 end
 
 -- Watches a varbit by name, or with mask, bits of a var the game doesn't name
@@ -88,7 +74,7 @@ local function watch(name, group, report, mask, most)
     mask = mask or found.varBitMask
     watched[baseID] = watched[baseID] or {}
     table.insert(watched[baseID], {
-        mask = mask, shift = lowestBit(mask), group = group, report = report, count = count, most = most or MAX_CHANGE,
+        mask = mask, shift = bits.LowestBit(mask), group = group, report = report, count = count, most = most or MAX_CHANGE,
     })
 end
 
@@ -127,94 +113,35 @@ local function onVarTransmit(event)
         end
     end
     for _, last in ipairs(lasts[event.var.id] or {}) do
-        local now = var.VarPlayer[last.name].value
+        local now = value(last.name)
         if now and now > 0 then
             last.keep(now)
         end
     end
-    for _, claim in ipairs(isReady() and claims[event.var.id] or {}) do
-        local from, to = (old & claim.mask) >> claim.shift, (new & claim.mask) >> claim.shift
-        if to > from then
-            claim.seen, claim.rises = claim.seen + to - from, claim.rises + 1
-        elseif from > 0 and to == 0 then
-            if claim.trusted and claim.seen == from then
-                table.insert(pending.kills, { report = function(count) claim.report(old, count) end, change = from })
-            end
-            claim.seen, claim.trusted = 0, true
-        end
-    end
-end
-
--- Distrusts a claim's waiting loot if a kill this tick didn't raise it, then
--- starts counting the next tick.
-local function checkClaims()
-    for _, claim in ipairs(claimList) do
-        if claim.kills > claim.rises then
-            claim.trusted = false
-        end
-        claim.kills, claim.rises = 0, 0
+    if isReady() then
+        claims.OnVar(event.var.id, old, new, queueKill)
     end
 end
 
 local function onGameStateChanged(event)
     readyAtTick = event.newState == GameState.GAME and tick + SETTLE_TICKS or nil
     announced = false
-    killedThisSession, heldCounts = {}, {}
+    killedThisSession = {}
+    containers.Forget()
     eachCount(function(slice) slice.highest = nil end) -- maybe another character
 end
 
--- The backpack's count of each container, or nil if it can't be read.
-local function readHeld()
-    local backpack = Inventory.Find(config.Inv.INV)
-    if backpack == nil or not backpack.isValid then
-        return nil
-    end
-    local counts = {}
-    for itemID in pairs(containers) do
-        counts[itemID] = backpack:GetTotal(itemID)
-    end
-    return counts
-end
-
--- Notes containers leaving the backpack, and any other inventory opening (a
--- reward window). Banking a container lowers its count too, but opens no
--- reward window.
 local function onInventory(event)
-    if not isReady() then
-        return
-    elseif event.inv.id == config.Inv.INV.id then
-        for itemID, count in pairs(readHeld() or {}) do
-            local fell = (heldCounts[itemID] or count) - count
-            if fell > 0 then
-                opening.fell[itemID] = (opening.fell[itemID] or 0) + fell
-            end
-            heldCounts[itemID] = count
-        end
-    else
-        local name = event.inv.configName
-        opening.windows[name] = (opening.windows[name] or 0) + 1
+    if isReady() then
+        containers.OnInventory(event)
     end
-end
-
--- Queues this tick's openings as kills: each container that left the backpack
--- in the tick its reward window opened, one per window.
-local function queueOpenings()
-    for itemID, fell in pairs(opening.fell) do
-        local container = containers[itemID]
-        local opened = math.min(fell, opening.windows[container.window] or 0)
-        if opened > 0 then
-            table.insert(pending.kills, { report = container.report, change = opened })
-            opening.windows[container.window] = opening.windows[container.window] - opened
-        end
-    end
-    opening = { windows = {}, fell = {} }
 end
 
 -- When a kill and a drop change in the same tick they can arrive in either order
 -- (at Kree'arra the drop came first). Reporting a tick's changes together, kills
 -- first, means a drop is always counted after the kill it landed with.
 local function flush()
-    queueOpenings()
+    containers.EndTick(queueKill)
     for _, group in ipairs({ "kills", "drops" }) do
         for _, item in ipairs(pending[group]) do
             safe.Call("recording " .. group, item.report, item.change)
@@ -226,27 +153,16 @@ end
 local function onLogic(event)
     tick = event.logicTick
     flush()
-    checkClaims()
+    claims.EndTick()
     if isReady() and not announced then
         announced = true
         eachCount(function(slice)
-            local found = var.VarPlayer[slice.count]
-            slice.highest = math.max(slice.highest or 0, found and found.value or 0)
+            slice.highest = math.max(slice.highest or 0, value(slice.count) or 0)
         end)
-        -- Loot already waiting arrived unseen, so its claim won't count.
-        for _, claim in ipairs(claimList) do
-            local held = claim.base.value
-            claim.trusted, claim.seen = held ~= nil and (held & claim.mask) == 0, 0
-        end
-        heldCounts = readHeld() or {}
+        claims.Ready()
+        containers.Ready()
         safe.Call("updating once the game is ready", onReady)
     end
-end
-
--- The current value of a var by name, or nil if the game doesn't have it.
-local function value(name)
-    local found = var.VarPlayer[name]
-    return found and found.value
 end
 
 -- A boss's all-time kills, the sum of its kill counts, or nil until vars can be
@@ -377,21 +293,14 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
         for _, claim in ipairs(boss.claims or {}) do
             local base = var.VarPlayer[claim.var]
             if base then
-                local state = {
-                    base = base, mask = claim.mask, shift = lowestBit(claim.mask),
-                    seen = 0, trusted = false, kills = 0, rises = 0,
-                    report = function(old, count)
-                        local mode = eventMode(boss, claim, old)
-                        if mode then
-                            killed(boss, mode, count)
-                        end
-                    end,
-                }
-                claims[base.id] = claims[base.id] or {}
-                table.insert(claims[base.id], state)
-                table.insert(claimList, state)
+                local countKill = claims.Add(base, claim.mask, function(old, count)
+                    local mode = eventMode(boss, claim, old)
+                    if mode then
+                        killed(boss, mode, count)
+                    end
+                end)
                 for _, kc in ipairs(claim.kills) do
-                    watch(kc, "kills", function(count) state.kills = state.kills + count end)
+                    watch(kc, "kills", countKill)
                 end
             else
                 print("[Boss RNG] Unknown var " .. claim.var)
@@ -400,10 +309,7 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
         for itemID, container in pairs(boss.containers or {}) do
             for _, mode in ipairs(boss.modes) do
                 if mode.name == container.mode then
-                    containers[itemID] = {
-                        window = container.window,
-                        report = function(count) killed(boss, mode, count) end,
-                    }
+                    containers.Add(itemID, container.window, function(count) killed(boss, mode, count) end)
                 end
             end
         end
@@ -436,8 +342,9 @@ function gamevars.Stop()
     Event.VarTransmit.Unsubscribe(REF)
     Event.InventoryAdded.Unsubscribe(REF)
     Event.InventoryUpdated.Unsubscribe(REF)
-    watched, containers, heldCounts, claims, claimList, lasts = {}, {}, {}, {}, {}, {}
-    opening = { windows = {}, fell = {} }
+    watched, lasts = {}, {}
+    claims.Clear()
+    containers.Clear()
     pending = { kills = {}, drops = {} }
     readyAtTick = nil
     onReady, announced, killedThisSession = nil, false, {}

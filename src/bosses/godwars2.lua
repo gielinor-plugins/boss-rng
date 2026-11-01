@@ -5,7 +5,7 @@
 -- one table for a dormant anima core piece, its crest or its weapons, every item
 -- at the same rate: 1/256 in normal mode (1/255 at Vindicta) and 1/179 in hard
 -- mode. Only if that misses, a 1/64 (hard mode 1/44) roll for its essence.
--- Jagex's Late-Game Rebalance raises the crests to 1/128 (src/rates/).
+-- Jagex's Late-Game Rebalance raises the crests to 1/128 (src/core/rates/).
 --
 -- The anima core pieces' boss log counts are shared by all four bosses, so they
 -- aren't counted, but they still take up the table's chance. Nothing here can
@@ -19,7 +19,7 @@ local godwars2 = {}
 local ANIMA_PIECES = 3 -- dormant anima core helm, body and legs
 
 -- The rolls for a mode ("normal" or "hard"), as a function of the rate values
--- (see src/rates/base.lua): the boss's crest, its weapons and its essence. Nothing here can drop
+-- (see src/core/rates/base.lua): the boss's crest, its weapons and its essence. Nothing here can drop
 -- together, so it's one roll; the essence is only rolled if the table misses.
 function godwars2.Rolls(mode, crest, weapons, essence)
     return function(r)

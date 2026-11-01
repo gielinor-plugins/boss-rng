@@ -7,13 +7,12 @@ local safe = require("src/utils/safe")
 local widgets = {}
 
 -- Fonts and colors match the game's collection log: Cinzel headings, Noto Sans
--- text and yellow highlights.
-widgets.FONT = id.Font.NOTOSANS_14
+-- text and gold headings.
+local FONT = id.Font.NOTOSANS_14
 widgets.SMALL_FONT = id.Font.NOTOSANS_12
 widgets.TITLE_FONT = id.Font.CINZEL_13PT_BOLD
 widgets.CARD_FONT = id.Font.NOTOSANS_SEMIBOLD_14 -- labels and headlines
 widgets.ROW_FONT = id.Font.NOTOSANS_SEMIBOLD_12 -- names in table rows
-widgets.YELLOW = Vector4.new(1.0, 0.85, 0.2, 1.0)
 widgets.GOLD = Vector4.new(0.94, 0.75, 0.47, 1.0) -- the log's title and headings
 widgets.GREY = Vector4.new(0.75, 0.75, 0.75, 1.0) -- secondary text
 widgets.MUTED = Vector4.new(0.6, 0.6, 0.6, 1.0) -- notes beside the numbers: all-time totals, tips
@@ -27,6 +26,12 @@ local TICK = Vector4.new(1.0, 1.0, 1.0, 0.9) -- marks average luck on a bar
 -- A solid gold timer bar fill. It stretches to any width without marks that
 -- could be mistaken for values (the adrenaline bar's segment notches could).
 local BAR_FILL = "TIMERBAR_120_S_1"
+
+-- The game's name for an item, or its id if that can't be read.
+function widgets.ItemName(itemID)
+    local ok, name = pcall(function() return config.Obj.FromID(math.tointeger(itemID)).name end)
+    return ok and name or ("Item " .. tostring(itemID))
+end
 
 -- Destroys a component and everything in it, if there is one. It may already be
 -- gone (the game clears a panel layer when it's resized), so failures are ignored.
@@ -51,7 +56,7 @@ end
 -- A line of text. The font defaults to FONT.
 function widgets.AddText(parent, content, x, y, width, font)
     local text = widgets.Place(ui.Text.new(parent), x, y, width, widgets.TEXT_HEIGHT)
-    text.font = font or widgets.FONT
+    text.font = font or FONT
     text.content = content
     return text
 end
@@ -81,7 +86,7 @@ end
 
 -- content split between words into lines that fit in width pixels in font. If
 -- the font can't be measured, content comes back as one line.
-function widgets.Wrap(content, font, width)
+local function wrap(content, font, width)
     if textWidth(content, font) == nil then
         return { content }
     end
@@ -102,7 +107,7 @@ end
 -- Adds content wrapped to width at x, y in parent, a line every lineHeight
 -- pixels, in font and colour. Returns the y below it.
 function widgets.AddWrapped(parent, content, x, y, width, font, lineHeight, colour)
-    for _, line in ipairs(widgets.Wrap(content, font, width)) do
+    for _, line in ipairs(wrap(content, font, width)) do
         local text = widgets.AddText(parent, line, x, y, width, font)
         if colour then
             text.colour = colour

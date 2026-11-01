@@ -11,7 +11,7 @@ local eliteDungeon = {}
 eliteDungeon.ASSUMPTION = "Group rates use everyone in the dungeon"
 
 local PLAYERS = "DUNGEON_PLAYERS_AT_BOSS_KILL" -- players in the dungeon at the kill
-local TEAMS = { "solo", "duo", "trio" } -- rate names by players (see src/rates/base.lua)
+local TEAMS = { "solo", "duo", "trio" } -- rate names by players (see src/core/rates/base.lua)
 
 -- A tracked group kill's mode name ("Astellarn, 2 players"): 0 players (not read
 -- yet) leaves the kill uncounted, and more than 3 count as 3. Mode names are

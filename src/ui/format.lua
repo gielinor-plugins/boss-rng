@@ -1,11 +1,7 @@
 -- The words and numbers Boss RNG shows the player. Plain Lua, so it can be tested
 -- offline, and shared by every view so the wording lives in one place.
 
-local days = require("src/utils/days")
-
 local format = {}
-
-local MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
 
 -- 1234567 gives "1,234,567".
 function format.Number(n)
@@ -51,12 +47,6 @@ local AVERAGE_LOW, AVERAGE_HIGH = 0.4, 0.6
 -- float noise (0.12 * 100 = 12.000000000000002) from rounding up a whole step.
 local function groupPercent(share)
     return math.max(1, math.ceil(share * 100 - 1e-9)) .. "%"
-end
-
--- A day (see src/utils/days.lua) as a date: "29 Oct 2026".
-function format.Date(day)
-    local year, month, date = days.ToDate(day)
-    return date .. " " .. MONTHS[month] .. " " .. year
 end
 
 -- Luck in a few words, for a column headed "luck": "top 3%", "average",

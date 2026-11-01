@@ -15,7 +15,6 @@ local WEAPONS = { WAND, ORB }
 return {
     key = "helwyr", -- saved data key: never change it
     name = "Helwyr",
-    logPage = "COLLECTION_BOSS_HELWYR", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     modes = common.Modes(VARS, godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),

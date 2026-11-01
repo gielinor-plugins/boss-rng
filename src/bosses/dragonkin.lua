@@ -31,7 +31,6 @@ dungeon.Add("Black stone dragon", VARS.kc .. 3, codex(BARGE))
 return {
     key = "dragonkin", -- saved data key: never change it
     name = "Dragonkin Laboratory",
-    logPage = "COLLECTION_BOSS_DUNGEON_DRAGONFORT", -- the boss log page's database row
     assumptions = { eliteDungeon.ASSUMPTION },
     modes = dungeon.modes, -- each group kill count's mode is counted only through its kill event
     killEvents = dungeon.killEvents,

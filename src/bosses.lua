@@ -53,7 +53,7 @@
 -- of up to most is one drop, and its log count (items, not drops) shows apart
 -- from the boss's other uniques, as a count of word ("spike").
 --
--- Rates are named values in src/rates/, by boss key (see src/core/rates.lua). A
+-- Rates are named values in src/core/rates/, by boss key (see src/core/rates.lua). A
 -- mode's rolls are a function of a day's values and the player's picks, so
 -- each tracked kill uses the rates of its day.
 --

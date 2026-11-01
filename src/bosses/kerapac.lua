@@ -38,7 +38,7 @@ end
 
 local OTHERS = common.Even({ WRAPS, CODEX, SCRIPTURE })
 
--- Each mode's pile at rate values r, per loot pile (see src/rates/base.lua).
+-- Each mode's pile at rate values r, per loot pile (see src/core/rates/base.lua).
 local function normalPile(r)
     return { { chance = r.normal, items = OTHERS } }
 end
@@ -58,7 +58,6 @@ end
 return {
     key = "kerapac", -- saved data key: never change it
     name = "Kerapac",
-    logPage = "COLLECTION_BOSS_EGWD_JAS_BOSS", -- the boss log page's database row
     assumptions = {},
     choicesHelp = {
         "Each kill drops 3 loot piles, and each pile has its own chance at a unique. Solo, you get all 3. "

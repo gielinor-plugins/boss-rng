@@ -15,7 +15,6 @@ local WEAPONS = { NYMORA, AVARYSS }
 return {
     key = "furies", -- saved data key: never change it
     name = "The Twin Furies",
-    logPage = "COLLECTION_BOSS_TWINFURIES", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     modes = common.Modes(VARS, godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),

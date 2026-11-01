@@ -17,7 +17,7 @@ local WHISPER, HISS, MURMUR, HUM, HILT = 25028, 25031, 25034, 61117, 11706
 
 local OTHERS = { SWORD, WHISPER, HISS, MURMUR }
 local CROSSBOWS = { CROSSBOW, OFFHAND_CROSSBOW }
--- A kill's rolls at rate values r (see src/rates/base.lua).
+-- A kill's rolls at rate values r (see src/core/rates/base.lua).
 local function rolls(r)
     return godwars.Rolls(common.Each(CROSSBOWS, r.crossbow, common.Each(OTHERS, r.other)), HILT, r)
 end
@@ -25,7 +25,6 @@ end
 return {
     key = "zilyana", -- saved data key: never change it
     name = "Commander Zilyana",
-    logPage = "COLLECTION_BOSS_ZILYANA", -- the boss log page's database row
     assumptions = { common.SOLO_KILLS },
 
     modes = common.Modes(VARS, rolls),

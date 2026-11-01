@@ -18,7 +18,7 @@ local choices = {}
 local store = saved.ForCharacter("choices:", 4, function() return { bosses = {} } end)
 
 -- True if value is a number the choice's slider can show.
-function choices.Valid(choice, value)
+local function valid(choice, value)
     if type(value) ~= "number" or value < choice.min or value > choice.max then
         return false
     end
@@ -34,7 +34,7 @@ function choices.For(boss)
     local values = {}
     for _, choice in ipairs(boss.choices or {}) do
         local picked = picks[choice.key]
-        values[choice.key] = choices.Valid(choice, picked) and picked or choice.default
+        values[choice.key] = valid(choice, picked) and picked or choice.default
     end
     return values
 end
