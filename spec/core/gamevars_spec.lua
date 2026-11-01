@@ -208,6 +208,36 @@ describe("gamevars", function()
             assert.are.same({ "kill Normal +3" }, reports)
         end)
 
+        it("counts claims sharing one var by their own bits, like Sanctum's bosses", function()
+            local function only(name) return function() return name end end
+            local two = {
+                modes = { { name = "A", kc = "KC_NORMAL", byEvent = true }, { name = "B", kc = "KC_HARD", byEvent = true } },
+                items = {},
+                claims = {
+                    { var = "LOOT_BASE", mask = 0x1, kills = { "KC_NORMAL" }, reads = {}, mode = only("A") },
+                    { var = "LOOT_BASE", mask = 0x4, kills = { "KC_HARD" }, reads = {}, mode = only("B") },
+                },
+                modeFor = function(name) return { name = name } end,
+            }
+            gamevars.Stop()
+            loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
+            loot.value = 0
+            gamevars.Start({ two }, function(_, mode, count)
+                table.insert(reports, "kill " .. mode.name .. " +" .. count)
+            end, function() end, function() end)
+            advance(1)
+            send(KC_VAR, 0, 1) -- A's kill sets its bit
+            send(LOOT_VAR, 0, 0x1)
+            advance(1)
+            send(KC_VAR, 1, 0x10001) -- B's kill sets its own
+            send(LOOT_VAR, 0x1, 0x5)
+            advance(1)
+            assert.are.same({}, reports)
+            change(LOOT_VAR, 0x5, 0x4)
+            change(LOOT_VAR, 0x4, 0)
+            assert.are.same({ "kill A +1", "kill B +1" }, reports)
+        end)
+
         it("leaves loot waiting from before it was watched uncounted", function()
             start(0x20000)
             kill(1, 0x20000, 0x30000)

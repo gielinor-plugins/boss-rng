@@ -1,12 +1,15 @@
 -- Sanctum of Rebirth: three bosses in one run with one boss log page, each with its own
 -- kill counts. Rates: RuneScape Wiki (from Jagex; CC BY-NC-SA 3.0), checked 2026-10-27.
--- Every player gets their own rolls.
+-- Every player gets their own rolls. Each boss's loot waits in a chest until claimed,
+-- and the run can't be entered again until it is, so each claim is one kill, counted
+-- at its mode (see docs/bosses/sanctum.md for the tests behind this).
 
 local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_RAID_REBIRTH1_", -- then each boss's name, with _HARDMODE for hard mode
     log = "ITEMLOG_ITEM_", -- then each unique's log count name
+    loot = "RAID_REBIRTH1_VARP_1", -- each boss's waiting loot and its difficulty (rare fields never read)
 }
 
 local CODEX, SCRIPTURE, ROAR, ODE = 57156, 57124, 57162, 57158
@@ -27,21 +30,40 @@ end
 
 local BOOKS, HARD_BOOKS = rolls("books"), rolls("hardBooks")
 
+-- Mode names are saved: never change them.
+local MODES = {
+    { name = "Vermyx", kc = VARS.kc .. "WYRM_BOSS", rolls = BOOKS },
+    { name = "Vermyx hard mode", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = HARD_BOOKS },
+    { name = "Kezalam", kc = VARS.kc .. "BEAST_BOSS", rolls = BOOKS },
+    { name = "Kezalam hard mode", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = HARD_BOOKS },
+    { name = "Nakatra", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls("books", "weapons") },
+    { name = "Nakatra hard mode", kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE",
+        rolls = rolls("hardBooks", "hardWeapons", "hardShard") },
+}
+local byName = {}
+for _, mode in ipairs(MODES) do
+    mode.byEvent = true -- counted through claims
+    byName[mode.name] = mode
+end
+
+-- A boss's claim, for its normal and hard mode (MODES[i] and MODES[i + 1]): its
+-- loot waiting bit and difficulty field (0 normal, 1 hard) in VARS.loot.
+local function claim(i, loot, difficulty)
+    local normal, hard = MODES[i], MODES[i + 1]
+    return {
+        var = VARS.loot, mask = loot, kills = { normal.kc, hard.kc }, reads = {},
+        mode = function(_, old) return (old & difficulty) == 0 and normal.name or hard.name end,
+    }
+end
+
 return {
     key = "sanctum", -- saved data key: never change it
     name = "Sanctum of Rebirth",
     assumptions = {},
 
-    -- Mode names are saved: never change them.
-    modes = {
-        { name = "Vermyx", kc = VARS.kc .. "WYRM_BOSS", rolls = BOOKS },
-        { name = "Vermyx hard mode", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = HARD_BOOKS },
-        { name = "Kezalam", kc = VARS.kc .. "BEAST_BOSS", rolls = BOOKS },
-        { name = "Kezalam hard mode", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = HARD_BOOKS },
-        { name = "Nakatra", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls("books", "weapons") },
-        { name = "Nakatra hard mode", kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE",
-            rolls = rolls("hardBooks", "hardWeapons", "hardShard") },
-    },
+    modes = MODES,
+    claims = { claim(1, 0x1, 0x300), claim(3, 0x4, 0xC00), claim(5, 0x10, 0x3000) },
+    modeFor = function(name) return byName[name] end,
 
     items = {
         [CODEX] = { log = VARS.log .. "COMBATV2_PRAYER_CODEX_DIVINE_RAGE", kind = "unique" },

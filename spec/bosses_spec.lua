@@ -342,6 +342,24 @@ it("counts Amascut's claimed loot piles by mode: normal, or the enrage's tier", 
     assert.are.equal("pile", boss.unit)
 end)
 
+it("counts each Sanctum boss's claimed loot as one kill, by its difficulty", function()
+    local boss = require("src/bosses/sanctum")
+    local vermyx, kezalam, nakatra = boss.claims[1], boss.claims[2], boss.claims[3]
+    -- The loot var's values seen in game (rare fields left out): each boss's loot
+    -- waiting bit, with difficulty 0 in normal mode and 1 in hard mode.
+    assert.are.equal("RAID_REBIRTH1_VARP_1", nakatra.var)
+    assert.are.same({ 0x1, 0x4, 0x10 }, { vermyx.mask, kezalam.mask, nakatra.mask })
+    assert.are.equal("Vermyx", vermyx.mode({}, 0xC001))
+    assert.are.equal("Kezalam", kezalam.mode({}, 0xC004))
+    assert.are.equal("Nakatra", nakatra.mode({}, 0xC010))
+    assert.are.equal("Nakatra hard mode", nakatra.mode({}, 0xD010))
+    assert.are.equal("Vermyx hard mode", vermyx.mode({}, 0xC101))
+    assert.are.same({ "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS",
+        "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS_HARDMODE" }, nakatra.kills)
+    assert.are.equal("BSLAY_KILLS_RAID_REBIRTH1_BEAST_BOSS_HARDMODE", boss.modeFor("Kezalam hard mode").kc)
+    assert.is_nil(boss.unit) -- shown as kills
+end)
+
 -- Nakatra's rolls, normal then hard mode.
 describe("sanctum's Nakatra", function()
     local sanctum = require("src/bosses/sanctum")
