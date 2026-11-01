@@ -1,38 +1,34 @@
 # Araxxi
 
-How Boss RNG counts your Araxxi kills. Drop rates are from the
-[RuneScape Wiki](https://runescape.wiki/w/Araxxor)
-(CC BY-NC-SA 3.0).
+Source: [RuneScape Wiki](https://runescape.wiki/w/Araxxor) (CC BY-NC-SA 3.0), checked 28 October 2026.
 
 ## Drop rates
 
 Each kill makes two rolls:
 
-- a spider leg piece: 1 in 40 solo, 1 in 70 duo
-- a noxious weapon add-on (fang, eye or web): 1 in 120 solo, 1 in 200 duo
+| Roll | Solo | Duo |
+|---|---|---|
+| Spider leg piece | 1 in 40 | 1 in 70 |
+| Noxious add-on (fang, eye or web) | 1 in 120 | 1 in 200 |
 
-Which leg piece depends on the path you take, and which add-on on Araxxor's
-attack style. So Boss RNG shows the legs as one row and the add-ons as one row,
-whose chances don't depend on path or style.
+Which leg depends on your path and which add-on on Araxxor's attack style, so
+each is one row, independent of both.
 
-## How Boss RNG counts your kills
+## How kills are counted
 
-Solo and duo kills share one kill count. When it goes up, Boss RNG reads the
-fight's duo flag, so each kill counts at the solo or duo rates exactly. This
-works the same for private and public duo encounters.
+- Solo and duo share one kill count; the duo flag read at each kill gives exact
+  rates. Private and public duos work the same.
 
-## What Boss RNG reads
+## Vars read
 
-| Var | What it holds |
+| Var | Holds |
 |---|---|
-| `BSLAY_KILLS_ARAXXI` | Your Araxxi kill count, solo and duo. |
-| `SB_DUO` | 1 in a duo fight, private or public; 0 solo. Read at each kill. |
-| `ITEMLOG_ITEM_SB_<ITEM>` | Your boss log count for each unique: `LEG_TOP`, `LEG_MIDDLE`, `LEG_BOTTOM`, `FANG`, `EYE` and `WEB`. |
+| `BSLAY_KILLS_ARAXXI` | Kill count, solo and duo. |
+| `SB_DUO` | 1 in a duo fight (private or public), 0 solo. Read at each kill. |
+| `ITEMLOG_ITEM_SB_<ITEM>` | Boss log count each: `LEG_TOP`, `LEG_MIDDLE`, `LEG_BOTTOM`, `FANG`, `EYE`, `WEB`. |
 
 ## Not counted
 
-- **Araxxor's head** (a boss trophy, 1 in 500): it isn't on the collection log,
-  so there's no count to read.
-- **Araxyte pheromone:** a common drop, not a rare one.
-- **The spider pets** (Bill, Lana, Pete, Dave, Steve, Gavin, Barry and Mallory):
-  pets aren't counted.
+- **Araxxor's head** (boss trophy, 1 in 500): not on the collection log.
+- **Araxyte pheromone:** a common drop.
+- **Spider pets** (Bill, Lana, Pete, Dave, Steve, Gavin, Barry, Mallory): pets aren't counted.

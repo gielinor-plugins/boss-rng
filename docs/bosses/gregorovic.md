@@ -1,39 +1,35 @@
 # Gregorovic
 
-How Boss RNG counts your Gregorovic kills. Drop rates are from the
-[RuneScape Wiki](https://runescape.wiki/w/Gregorovic)
-(CC BY-NC-SA 3.0).
+Source: [RuneScape Wiki](https://runescape.wiki/w/Gregorovic) (CC BY-NC-SA 3.0), checked 27 October 2026.
 
 ## Drop rates
 
-Each kill rolls one table for the Crest of Sliske, Shadow glaive, off-hand
-Shadow glaive or a dormant anima core piece, every item at the same rate: 1 in
-256 per kill in normal mode and 1 in 179 in hard mode. Only if that misses,
-there's a roll for Sliskean essence: 1 in 64 in normal mode and 1 in 44 in hard
-mode.
+Each kill rolls one table for the Crest of Sliske, Shadow glaive, off-hand Shadow
+glaive or a dormant anima core piece, every item at the same rate. Only if that
+misses is there a roll for Sliskean essence.
 
-## How Boss RNG counts your kills
+| Item | Normal | Hard mode |
+|---|---|---|
+| Each table item | 1 in 256 | 1 in 179 |
+| Sliskean essence | 1 in 64 | 1 in 44 |
 
-Kills shared with a group share their drops, and your kill count doesn't say who
-you killed with. So Boss RNG assumes every kill was solo, and the "i" says so.
-If you often kill in groups, the average player numbers are higher than they
-should be for you, and your luck reads lower than it is.
+## How kills are counted
 
-Normal and hard mode kills have their own kill counts, and both are counted.
+- Assumed solo (the "i" says so): the kill count doesn't say who you killed
+  with, and group kills share drops, so group killers' luck reads low.
+- Normal and hard mode kill counts are both counted.
 
-## What Boss RNG reads
+## Vars read
 
-| Var | What it holds |
+| Var | Holds |
 |---|---|
-| `BSLAY_KILLS_SLISKE` | Your Gregorovic kill count. |
-| `BSLAY_KILLS_SLISKE_HARDMODE` | Your hard mode kill count. |
-| `ITEMLOG_ITEM_GWD2_SLISKE_<ITEM>` | Your boss log count for each unique: `CREST`, `WEAPON`, `WEAPON_OFFHAND` and `ESSENCE`. |
+| `BSLAY_KILLS_SLISKE` | Normal mode kill count. |
+| `BSLAY_KILLS_SLISKE_HARDMODE` | Hard mode kill count. |
+| `ITEMLOG_ITEM_GWD2_SLISKE_<ITEM>` | Boss log count each: `CREST`, `WEAPON`, `WEAPON_OFFHAND`, `ESSENCE`. |
 
 ## Not counted
 
-- **Gregorovic's head** (a boss trophy, 1 in 500): it isn't on the collection
-  log, so there's no count to read.
-- **Dormant anima core pieces** (helm, body and legs): all four God Wars Dungeon
-  2 bosses drop them, with one boss log count, so they aren't counted. They
-  still take their share of the table, which is in the rates above.
+- **Gregorovic's head** (boss trophy, 1 in 500): not on the collection log.
+- **Dormant anima core pieces** (helm, body, legs): one boss log count shared by
+  all four God Wars Dungeon 2 bosses. They still take table share above.
 - **Greg** (pet): pets aren't counted.

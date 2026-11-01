@@ -1,12 +1,11 @@
 # The Shadow Reef
 
-How Boss RNG counts your Shadow Reef kills. Drop rates are from the
-[RuneScape Wiki](https://runescape.wiki/w/The_Ambassador) (CC BY-NC-SA 3.0).
+Source: [RuneScape Wiki](https://runescape.wiki/w/The_Ambassador) (CC BY-NC-SA 3.0), checked 31 October 2026.
 
 ## Drop rates
 
-Only the Ambassador's Eldritch crossbow pieces are tracked. Each kill rolls for
-a piece, per player, by the size of your team:
+Only the Ambassador's Eldritch crossbow pieces are tracked. Each kill rolls for a
+piece, per player, by team size:
 
 | Players | Any piece |
 |---|---|
@@ -14,33 +13,29 @@ a piece, per player, by the size of your team:
 | Duo | 1 in 111 |
 | Trio | 1 in 166 |
 
-Your first piece is random, and each next one is a piece you don't have yet, so
-Boss RNG shows the limb, mechanism and stock as one row.
+The first piece is random and each next one is one you don't have yet, so the
+limb, mechanism and stock are one row.
 
-## How Boss RNG counts your kills
+## How kills are counted
 
-The game counts the Ambassador's solo and group kills apart. When your group
-kill count goes up, Boss RNG reads how many players were in the dungeon and
-counts the kill at that team size. The Crassian Leviathan and Taraket aren't
-counted.
+- The Ambassador has solo and group kill counts. A group kill counts at the
+  team size in the dungeon at the kill.
+- Everyone in the dungeon counts, not just the fight, so a teammate sitting out
+  a boss lowers that kill's rate below what you had (the "i" says so).
+- The Crassian Leviathan and Taraket aren't counted.
 
-The game reads everyone in the dungeon, not just those in the fight. A teammate
-who sits out a boss but stays in the dungeon still counts toward the team, so
-that kill counts at a lower rate than you had; the "i" says so.
+## Vars read
 
-## What Boss RNG reads
-
-| Var | What it holds |
+| Var | Holds |
 |---|---|
-| `BSLAY_KILLS_DUNGEON_ULTHVEN3_SOLO` | Your solo Ambassador kill count. |
-| `BSLAY_KILLS_DUNGEON_ULTHVEN3` | Your group Ambassador kill count. |
-| `DUNGEON_PLAYERS_AT_BOSS_KILL` | The players in the dungeon at the kill, read at each group kill. |
-| `ITEMLOG_ITEM_DUNGEON_2H_RANGED_<PIECE>` | Your boss log count for each piece: `LIMB`, `MECHANISM` and `STOCK`. |
+| `BSLAY_KILLS_DUNGEON_ULTHVEN3_SOLO` | Solo Ambassador kill count. |
+| `BSLAY_KILLS_DUNGEON_ULTHVEN3` | Group Ambassador kill count. |
+| `DUNGEON_PLAYERS_AT_BOSS_KILL` | Players in the dungeon at the kill, read at each group kill. |
+| `ITEMLOG_ITEM_DUNGEON_2H_RANGED_<PIECE>` | Boss log count per piece: `LIMB`, `MECHANISM`, `STOCK`. |
 
 ## Not counted
 
 - **Black stone heart:** a common drop.
-- **The Last Offering** and **Kranon's Ancient Journal:** lore.
-- **Ambi** (pet): pets aren't counted.
-- **Head of the Ambassador** (a boss trophy, 1 in 50): it isn't on the
-  collection log, so there's no count to read.
+- **The Last Offering** and **Kranon's Ancient Journal** (lore) and **Ambi**
+  (pet): lore and pets aren't counted.
+- **Head of the Ambassador** (boss trophy, 1 in 50): not on the collection log.

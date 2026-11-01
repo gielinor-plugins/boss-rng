@@ -1,47 +1,39 @@
 # Commander Zilyana
 
-How Boss RNG counts your Commander Zilyana kills. Drop rates are from the
-[RuneScape Wiki](https://runescape.wiki/w/Commander_Zilyana)
-(CC BY-NC-SA 3.0).
+Source: [RuneScape Wiki](https://runescape.wiki/w/Commander_Zilyana) (CC BY-NC-SA 3.0), checked 27 October 2026.
 
 ## Drop rates
 
-Each kill has a 1 in 64 chance at Zilyana's unique table, which then gives one
-of its items at random. Only if that roll misses, there's a 1 in 512 roll for
-the hilt. So a kill gives at most one of these, and the hilt is about 1 in 520
-per kill (63/64 x 1/512). Hard mode has the same rates.
+Each kill has a 1 in 64 roll at the unique table, which gives one entry at
+random. Only if that misses is there a 1 in 512 hilt roll, so a kill gives at
+most one. Hard mode has the same rates.
 
-Zilyana's table has five entries, each 1 in 320 per kill: the Saradomin sword,
-the Saradomin's whisper, hiss and murmur amulets, and an Armadyl crossbow. The
-crossbow entry is split evenly between the main hand and off-hand crossbows, so
-each is 1 in 640.
-
-## How Boss RNG counts your kills
-
-Kills shared with a group share their drops, and your kill count doesn't say who
-you killed with. So Boss RNG assumes every kill was solo, and the "i" says so.
-If you often kill in groups, the average player numbers are higher than they
-should be for you, and your luck reads lower than it is.
-
-Normal and hard mode kills have their own kill counts, and both are counted.
-
-## What Boss RNG reads
-
-| Var | What it holds |
+| Item | Per kill |
 |---|---|
-| `BSLAY_KILLS_GWD_ZILYANA` | Your Commander Zilyana kill count. |
-| `BSLAY_KILLS_GWD_ZILYANA_HARDMODE` | Your hard mode kill count. |
-| `ITEMLOG_ITEM_GWD_SARA_<ITEM>` | Your boss log count for each unique: `SWORD`, `CROSSBOW`, `CROSSBOW_OFFHAND`, `AMULET_MELEE` (whisper), `AMULET_MAGIC` (hiss), `AMULET_RANGED` (murmur) and `HILT`. |
+| Saradomin sword; Saradomin's whisper, hiss, murmur | 1 in 320 each |
+| Armadyl crossbow, main hand or off-hand (one entry split evenly) | 1 in 640 each |
+| Hilt | about 1 in 520 (63/64 x 1/512) |
+
+## How kills are counted
+
+- Assumed solo (the "i" says so): the kill count doesn't say who you killed
+  with, and group kills share drops, so group killers' luck reads low.
+- Normal and hard mode kill counts are both counted.
+
+## Vars read
+
+| Var | Holds |
+|---|---|
+| `BSLAY_KILLS_GWD_ZILYANA` | Normal mode kill count. |
+| `BSLAY_KILLS_GWD_ZILYANA_HARDMODE` | Hard mode kill count. |
+| `ITEMLOG_ITEM_GWD_SARA_<ITEM>` | Boss log count each: `SWORD`, `CROSSBOW`, `CROSSBOW_OFFHAND`, `AMULET_MELEE` (whisper), `AMULET_MAGIC` (hiss), `AMULET_RANGED` (murmur), `HILT`. |
 
 ## Not counted
 
-- **Zilyana's wings** (a boss trophy, 1 in 500): it isn't on the collection log,
-  so there's no count to read.
-- **Saradomin's hum:** the wiki lists it as very rare, with no rate, so there's
-  nothing to compare your count to.
-- **Godsword shards:** they come from a table every God Wars boss shares, so
-  their boss log counts aren't one boss's.
-- **The Warpriest set:** it also drops from the bodyguards and other monsters of
-  the same god, so its boss log counts aren't only from this boss.
-- **Zilyana's Notes** (lore) and **Commander Miniana** (pet): lore books and
-  pets aren't counted.
+- **Zilyana's wings** (boss trophy, 1 in 500): not on the collection log.
+- **Saradomin's hum:** the wiki lists it as very rare with no rate, so there's
+  nothing to compare to.
+- **Godsword shards:** a table every God Wars boss shares.
+- **Warpriest set:** also drops from the bodyguards and the god's other monsters.
+- **Zilyana's Notes** (lore) and **Commander Miniana** (pet): lore and pets are
+  never counted.

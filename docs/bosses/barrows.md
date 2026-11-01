@@ -1,71 +1,62 @@
 # Barrows brothers
 
-How Boss RNG counts your Barrows chests, and what we learned from testing in
-game. Drop rates are from the [RuneScape Wiki](https://runescape.wiki/w/Barrows)
-(CC BY-NC-SA 3.0).
-
-## How a run works
-
-- You kill some of the six brothers (Ahrim, Dharok, Guthan, Karil, Torag and
-  Verac), and you can also kill Akrisae and Linza. Then you loot the chest.
-- Your first search of the chest brings out the brother in the tunnel. You can
-  kill him first, or loot the chest without killing him.
-- Your Barrows kill count only goes up for a chest with **6 or more brothers**.
-  Akrisae counts toward the 6, Linza doesn't. The wiki says all six original
-  brothers are needed, but in our tests:
-  - 3 brothers: no kill count
-  - 5 brothers and Linza: no kill count
-  - 5 brothers and Akrisae: +1 kill count
-- A chest with fewer than 6 brothers is a **partial chest**. It can still drop
-  pieces, and those count in your boss log.
+Source: [RuneScape Wiki](https://runescape.wiki/w/Barrows) (CC BY-NC-SA 3.0), checked 28 October 2026; amulet from Jagex's [Late-Game Rebalance design preview](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
 
 ## Drop rates
 
 With n brothers killed (Linza not counted), the chest makes min(n + 1, 7) rolls.
-Each roll has a 1 in max(450 - 58n, 73) chance of a Barrows piece. A piece comes
-from one of the brothers you killed, picked evenly, then one of their items,
-picked evenly. Linza, if you killed her, adds one roll at 1 in 96 for one of her
-five items. Before the 20 July 2026 update, that roll was 1 in 192.
+A hit picks a killed brother evenly, then one of his items evenly.
 
-Every chest also has a 1 in 480 chance of the **Amulet of the forsaken**, from
-Jagex's [Late-Game Rebalance design preview](https://secure.runescape.com/m=news/late-game-rebalance-design-preview)
-(1 in 240 from the late November 2026 update). It doesn't say whether partial
-chests can give it, so Boss RNG assumes they can, and the "i" says so.
-
-## What Boss RNG reads
-
-| Var | What it holds |
+| Roll | Rate |
 |---|---|
-| `BSLAY_KILLS_BARROWS` | Your Barrows kill count. |
-| `ITEMLOG_ITEM_BARROWS_<BROTHER>_<PIECE>` | Your boss log count for each piece. Linza's use `SISTER`. |
-| `BARROWS_KILLED_AHRIM` to `BARROWS_KILLED_VERAC` | Whether each of the six brothers is dead this run. |
-| `BARROWS_KILLED_COUNT` | How many brothers are dead this run, Akrisae and Linza included. |
-| `SISTER_KILLED_LINZA` | Whether Linza is dead this run. |
-| `BARROWS`, bit 0x4000000 | Turns on when you loot the chest, and off when your next run starts. The game doesn't name this bit. |
+| Each brother roll | 1 in max(450 - 58n, 73) |
+| Linza (if killed), one of her five items | 1 in 96 (1 in 192 before the 20 July 2026 update) |
+| Amulet of the forsaken, every chest | 1 in 480 (1 in 240 from the late November 2026 update) |
 
-There's no var for Akrisae on his own, so Boss RNG works him out: the brother
-count, less the six brothers' flags, less Linza.
+The preview doesn't say if partial chests can give the amulet; assumed yes (the
+"i" says so).
 
-`BARROWS_CHEST_OPEN` turns on at your first search, before the tunnel brother
-is dead, so Boss RNG doesn't use it.
+## How kills are counted
 
-## How Boss RNG counts your chests
+- A run: kill some of Ahrim, Dharok, Guthan, Karil, Torag and Verac, optionally
+  Akrisae and Linza, then loot. The first search brings out the tunnel brother;
+  you can loot without killing him.
+- Each looted chest counts with exactly the chances of that run's brothers.
+- The kill count only rises for **6+ brothers**, Akrisae counting and Linza not
+  (see Tests). Fewer makes a **partial chest**: it can still drop pieces (they
+  count in the boss log), is counted, and shows after the kill count ("12 kills
+  (+2 partial)").
+- Akrisae has no var: he's the brother count less the six brothers' flags, less
+  Linza.
+- **Dry streaks:** an item's dry count only counts chests where its brother died.
+  After Ahrim's robe top and two chests without Ahrim, it still shows 0 dry. The
+  headline dry streak counts every chest since your last unique.
 
-When you loot, Boss RNG reads which brothers you killed and counts the chest
-with exactly their drop chances. Partial chests count too, and show after your
-tracked kill count ("12 kills (+2 partial)").
+## Vars read
 
-## Dry streaks
+| Var | Holds |
+|---|---|
+| `BSLAY_KILLS_BARROWS` | Kill count. |
+| `ITEMLOG_ITEM_BARROWS_<BROTHER>_<PIECE>` | Boss log count each piece; Linza's use `SISTER`. |
+| `BARROWS_KILLED_AHRIM` to `BARROWS_KILLED_VERAC` | Each of the six brothers dead this run. |
+| `BARROWS_KILLED_COUNT` | Brothers dead this run, Akrisae and Linza included. |
+| `SISTER_KILLED_LINZA` | Linza dead this run. |
+| `BARROWS`, bit 0x4000000 | On when you loot, off when the next run starts. Unnamed by the game. |
 
-A chest can only give pieces from brothers you killed that run. So an item's
-dry count only counts chests where that brother was killed. For example, if you
-got Ahrim's robe top and then looted two chests without Ahrim, the robe top
-still shows 0 dry: neither chest could have given it. The headline's dry streak
-counts every chest since your last unique.
+Not used: `BARROWS_CHEST_OPEN`, which turns on at the first search, before the
+tunnel brother dies.
+
+## Tests
+
+The wiki says all six original brothers are needed for a kill count; in game:
+
+| Killed | Kill count |
+|---|---|
+| 3 brothers | none |
+| 5 brothers and Linza | none |
+| 5 brothers and Akrisae | +1 |
 
 ## Not counted
 
-- **Corruption sigil:** it only drops if you have a dragon defender or better,
-  which Boss RNG doesn't track.
-- **Barrows chest** (a boss trophy, 1 in 500): it isn't on the collection log,
-  so there's no count to read.
+- **Corruption sigil:** needs a dragon defender or better, which isn't tracked.
+- **Barrows chest** (boss trophy, 1 in 500): not on the collection log.

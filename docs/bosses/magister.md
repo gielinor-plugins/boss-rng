@@ -1,33 +1,30 @@
 # The Magister
 
-How Boss RNG counts your Magister kills. Drop rates are from the
-[RuneScape Wiki](https://runescape.wiki/w/Magister) (CC BY-NC-SA 3.0), and the
-changes from Jagex's
-[Late-Game Rebalance](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
+Source: [RuneScape Wiki](https://runescape.wiki/w/Magister) (CC BY-NC-SA 3.0), checked 31 October 2026; changes from Jagex's [Late-Game Rebalance](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
 
 ## Drop rates
 
-The Magister is a solo fight. On top of its main drop, each kill rolls for two
-uniques on their own:
+On top of its main drop, each kill rolls for two uniques on their own:
 
 | Unique | Now | From the Late-Game Rebalance |
 |---|---|---|
 | Phylactery | 1 in 18 | 1 in 10 |
 | Gloves of passage | 1 in 500 | 1 in 128 |
 
-Phylacteries are by far the most common unique, so most of the boss's headline
-luck and dry streak comes from them; the gloves have their own row.
+## How kills are counted
 
-## What Boss RNG reads
+- A solo fight.
+- Phylacteries, by far the most common unique, drive most of the headline luck
+  and dry streak; the gloves have their own row.
 
-| Var | What it holds |
+## Vars read
+
+| Var | Holds |
 |---|---|
-| `BSLAY_KILLS_MENAPHOS_SLAYER_BOSS` | Your Magister kill count. |
-| `ITEMLOG_ITEM_MAGISTER_<ITEM>` | Your boss log count for each unique: `PHYLACTERY` and `HANDS` (gloves). |
+| `BSLAY_KILLS_MENAPHOS_SLAYER_BOSS` | Kill count. |
+| `ITEMLOG_ITEM_MAGISTER_<ITEM>` | Boss log count each: `PHYLACTERY`, `HANDS` (gloves). |
 
 ## Not counted
 
-- **The Minister** (pet): pets aren't counted.
-- **The Magister's Journal #1 to #5:** lore pages.
-- **Soul obelisk** (a boss trophy, 1 in 500): it isn't on the collection log, so
-  there's no count to read.
+- **The Minister** (pet) and **The Magister's Journal #1 to #5** (lore): lore and pets aren't counted.
+- **Soul obelisk** (boss trophy, 1 in 500): not on the collection log.

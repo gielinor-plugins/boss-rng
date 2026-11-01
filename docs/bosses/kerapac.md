@@ -1,43 +1,39 @@
 # Kerapac
 
-How Boss RNG counts your Kerapac kills. Drop rates are from the
-[RuneScape Wiki](https://runescape.wiki/w/Kerapac,_the_bound)
-(CC BY-NC-SA 3.0).
+Source: [RuneScape Wiki](https://runescape.wiki/w/Kerapac,_the_bound) (CC BY-NC-SA 3.0), checked 28 October 2026.
 
 ## Drop rates
 
-Each kill gives three loot piles, and each pile rolls for a unique:
+Each kill gives three loot piles, each rolling for a unique. "Wraps, codex or
+scripture" is Kerapac's wrist wraps, the Greater Concentrated Blast codex or the
+Scripture of Jas, evenly.
 
-- **Normal mode:** 1 in 256 per pile, for Kerapac's wrist wraps, the Greater
-  Concentrated Blast codex or the Scripture of Jas, evenly.
-- **Hard mode:** 1 in 400 per pile for a Fractured Staff of Armadyl piece, and
-  if that misses, 1 in 180 for one of the same three.
+| Roll, per pile | Normal | Hard mode |
+|---|---|---|
+| Fractured Staff of Armadyl piece | none | 1 in 400 |
+| Wraps, codex or scripture | 1 in 256 | 1 in 180, only if the staff roll misses |
 
-The staff pieces drop in order (shaft, gem, then symbol), so Boss RNG shows them
-as one row.
+Staff pieces drop in order (shaft, gem, then symbol), so they're one row.
 
-## How Boss RNG counts your kills
+## How kills are counted
 
-Who gets the piles depends on your team. Solo, you get all three. In a duo, the
-top damager gets two and the other player one, so you average one and a half. In
-a trio, each player gets one.
+- Piles by team: solo all three; duo two for the top damager and one for the
+  other (one and a half on average); trio one each.
+- The kill count doesn't say how many piles you got, and counting them as they
+  land isn't reliable. So each mode uses your average piles per kill, 1 to 3, set
+  on the settings page (Plugin Hub, Manage, Boss RNG's gear). It starts at 3 (as
+  if solo), applies to all kills in that mode, and the "i" shows it.
 
-Your kill count doesn't say how many piles you got, and counting them as they
-land isn't reliable. So for now Boss RNG uses your average loot piles per kill
-for each mode, set on the settings page (Plugin Hub, Manage, Boss RNG's gear),
-from 1 to 3. It starts at 3, as if solo, and applies to all your kills in that
-mode. The "i" says what it's set to.
+## Vars read
 
-## What Boss RNG reads
-
-| Var | What it holds |
+| Var | Holds |
 |---|---|
-| `BSLAY_KILLS_EGWD_JAS_BOSS` | Your normal mode kill count. |
-| `BSLAY_KILLS_EGWD_JAS_BOSS_HARDMODE` | Your hard mode kill count. |
-| `ITEMLOG_ITEM_EGWD_JAS_<ITEM>` | Your boss log count for each unique: `BOSS_MAGIC_WEAPON_TOP`, `_MIDDLE` and `_BOTTOM` (staff pieces), `BOSS_MAGIC_GLOVES` (wraps) and `BOOK_UNLOCK_TOKEN` (scripture). The codex's is `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CONCENTRATED_BLAST`. |
+| `BSLAY_KILLS_EGWD_JAS_BOSS` | Normal mode kill count. |
+| `BSLAY_KILLS_EGWD_JAS_BOSS_HARDMODE` | Hard mode kill count. |
+| `ITEMLOG_ITEM_EGWD_JAS_<ITEM>` | Boss log count each: `BOSS_MAGIC_WEAPON_TOP`, `_MIDDLE`, `_BOTTOM` (staff pieces), `BOSS_MAGIC_GLOVES` (wraps), `BOOK_UNLOCK_TOKEN` (scripture). The codex's is `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CONCENTRATED_BLAST`. |
 
 ## Not counted
 
-- **Kerapac's time-torn Staff of Armadyl** (a boss trophy, 1 in 500): it isn't
-  on the collection log, so there's no count to read.
+- **Kerapac's time-torn Staff of Armadyl** (boss trophy, 1 in 500): not on the
+  collection log.
 - **Kerry** (pet): pets aren't counted.

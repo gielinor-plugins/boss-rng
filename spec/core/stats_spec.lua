@@ -190,7 +190,7 @@ describe("stats with rates that changed", function()
         return { kills = byMode, dryFrom = {}, items = {} } -- dry from the first kill
     end
 
-    it("rates each kill at the rates of its day", function()
+    it("uses the drop rates in effect on each kill's day", function()
         assert.are.near(20 / 10 + 10 / 5, forBoss(CHANGED, spanning()).expected, 1e-9)
     end)
 

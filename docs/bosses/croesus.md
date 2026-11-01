@@ -1,52 +1,28 @@
 # Croesus
 
-How Boss RNG counts your Croesus kills. Drop rates are from the
-[RuneScape Wiki](https://runescape.wiki/w/Croesus)
-(CC BY-NC-SA 3.0).
+Source: [RuneScape Wiki](https://runescape.wiki/w/Croesus) (CC BY-NC-SA 3.0), checked 28 October 2026.
 
 ## Drop rates
 
-Each loot roll has a 1 in 600 chance of a unique, one of nine evenly (1 in 5,400
-each per roll): the five Cryptbloom pieces, the Sporehammer, the Foultorch, the
-Spore sack and the Scripture of Bik. Every player gets their own rolls, by their
-contribution:
+Each unique roll has a 1 in 600 chance of one of nine uniques evenly (1 in 5,400
+each): the five Cryptbloom pieces, Sporehammer, Foultorch, Spore sack and
+Scripture of Bik. Each player gets their own rolls, by contribution:
 
-| Contribution | Rolls | Unique rolls |
-|---|---|---|
-| 0 to 19 | 0 | 0 |
-| 20 to 59 | 1 | 0 |
-| 60 to 99 | 1 | 1 |
-| 100 to 179 | 2 | 2 |
-| 180 to 229 | 3 | 3 |
-| 230 to 279 | 4 | 4 |
-| 280 to 309 | 5 | 5 |
-| 310 to 329 | 6 | 6 |
-| 330 to 344 | 7 | 7 |
-| 345 to 359 | 8 | 8 |
-| 360 to 379 | 9 | 9 |
-| 380 to 399 | 10 | 10 |
-| 400 to 419 | 11 | 11 |
-| 420 or more | 12 | 12 |
+- Below 20: no rolls. 20 to 59: 1 loot roll, no unique roll.
+- From 60, unique rolls equal loot rolls: 1 at 60, 2 at 100, 3 at 180, 4 at
+  230, 5 at 280, 6 at 310, 7 at 330, 8 at 345, 9 at 360, 10 at 380, 11 at 400,
+  12 at 420 or more.
 
-## What Boss RNG reads
+## How kills are counted
 
-| Var | What it holds |
-|---|---|
-| `BSLAY_KILLS_EGWD_BIK_BOSS` | Your Croesus kill count. |
-| `EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION` | Your contribution, rising through the fight. |
-| `ITEMLOG_ITEM_EGWD_BIK_<ITEM>` | Your boss log count for each unique, for example `BOSS_MAGIC_HELM`, `BOSS_OFFHAND_MINING` (Sporehammer), `BOSS_SEED_STORAGE_UNIQUE` (Spore sack) and `BOOK_UNLOCK_TOKEN` (scripture). |
-
-## How Boss RNG counts your kills
-
-When your kill count goes up, Boss RNG takes your contribution, its last value
-before the kill, and counts the kill at that many unique rolls. A kill where no
-contribution was seen (for example, Boss RNG turned on just as the kill ended)
-isn't counted.
-
-Each kill is saved under its unique rolls, as day and count (see
-[docs/data/saved_data.md](../data/saved_data.md)). For example, 30 kills at full
-contribution and 2 at 345 to 359 on one day, then 5 at full contribution the
-next:
+- At each kill, the kill counts at the unique rolls for your last contribution
+  before it. A kill with no contribution seen (say, Boss RNG turned on as the
+  kill ended) isn't counted.
+- Loot can stack in the chest, but rolls are known at each kill, so kills stay
+  the unit.
+- Kills are saved by unique rolls, as day and count
+  ([saved data](../data/saved_data.md)). Here, 30 full contribution kills and 2
+  at 345 to 359 one day, then 5 full the next:
 
 ```lua
 croesus = {
@@ -56,22 +32,27 @@ croesus = {
 }
 ```
 
-## How this was tested
+## Vars read
 
-In game on 31 October 2026 by the developer, in a team of 3, logging each var
-change with its game tick:
-- `EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION` (11 bits of `EGWD_BIK_BOSS_TEMP_1`) rose
-  through the fight (188, 242, 311, 398) and read 466 in the kill count's tick:
-  the contribution the game showed, so 12 rolls.
-- It read 0 when the chest was opened about 2 minutes later, so it resets after
-  the kill (exactly when wasn't seen). Taking its last value above 0 before the
-  kill makes the reset's timing not matter.
-- No unique dropped, so when a unique reaches the boss log wasn't seen. Loot can
-  build up in the chest over kills, but rolls are known at each kill, so kills
-  stay the unit.
+| Var | Holds |
+|---|---|
+| `BSLAY_KILLS_EGWD_BIK_BOSS` | Kill count. |
+| `EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION` | Your contribution, rising through the fight (11 bits of `EGWD_BIK_BOSS_TEMP_1`). |
+| `ITEMLOG_ITEM_EGWD_BIK_<ITEM>` | Boss log count each, e.g. `BOSS_MAGIC_HELM`, `BOSS_OFFHAND_MINING` (Sporehammer), `BOSS_SEED_STORAGE_UNIQUE` (Spore sack), `BOOK_UNLOCK_TOKEN` (scripture). |
+
+## Tests
+
+In game on 31 October 2026 by the developer, team of 3, logging each var change
+with its game tick:
+
+- Contribution rose (188, 242, 311, 398) and read 466 in the kill count's tick:
+  the value the game showed, so 12 rolls.
+- It read 0 at the chest about 2 minutes later, so it resets after the kill
+  (exact time not seen). Using its last value above 0 before the kill makes that
+  timing irrelevant.
+- No unique dropped, so when one reaches the boss log wasn't seen.
 
 ## Not counted
 
-- **Croesus' head** (a boss trophy, 1 in 500): it isn't on the collection log,
-  so there's no count to read.
+- **Croesus' head** (boss trophy, 1 in 500): not on the collection log.
 - **Little Sus** (pet): pets aren't counted.
