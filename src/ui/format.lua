@@ -35,11 +35,19 @@ end
 -- Luck between these shares reads as average.
 local AVERAGE_LOW, AVERAGE_HIGH = 0.4, 0.6
 
--- Rounded up, at least 1%, so the player is never placed in a smaller group.
--- The offset keeps float noise (12.000000000000002) from rounding up a step.
-local function groupPercent(share)
-    return math.max(1, math.ceil(share * 100 - 1e-9)) .. "%"
+-- A group's whole percent, rounded up and at least 1, so the player is never placed
+-- in a smaller group. The offset keeps float noise (12.000000000000002) from
+-- rounding up a step.
+local function groupNumber(share)
+    return math.max(1, math.ceil(share * 100 - 1e-9))
 end
+
+local function groupPercent(share)
+    return groupNumber(share) .. "%"
+end
+
+-- The headline names the top and bottom 10%.
+local EXTREME_PERCENT = 10
 
 -- Luck for a table row: "top 3%", "average", "bottom 12%", "no kills"; before
 -- it's rated, the share still dry, or "no chance yet" when no tracked kill could
@@ -60,8 +68,9 @@ function format.LuckShort(result)
     return "average"
 end
 
--- Luck as a sentence, or until it's rated, when it will show:
--- "Luck: next unique or 40 kills".
+-- Luck as a sentence ("Spooned: top 3% luck" or "Cursed: bottom 2% luck" in the
+-- top or bottom 10%), or until it's rated, when it will show: "Luck: next unique or
+-- 40 kills".
 function format.Luck(result)
     local text
     if not format.IsTracked(result) then
@@ -73,6 +82,11 @@ function format.Luck(result)
     else
         local short = format.LuckShort(result)
         text = (short == "average" and "about average" or short) .. " luck"
+        if groupNumber(1 - result.luck) <= EXTREME_PERCENT then
+            text = "spooned: " .. text
+        elseif groupNumber(result.luck) <= EXTREME_PERCENT then
+            text = "cursed: " .. text
+        end
     end
     return text:sub(1, 1):upper() .. text:sub(2)
 end
