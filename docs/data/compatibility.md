@@ -1,4 +1,4 @@
-# Changing rates, modes, items and bosses
+# Compatibility: changing rates, modes, items and bosses
 
 Saved data holds only kills, drops and streak starts (`saved_data.md`); rates apply
 when shown. So most changes go in `src/core/rates/` and boss files, with no data
@@ -26,7 +26,7 @@ conversion.
 | Start counting an item (such as Zilyana's `excluded` hum) | Make it `unique`, rate in base: counts over every tracked kill, though earlier drops weren't tracked. Or 0 in base and its rate from the plugin update's day. |
 | Stop counting a unique | Change its `kind` (such as `excluded`). Its saved data stays, unused. |
 | New mode | New mode key and kill count var. Streaks span every mode. |
-| Kill count rule changes (such as which brothers a Barrows kill needs) | A dated rule in the boss file, read with each kill's day. The saved facts don't change. |
+| Kill count rule changes (such as which brothers a Barrows kill needs) | A dated rule in the boss file, read with each kill's day. Not built: a mode's kill count is fixed by its key today, so `stats.lua` would first pass each kill's day to it, as it does for rolls. The saved facts don't change. |
 | Saved facts change format for one boss | A version for that boss: see below. |
 
 Example (not real): Solak gains item 99999 at 1 in 300 on day 21000.
@@ -65,17 +65,3 @@ value per kill that was saved per run), give that boss its own version:
 
 Prefer saving facts and interpreting them in code by day, so most changes need
 neither.
-
-## Player settings (removed 2026-11-02)
-
-The first design let the player set what the game didn't show: Kerapac's loot piles
-per kill, a slider per mode on the settings page (1 to 3, default 3). Picks were
-saved apart from the tallies, under `choices:<name>` with their own version, so a
-reset kept them. A pick applied to every tracked kill in its mode, at that mode's
-rates, and showed on the Info tab.
-
-Counting each kill's piles as they land replaced it (`docs/bosses/kerapac.md`): a
-measured value per kill beats an average the player has to guess, and nothing is
-left to set. If a boss ever needs a setting again, prefer a read at each kill; if
-none exists, bring back this pattern (a separate saved record with a version,
-defaults and range checks).
