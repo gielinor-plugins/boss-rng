@@ -1,90 +1,41 @@
--- The ribbon panel: one boss's essentials and a "View details" button that stays
--- in view however small the panel is. Lines that don't fit are left out.
+-- The ribbon panel: one boss's essentials and a "View details" button. It
+-- scrolls if the panel is small.
 
+local common = require("src/ui/common")
 local format = require("src/ui/format")
+local layerView = require("src/ui/layer_view")
 local safe = require("src/utils/safe")
-local widgets = require("src/ui/widgets")
 
-local panel = {}
+local PAD = 8
+local page = layerView.New({ startY = 46, padding = PAD }) -- below the dropdown
 
-local PAD = 5
-local LINE_HEIGHT = 22
-local BUTTON_LABEL, BUTTON_HEIGHT = "View details", 30
-
-local layer = nil -- the game's panel layer, once the player has opened it
-local content = nil -- holds everything drawn, so one Destroy clears it
-
--- The game clears this layer each time it opens or resizes the panel.
-function panel.Attach(newLayer)
-    layer = newLayer
-    content = nil
-end
-
-function panel.IsOpen()
-    return layer ~= nil
-end
-
-local function newContent()
-    widgets.Destroy(content)
-    content = ui.Layer.new(layer)
-    content:SetSize(0, 0, 1.0, 1.0) -- the whole panel
-    -- Clickthrough, so the layer doesn't catch clicks meant for the dropdown.
-    content.clickthrough = true
-    return content
-end
+local panel = { Attach = page.Attach, IsOpen = page.IsOpen, Detach = page.Detach }
 
 function panel.Draw(state)
-    local parent = newContent()
+    local host = page.Fresh()
     if not state.selected then
-        widgets.AddText(parent, "No boss kills yet.", PAD, PAD)
-        widgets.AddText(parent, "Kill a supported boss to start.", PAD, PAD + LINE_HEIGHT)
+        host:AddText({ text = "No boss kills yet. Kill a supported boss to start.", y = PAD })
         return
     end
-    local entry = state.list[state.selected]
-    local result = entry.stats
-    local width = layer.width - 2 * PAD
-
-    local y = widgets.AddLuckHeadline(parent, PAD, PAD + 32, width, result) + 2
-    widgets.AddSeparator(parent, PAD, y, width)
-    y = y + 6
-    -- At the bottom, but never over the dropdown.
-    local buttonY = math.max(layer.height - PAD - BUTTON_HEIGHT, PAD + 32)
-    local tracked = result.kills + result.extraKills > 0
-    local lines = tracked and { format.TrackedShort(result), format.Dry(result) } or { format.AllTime(result) }
-    local function fits(height)
-        return y + height <= buttonY - 6
-    end
-    for _, line in ipairs(lines) do
-        if line ~= "" and fits(LINE_HEIGHT) then
-            y = widgets.AddWrapped(parent, line, PAD, y, width, widgets.SMALL_FONT, LINE_HEIGHT)
+    local result = state.list[state.selected].stats
+    host:AddTitle({ text = format.Luck(result) })
+    if format.IsTracked(result) then
+        for _, line in ipairs({ format.TrackedShort(result), format.Dry(result) }) do
+            if line ~= "" then
+                host:AddText({ text = line })
+            end
         end
     end
-    local tip = entry.boss.tip
-    if tip and fits(8 + LINE_HEIGHT) then
-        widgets.AddSeparator(parent, PAD, y + 2, width)
-        y = widgets.AddWrapped(parent, tip, PAD, y + 8, width, widgets.SMALL_FONT, LINE_HEIGHT, widgets.MUTED)
-    end
-
-    local open = ui.Button.new(parent)
-    open.stylesheetID = id.StyleSheet.BUTTON_DEFAULT -- the docs' default for plugins
-    open.label = BUTTON_LABEL
-    widgets.Place(open, PAD, buttonY, width, BUTTON_HEIGHT)
-    open:Subscribe(ui.Hook.ONBUTTONPRESSED, function()
+    -- Full width, rounded down to 8 px.
+    local width = (page.layer.width - 2 * PAD) // 8 * 8
+    host:AddSimpleButton("View details", function()
         safe.Call("opening the window", state.onDetails)
-    end)
-
-    -- Added last: components added later are drawn on top and take clicks first.
-    widgets.AddBossPicker(parent, state, PAD, PAD)
+    end, { marginTop = 8, width = width, height = 32 })
+    common.AddBossPicker(host, state, PAD)
 end
 
 function panel.ShowError()
-    widgets.AddText(newContent(), "Boss RNG couldn't draw this panel.", PAD, PAD)
-end
-
-function panel.Detach()
-    widgets.Destroy(content)
-    content = nil
-    layer = nil
+    page.Fresh():AddText({ text = "Boss RNG couldn't draw this panel.", y = PAD })
 end
 
 return panel

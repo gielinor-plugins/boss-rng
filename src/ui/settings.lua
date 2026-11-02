@@ -1,71 +1,45 @@
--- The settings page: a slider per choice for each boss with choices. The game
--- clears its layer (572 x 300 when measured) each time the page opens.
+-- The settings page: for each boss with choices, its name, why and how to set
+-- them, and a slider per choice.
 
 local choices = require("src/core/choices")
-local sliders = require("src/ui/sliders")
-local widgets = require("src/ui/widgets")
+local layerView = require("src/ui/layer_view")
 
-local settings = {}
+local page = layerView.New()
 
-local PAD = 10
-local SLIDER_WIDTH = 200 -- as in the docs' examples
-local LINE_HEIGHT = 18
+local settings = { Attach = page.Attach, IsOpen = page.IsOpen, Detach = page.Detach }
 
-local layer = nil -- the game's settings layer, while the page is open
-local content = nil -- holds everything drawn, so one Destroy clears it
-
-function settings.Attach(newLayer)
-    layer, content = newLayer, nil
-end
-
-function settings.IsOpen()
-    return layer ~= nil
-end
-
-function settings.Detach()
-    widgets.Destroy(content)
-    content, layer = nil, nil
-end
-
-local function fresh()
-    widgets.Destroy(content)
-    content = ui.Layer.new(layer)
-    content:SetSize(0, 0, 1.0, 1.0)
-    content.clickthrough = true
-    return content
-end
-
--- A boss's section at y: name, help, then a row per slider. Returns the y below.
-local function addSection(parent, boss, onChoose, y, width)
-    widgets.AddText(parent, boss.name, PAD, y, width, widgets.CARD_FONT).colour = widgets.GOLD
-    y = y + 24
-    for _, paragraph in ipairs(boss.choicesHelp) do
-        y = widgets.AddWrapped(parent, paragraph, PAD, y, width, widgets.SMALL_FONT, LINE_HEIGHT, widgets.GREY) + 4
-    end
-    local sliderX = PAD + width - SLIDER_WIDTH
-    for _, slider in ipairs(sliders.For(boss, choices.For(boss), onChoose)) do
-        local label = widgets.AddText(parent, slider.label, PAD + 10, y, sliderX - PAD - 20)
-        label:SetSize(sliderX - PAD - 20, widgets.SLIDER_HEIGHT)
-        label.alignVertical = ui.AlignMode.CENTRE
-        widgets.AddSlider(parent, sliderX, y, SLIDER_WIDTH, slider.min, slider.max, slider.step, slider.current,
-            slider.onPick)
-        y = y + widgets.SLIDER_HEIGHT + 2
-    end
-    return y + 8
+-- A choice's label with its value: "Normal Mode: 2.5".
+local function labelFor(choice, value)
+    local shown = value % 1 == 0 and string.format("%d", value) or tostring(value)
+    return choice.label .. ": " .. shown
 end
 
 function settings.Draw(state)
-    local parent = fresh()
-    local y = PAD
+    local host = page.Fresh()
     for _, boss in ipairs(state.bosses) do
         if boss.choices then
-            y = addSection(parent, boss, state.onChoose, y, layer.width - 2 * PAD)
+            host:AddTitle({ text = boss.name })
+            for _, paragraph in ipairs(boss.choicesHelp) do
+                host:AddText({ text = paragraph })
+            end
+            local picks = choices.For(boss)
+            for _, choice in ipairs(boss.choices) do
+                local label = host:AddText({ text = labelFor(choice, picks[choice.key]) })
+                host:AddSlider({
+                    min = choice.min, max = choice.max, step = choice.step,
+                    value = picks[choice.key],
+                    onChange = function(_, value)
+                        label.content = labelFor(choice, value)
+                        state.onChoose(boss, choice, value)
+                    end,
+                })
+            end
         end
     end
 end
 
 function settings.ShowError()
-    widgets.AddText(fresh(), "Boss RNG couldn't draw its settings.", PAD, PAD)
+    page.Fresh():AddText({ text = "Boss RNG couldn't draw its settings." })
 end
 
 return settings

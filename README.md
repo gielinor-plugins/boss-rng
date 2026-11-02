@@ -9,7 +9,7 @@ is measured against the drop rates at the time, so a later drop rate change won'
 rewrite your past luck. Early on, before there's enough to rate your luck, it shows
 how many players would still have no unique after the same number of kills. Your
 all-time kill counts and boss log counts are shown beside it, as facts from the
-game. Any assumption a boss needs is shown in its "i".
+game. Any assumption a boss needs is shown on its Info tab.
 
 ## What Boss RNG reads
 

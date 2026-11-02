@@ -1,240 +1,196 @@
--- The details window: the boss dropdown, a headline for the picked boss, then a
--- table with one row per unique, showing at most MAX_ROWS before it scrolls.
+-- The details window: the boss dropdown, a summary of the boss's luck, then Luck
+-- and Info tabs. Its size is fixed: only the tab pages scroll.
 
-local choices = require("src/core/choices")
+local common = require("src/ui/common")
 local format = require("src/ui/format")
-local frame = require("src/ui/frame")
-local info = require("src/ui/info")
-local sliders = require("src/ui/sliders")
-local widgets = require("src/ui/widgets")
+local luckBar = require("src/ui/luck_bar")
 
 local window = {}
 
-local WIDTH = 400
-local INNER_WIDTH = WIDTH - 2 * frame.INSET -- see frame.INSET
-local PAD = 8
-local TABLE_WIDTH = INNER_WIDTH - 2 * PAD
-local TITLE_HEIGHT = frame.TITLE_HEIGHT
-local LINE_HEIGHT = 18 -- between lines of small text
+local WIDTH = 440
+local PAD = 12
+local INNER = WIDTH - 2 * 8 - 2 * PAD -- the window's borders are 8 px
+local SUMMARY_Y = 46 -- below the dropdown
+local TABS_Y = 220 -- fixed, so the summary's length never moves the tabs
 
--- Table rows. Column x values are from the table's left edge.
-local MAX_ROWS = 6
-local ROW_HEIGHT = 34
-local ROW_GAP = 2
-local ROW_STEP = ROW_HEIGHT + ROW_GAP
-local SLOT_X = 4
-local SLOT_SIZE = 30
-local ICON_SIZE = 26
-local ROW_WIDTH = TABLE_WIDTH - frame.SCROLLBAR_SPACE
-local ROW_BAR_WIDTH = 50
-local NAME_X = SLOT_SIZE + 10
-local LUCK_X = 180
--- Dry counts are right aligned, wide enough for "12,345+".
-local DRY_X = 300
-local DRY_WIDTH = ROW_WIDTH - 8 - DRY_X
+-- Inset 12 px each side, in line with the text, with 8 px above and below the line.
+local DIVIDER = {
+    x = 12, width = -24, widthAnchor = 1.0, marginTop = -35, height = 41, marginBottom = 8,
+}
 
-local ROW = Vector4.new(1.0, 1.0, 1.0, 0.06)
-local HEADER = Vector4.new(0.0, 0.0, 0.0, 0.35) -- the band behind the column names
-local ACCENT = Vector4.new(0.85, 0.7, 0.35, 0.8) -- the line beside the headline
+-- The Luck tab: a fixed header, then a framed panel whose rows scroll. A row is a
+-- 40 px item slot, then inline columns at these x positions in the panel.
+local ROWS, ROW_GAP = 4, 4 -- rows shown before the panel scrolls
+-- The panel: 2 px padding around the rows, inside its 4 px frame.
+local PANEL_HEIGHT = ROWS * 40 + (ROWS - 1) * ROW_GAP + 2 * 2 + 2 * 4
+local PAGE_HEIGHT = 28 + PANEL_HEIGHT + 6 -- the header's 28 px above, 6 px below
+-- The title bar, the content down to the tabs, the tab strip, the page, the frame.
+local HEIGHT = 32 + TABS_Y + 42 + PAGE_HEIGHT + 8
+local NAME_X, NAME_WIDTH, VALUE_X, DRY_X, DRY_WIDTH = 50, 132, 190, 330, 56
+local BAR_WIDTH = 40
+local INSET = 10 -- the panel's x on the page (6 px padding and a 4 px frame), for the header
+local STRIPES = { 0xFFFFFF0D, 0xFFFFFF05 }
+-- The align modes have no plain "right"; horizontal BOTTOMRIGHT is right.
+local RIGHT = ui.AlignMode.BOTTOMRIGHT
 
-local box = nil -- the window while open
+local win = nil -- the window while open
 local position = { x = 200, y = 120 } -- kept while the plugin runs, so it reopens in place
-local luckColumn = "luck" -- "luck" or "totals", also kept
-
-local COLUMNS = { { value = "luck", label = "Luck" }, { value = "totals", label = "Totals" } }
-local COLUMN_PICKER_WIDTH = 100
+local activeTab = 1 -- also kept
 
 function window.IsOpen()
-    return box ~= nil
+    return win ~= nil
+end
+
+local function remember()
+    if win and win.root then
+        position.x, position.y = win.root.x, win.root.y
+    end
 end
 
 function window.Close()
-    info.Hide()
-    widgets.Destroy(box)
-    box = nil
-end
-
-local itemName = widgets.ItemName
-
--- Unluckiest first, then by name. A group uses its name and first item's icon.
-local function sortedItems(result)
-    local rows = {}
-    for itemID, item in pairs(result.items) do
-        local name = item.group and item.group.name or itemName(itemID)
-        table.insert(rows, { id = itemID, item = item, name = name })
+    remember()
+    local closing = win
+    win = nil
+    if closing then
+        closing:Destroy()
     end
-    table.sort(rows, function(a, b)
-        local luckA, luckB = a.item.luck or 1, b.item.luck or 1
-        if luckA ~= luckB then
-            return luckA < luckB
-        end
-        return a.name < b.name
-    end)
-    return rows
 end
 
-local function addGreyText(parent, content, x, y, width, colour)
-    local text = widgets.AddText(parent, content, x, y, width, widgets.SMALL_FONT)
-    text.colour = colour or widgets.GREY
-    return text
-end
-
--- The align modes have no plain "right"; horizontal BOTTOMRIGHT is right.
-local function addDryText(parent, content, x, y)
-    local text = widgets.AddText(parent, content, x, y, DRY_WIDTH, widgets.SMALL_FONT)
-    text.alignHorizontal = ui.AlignMode.BOTTOMRIGHT
-    return text
-end
-
--- Centers text down a dropdown-height row, in line with the dropdown's text.
-local function centerInDropdownRow(text, width)
-    text:SetSize(width, widgets.DROPDOWN_HEIGHT)
-    text.alignVertical = ui.AlignMode.CENTRE
-end
-
--- Lines are { text, colour? }; empty ones are skipped. Returns the y below.
-local function addLines(parent, lines, x, y, width)
-    for _, line in ipairs(lines) do
-        if line[1] ~= "" then
-            addGreyText(parent, line[1], x, y, width, line[2])
-            y = y + LINE_HEIGHT
+-- Each section's title, then its lines. Titles after the first sit 6 px below
+-- the text above.
+local function addNotes(page, sections)
+    for i, section in ipairs(sections) do
+        page:AddTitle({ text = section.title, marginTop = i > 1 and 6 or nil })
+        for _, line in ipairs(section.lines) do
+            page:AddText({ text = line })
         end
     end
-    return y
 end
 
--- Luck with an "i" for its assumptions and a bar, then the dry streak, tracked
--- totals, average, tip and the game's totals. Returns the y below.
-local function addHeadline(parent, state, y)
-    local entry = state.list[state.selected]
-    local result = entry.stats
-    y = y + 34
-
-    local headlineY = y
-    local notes = choices.Assumptions(entry.boss, entry.picks)
-    if #notes > 0 then
-        info.Add(parent, PAD + TABLE_WIDTH - 16, y + 2, "Assumptions", notes, sliders.WhereToChange(entry.boss))
-    end
-    y = widgets.AddLuckHeadline(parent, PAD + 8, y, TABLE_WIDTH - 30, result) + 2
+-- Luck as a title, its bar, the dry streak, tracked totals and average, then
+-- the game's totals, which a divider sets apart when anything is tracked.
+local function addSummary(result)
+    local title = win:AddTitle({ text = format.Luck(result) })
+    local barSpace = 0
     if result.luck then
-        widgets.AddLuckBar(parent, PAD + 8, y, result.luck, TABLE_WIDTH - 8)
-        y = y + widgets.BAR_HEIGHT + 6
+        luckBar.Add(win, PAD, title.y + title.height + 2, result.luck, INNER)
+        barSpace = luckBar.HEIGHT + 6
     end
-    y = addLines(parent, {
-        { format.Dry(result) },
-        { format.Tracked(result) },
-        { format.Average(result) },
-        { entry.boss.tip or "", widgets.MUTED },
-    }, PAD + 8, y, TABLE_WIDTH - 8)
-    -- The game's totals aren't tracked, so a divider sets them apart.
+    for _, line in ipairs({ format.Dry(result), format.Tracked(result), format.Average(result) }) do
+        if line ~= "" then
+            win:AddText({ text = line, marginTop = barSpace })
+            barSpace = 0
+        end
+    end
     local allTime = format.AllTime(result)
     if allTime ~= "" then
-        widgets.AddSeparator(parent, PAD + 8, y + 3, TABLE_WIDTH - 8)
-        y = addLines(parent, { { allTime, widgets.MUTED } }, PAD + 8, y + 8, TABLE_WIDTH - 8)
-    end
-    widgets.AddRect(parent, PAD, headlineY, 2, y - headlineY, ACCENT)
-    return y + 8
-end
-
--- A unique's row: slot and icon, name, luck or totals column, and dry streak.
--- Until the boss has tracked kills, the luck column says so and dry is empty.
-local function addItemRow(view, row, y, width, tracked)
-    widgets.AddRect(view, 0, y, width, ROW_HEIGHT, ROW)
-    local slotY = y + (ROW_HEIGHT - SLOT_SIZE) // 2
-    widgets.AddSprite(view, "RS3_INV_ICON_SLOT", SLOT_X, slotY, SLOT_SIZE, SLOT_SIZE)
-    local icon = ui.Sprite.new(view)
-    -- Tracked drops only, to match the luck beside it.
-    local received = row.item.received
-    -- The game takes only integers, and saved ids can load as 1.0. Setting the
-    -- quantity draws the game's yellow count on the icon. SetAssociatedObject's
-    -- quantity argument is rejected in game, so it's set separately.
-    icon:SetAssociatedObject(math.tointeger(row.id))
-    icon.associatedObjectQuantity = math.tointeger(received)
-    icon.associatedObjectQuantityMode = received > 0 and ui.ObjectQuantityDisplayMode.ALWAYS
-        or ui.ObjectQuantityDisplayMode.NEVER
-    icon.alpha = received > 0 and 1.0 or 0.35
-    local inset = (SLOT_SIZE - ICON_SIZE) // 2
-    widgets.Place(icon, SLOT_X + inset, slotY + inset, ICON_SIZE, ICON_SIZE)
-
-    local textY = y + (ROW_HEIGHT - widgets.TEXT_HEIGHT) // 2
-    local nameWidth = LUCK_X - NAME_X - 6
-    local name = widgets.Fit(row.name, widgets.ROW_FONT, nameWidth)
-    widgets.AddText(view, name, NAME_X, textY, nameWidth, widgets.ROW_FONT)
-    if not tracked then
-        addGreyText(view, "not tracked yet", LUCK_X, textY, DRY_X - LUCK_X)
-        return
-    elseif luckColumn == "totals" then
-        widgets.AddText(view, format.CountShort(row.item), LUCK_X, textY, DRY_X - LUCK_X, widgets.SMALL_FONT)
-    else
-        local labelX = LUCK_X -- the whole column, until there's a bar
-        if row.item.luck then
-            local barY = y + (ROW_HEIGHT - widgets.BAR_HEIGHT) // 2
-            widgets.AddLuckBar(view, LUCK_X, barY, row.item.luck, ROW_BAR_WIDTH)
-            labelX = LUCK_X + ROW_BAR_WIDTH + 6
+        if format.IsTracked(result) then
+            win:AddDivider(DIVIDER)
         end
-        widgets.AddText(view, format.LuckShort(row.item), labelX, textY, DRY_X - labelX, widgets.SMALL_FONT)
+        win:AddText({ text = allTime })
     end
-    addDryText(view, format.DryCount(row.item), DRY_X, textY)
 end
 
--- Column names on a band as tall as a dropdown. The luck heading is a dropdown
--- (queued in dropdowns) that switches between luck and totals and calls onSwitch.
-local function addColumnNames(parent, y, onSwitch, dropdowns)
-    widgets.AddRect(parent, PAD, y, TABLE_WIDTH, widgets.DROPDOWN_HEIGHT, HEADER)
-    widgets.AddSeparator(parent, PAD, y + widgets.DROPDOWN_HEIGHT - 1, TABLE_WIDTH)
-    centerInDropdownRow(widgets.AddText(parent, "Item", PAD + SLOT_X, y, 60, widgets.SMALL_FONT), 60)
-    centerInDropdownRow(addDryText(parent, "Dry", PAD + DRY_X, y), DRY_WIDTH)
-
-    table.insert(dropdowns, function()
-        widgets.AddDropdown(parent, PAD + LUCK_X, y, COLUMN_PICKER_WIDTH, COLUMNS, luckColumn, function(value)
-            luckColumn = value
-            onSwitch()
-        end)
-    end)
+-- A text column on panel's current row, at x and width, beside its 40 px slot.
+local function column(panel, text, x, width, align)
+    panel:AddText({
+        text = text, x = x, width = width, height = 40, inline = true, maxLines = 1,
+        alignHorizontal = align,
+    })
 end
 
--- The height of count rows, without a gap after the last.
-local function rowsHeight(count)
-    return math.max(0, count * ROW_STEP - ROW_GAP)
+-- A unique's row: slot (its tooltip adds the average player's drops), name,
+-- luck with its bar, and the dry streak.
+local function addRow(panel, row, tracked)
+    local item = row.item
+    local received = math.tointeger(item.received) or 0
+    local slot = panel:AddItemSlot(config.Obj.FromID(math.tointeger(row.id)), {
+        -- game text breaks lines on <br>
+        tooltip = tracked and (row.name .. "<br>Average player: " .. format.AverageShort(item))
+            or row.name,
+        itemInset = 2, -- 36 px icons, the width the game draws them
+        disabled = received == 0, -- dimmed until one is tracked
+        quantity = received > 0 and received or nil,
+        quantityMode = ui.ObjectQuantityDisplayMode.ALWAYS,
+    })
+    local name = common.Fit(row.name, id.Font.MUSEO_SANS_15PT_REGULAR, NAME_WIDTH)
+    column(panel, name, NAME_X, NAME_WIDTH)
+    if not tracked then
+        column(panel, "not tracked yet", VALUE_X, DRY_X - VALUE_X)
+        column(panel, "-", DRY_X, DRY_WIDTH, RIGHT)
+        return
+    end
+    if item.luck then
+        luckBar.AddInRow(panel, slot, VALUE_X, item.luck, BAR_WIDTH)
+        local x = VALUE_X + BAR_WIDTH + 6
+        column(panel, format.LuckShort(item), x, DRY_X - x)
+    else
+        column(panel, format.LuckShort(item), VALUE_X, DRY_X - VALUE_X)
+    end
+    local dry = format.DryCount(item)
+    column(panel, dry ~= "" and dry or "-", DRY_X, DRY_WIDTH, RIGHT) -- "-": no dry streak yet
+end
+
+-- The column names, fixed above the panel.
+local function addHeader(page)
+    page:AddText({ text = "Item", x = INSET + 2, width = NAME_X + NAME_WIDTH, height = 20 })
+    page:AddText({ text = "Luck", inline = true, x = INSET + VALUE_X, width = 60, height = 20 })
+    page:AddText({
+        text = "Dry", inline = true, x = INSET + DRY_X, width = DRY_WIDTH, height = 20,
+        alignHorizontal = RIGHT,
+    })
+end
+
+local function addTabs(entry)
+    local result = entry.stats
+    local tracked = format.IsTracked(result)
+    local notes = entry.notes
+    local tabs = win:AddTabs({
+        { text = "Luck", scrollable = false }, -- its panel scrolls instead
+        { text = "Info", disabled = #notes == 0 },
+    }, {
+        y = TABS_Y,
+        height = 42 + PAGE_HEIGHT, -- the tab strip is 42 px
+        activeIndex = activeTab,
+        contentLayout = { startY = 4, padding = 6, rowGap = 4 },
+        onChange = function(_, index) activeTab = index end,
+    })
+    local page = tabs:GetPage(1)
+    addHeader(page)
+    local panel = page:AddPanel({
+        height = PANEL_HEIGHT,
+        rowBackgroundColours = STRIPES,
+        layout = { startY = 2, padding = 2, rowGap = ROW_GAP },
+    })
+    for _, row in ipairs(entry.rows) do
+        addRow(panel, row, tracked)
+    end
+    panel:RefreshRowBackgrounds()
+    addNotes(tabs:GetPage(2), notes)
 end
 
 function window.Draw(state)
     window.Close()
-    box = frame.New("BOSS RNG", WIDTH, position, window.Close)
+    local parent = ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__PLUGIN_BUILD_LAYER_TOP)
+    win = prettyui.Window.new(parent, {
+        title = "Boss RNG", x = position.x, y = position.y, width = WIDTH, height = HEIGHT,
+        scrollable = false, destroyOnClose = true,
+        layout = { startY = SUMMARY_Y, padding = PAD },
+        onClose = function(closing)
+            if win == closing then
+                remember()
+                win = nil
+            end
+        end,
+    })
     if not state.selected then
-        widgets.AddText(box, "No boss kills yet.", PAD, TITLE_HEIGHT + 6)
-        box:SetSize(WIDTH, TITLE_HEIGHT + 34)
+        win:AddText({ text = "No boss kills yet. Kill a supported boss to start." })
         return
     end
-
-    -- Dropdowns are added last, bottom one first: components added later are drawn
-    -- on top and take clicks first, so each open list covers what's below it.
-    local dropdowns = {}
-
-    local pickerY = TITLE_HEIGHT + 8
-    table.insert(dropdowns, function() widgets.AddBossPicker(box, state, PAD, pickerY, TABLE_WIDTH) end)
-    local y = addHeadline(box, state, pickerY)
-    widgets.AddSeparator(box, PAD, y, TABLE_WIDTH)
-    local headerY = y + 4
-    addColumnNames(box, headerY, state.onRedraw, dropdowns)
-    y = headerY + widgets.DROPDOWN_HEIGHT + 3
-
-    local result = state.list[state.selected].stats
-    local tracked = result.kills + result.extraKills > 0
-    local rows = sortedItems(result)
-    local viewHeight = rowsHeight(math.min(#rows, MAX_ROWS))
-    local view = frame.AddScrollView(box, PAD, y, TABLE_WIDTH, viewHeight, rowsHeight(#rows))
-    for i, row in ipairs(rows) do
-        addItemRow(view, row, (i - 1) * ROW_STEP, ROW_WIDTH, tracked)
-    end
-    y = y + viewHeight
-
-    -- The box's insets plus a small gap.
-    box:SetSize(WIDTH, y + 4 + 2 * frame.INSET)
-
-    for i = #dropdowns, 1, -1 do
-        dropdowns[i]()
-    end
+    local entry = state.list[state.selected]
+    addSummary(entry.stats)
+    addTabs(entry)
+    common.AddBossPicker(win, state, 8)
 end
 
 return window
