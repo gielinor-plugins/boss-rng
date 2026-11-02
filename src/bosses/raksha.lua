@@ -21,10 +21,10 @@ return {
     name = "Raksha, the Shadow Colossus",
     assumptions = {},
 
-    -- Mode names are saved: never change them.
+    -- Mode keys are saved: never change them.
     modes = {
-        { name = "Solo", kc = VARS.kc .. "SOLO", rolls = rolls },
-        { name = "Duo", kc = VARS.kc .. "DUO", rolls = rolls },
+        { key = "s", kc = VARS.kc .. "SOLO", rolls = rolls },
+        { key = "d", kc = VARS.kc .. "DUO", rolls = rolls },
     },
 
     items = {

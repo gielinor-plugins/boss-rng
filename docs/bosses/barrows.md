@@ -32,6 +32,52 @@ Info tab says so).
   After Ahrim's robe top and two chests without Ahrim, it still shows 0 dry. The
   headline dry streak counts every chest since your last unique.
 
+## How chests are saved
+
+Each looted chest is saved under a mode key for the brothers killed that run, so
+its rates can be rebuilt from the key ([saved data](../data/saved_data.md)). At
+the loot, each brother killed sets his bit:
+
+| Brother | Bit | How it's known |
+|---|---|---|
+| Ahrim | `0x1` | `BARROWS_KILLED_AHRIM` is 1 |
+| Dharok | `0x2` | `BARROWS_KILLED_DHAROK` is 1 |
+| Guthan | `0x4` | `BARROWS_KILLED_GUTHAN` is 1 |
+| Karil | `0x8` | `BARROWS_KILLED_KARIL` is 1 |
+| Torag | `0x10` | `BARROWS_KILLED_TORAG` is 1 |
+| Verac | `0x20` | `BARROWS_KILLED_VERAC` is 1 |
+| Akrisae | `0x40` | `BARROWS_KILLED_COUNT` is more than the six flags plus Linza |
+| Linza | `0x80` | `SISTER_KILLED_LINZA` is 1 |
+
+The key is `c` and the bits in lowercase hex, without leading zeros: `c3f` is the
+six originals, `c7f` adds Akrisae, `cbf` adds Linza instead, `cff` is all eight.
+Read back, the set bits give the brothers sharing the equipment rolls (the first
+seven) and Linza's own roll. The chest is in the kill count with 6 or more of
+those seven, and a partial chest otherwise. The bits follow the brothers' order in
+`src/bosses/barrows.lua`, so that order must never change.
+
+The key saves who died, not whether the chest counted, so a change to the kill
+count rule needs no saved data change. If Akrisae stopped counting toward the 6,
+the rule would depend on the chest's day (before the change, he counts), and
+each saved key gives the same brothers either way. Today a chest's kill count is
+set from its key alone, so the rule would need each kill's day too
+(`stats.lua` already has it for rates).
+
+For example, two runs on day 20757:
+
+- Ahrim, Dharok, Karil, Torag, Verac and Akrisae (no Guthan): `0x7b`, so `c7b`.
+  Six brothers, so it counts as a kill, with 7 brother rolls and the amulet roll.
+- Ahrim, Dharok and Linza: `0x83`, so `c83`. Two brothers, so a partial chest,
+  with 3 brother rolls, Linza's roll and the amulet roll.
+
+```lua
+barrows = {
+    kills = { c7b = "20757:1", c83 = "20757:1" },
+    dryFrom = {},
+    items = {},
+}
+```
+
 ## Vars read
 
 | Var | Holds |

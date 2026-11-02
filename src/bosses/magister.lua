@@ -20,9 +20,9 @@ return {
     name = "The Magister",
     assumptions = {},
 
-    -- Mode names are saved: never change them.
+    -- Mode keys are saved: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = rolls },
+        { key = "n", kc = VARS.kc, rolls = rolls },
     },
 
     items = {

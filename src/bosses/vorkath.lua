@@ -24,18 +24,18 @@ return {
     assumptions = {},
     unit = "chest", -- what luck counts (see containers)
 
-    -- Mode names are saved: never change them. Counted through chests opened.
+    -- Mode keys are saved: never change them. Counted through chests opened.
     modes = {
-        { name = "Normal", kc = VARS.kc, byEvent = true,
+        { key = "n", kc = VARS.kc, byEvent = true,
             rolls = function(r) return { common.OneOf({ [SPIKE] = r.spike, [CODEX] = r.codex }) } end },
-        { name = "Hard mode", kc = VARS.kcHard, byEvent = true,
+        { key = "h", kc = VARS.kcHard, byEvent = true,
             rolls = function(r)
                 return { common.OneOf({ [SPIKE] = r.hardSpike, [CODEX] = r.hardCodex, [SCALE] = r.hardScale }) }
             end },
     },
     containers = {
-        [CHEST] = { mode = "Normal", window = REWARD_WINDOW },
-        [CHEST_HARD] = { mode = "Hard mode", window = REWARD_WINDOW },
+        [CHEST] = { mode = "n", window = REWARD_WINDOW },
+        [CHEST_HARD] = { mode = "h", window = REWARD_WINDOW },
     },
 
     items = {

@@ -4,8 +4,8 @@ local mock = require("spec/mock_api")
 -- shared item sharing another, like Rasial's separate armor and weapon rolls.
 local BOSS = {
     modes = {
-        { name = "Normal", kc = "KC_NORMAL" },
-        { name = "Hard mode", kc = "KC_HARD" },
+        { key = "n", kc = "KC_NORMAL" },
+        { key = "h", kc = "KC_HARD" },
     },
     items = {
         [101] = { log = "LOG_WEAPON", kind = "unique" },
@@ -51,7 +51,7 @@ describe("gamevars", function()
         reports, tick = {}, 1000
         mock.inGame = true
         gamevars.Start({ BOSS }, function(_, mode, count)
-            table.insert(reports, "kill " .. mode.name .. " +" .. count)
+            table.insert(reports, "kill " .. mode.key .. " +" .. count)
         end, function(_, itemID, count)
             table.insert(reports, "drop " .. itemID .. " +" .. count)
         end)
@@ -59,9 +59,9 @@ describe("gamevars", function()
 
     it("reports a kill for the slice that went up", function()
         change(KC_VAR, 25 * 65536 + 575, 25 * 65536 + 576)
-        assert.are.same({ "kill Normal +1" }, reports)
+        assert.are.same({ "kill n +1" }, reports)
         change(KC_VAR, 25 * 65536 + 576, 26 * 65536 + 576)
-        assert.are.same({ "kill Normal +1", "kill Hard mode +1" }, reports)
+        assert.are.same({ "kill n +1", "kill h +1" }, reports)
     end)
 
     it("reports each unique item that went up in one change", function()
@@ -77,7 +77,7 @@ describe("gamevars", function()
         send(KC_VAR, 575, 576)
         assert.are.same({}, reports) -- nothing until the next tick
         advance(1)
-        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+        assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
     end)
 
     it("keeps reporting when one report fails", function()
@@ -94,15 +94,15 @@ describe("gamevars", function()
     it("reports a kill event's kill for the mode its values say, not its kill count's own mode", function()
         gamevars.Stop()
         local evented = {
-            modes = { { name = "Normal", kc = "KC_NORMAL", byEvent = true } },
+            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
             items = {},
             killEvents = { { var = "LOG_SHARED", reads = { who = "WHO" }, mode = function(values)
                 return values.who > 0 and "Chest " .. values.who or nil
             end } },
-            modeFor = function(name) return { name = name } end,
+            modeFor = function(key) return { key = key } end,
         }
         gamevars.Start({ evented }, function(_, mode, count)
-            table.insert(reports, mode.name .. " +" .. count)
+            table.insert(reports, mode.key .. " +" .. count)
         end, function() end)
         mock.SetValue("WHO", 3)
         change(KC_VAR, 1, 2) -- the kill count alone: not watched
@@ -116,14 +116,14 @@ describe("gamevars", function()
     it("gives a kill event the last value above 0 of a varbit reset at the kill", function()
         gamevars.Stop()
         local evented = {
-            modes = { { name = "Normal", kc = "KC_NORMAL", byEvent = true } },
+            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
             items = {},
             killEvents = { { var = "KC_NORMAL", reads = {}, lasts = { score = "LOG_SHARED" }, mode = function(values)
                 return values.score and "Score " .. values.score or nil
             end } },
-            modeFor = function(name) return { name = name } end,
+            modeFor = function(key) return { key = key } end,
         }
-        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.name) end, function() end)
+        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.key) end, function() end)
         advance(1)
         mock.SetValue("LOG_SHARED", 7)
         send(LOG_VAR, 0, 0x070000) -- the score rises through the fight
@@ -141,9 +141,9 @@ describe("gamevars", function()
             modes = {},
             items = {},
             killEvents = { { var = "LOG_BASE", mask = 0x1000000, reads = {}, mode = function() return "Chest" end } },
-            modeFor = function(name) return { name = name } end,
+            modeFor = function(key) return { key = key } end,
         }
-        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.name) end, function() end)
+        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.key) end, function() end)
         change(LOG_VAR, 0x020000, 0x1020000)
         assert.are.same({ "Chest" }, reports)
     end)
@@ -152,11 +152,11 @@ describe("gamevars", function()
         local LOOT_VAR = 3
         local loot -- the loot var, holding piles in 0x70000 and a difficulty in 0xF0000000
         local claimed = {
-            modes = { { name = "Normal", kc = "KC_NORMAL", byEvent = true } },
+            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
             items = { [101] = { log = "LOG_WEAPON", kind = "unique" } },
             claims = { { var = "LOOT_BASE", mask = 0x70000, kills = { "KC_NORMAL" }, reads = {},
-                mode = function(_, old) return old & 0xF0000000 == 0 and "Normal" or "Enrage" end } },
-            modeFor = function(name) return { name = name } end,
+                mode = function(_, old) return old & 0xF0000000 == 0 and "n" or "e" end } },
+            modeFor = function(key) return { key = key } end,
         }
 
         -- Starts watching with value waiting in the loot var.
@@ -165,7 +165,7 @@ describe("gamevars", function()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
             loot.value = value
             gamevars.Start({ claimed }, function(_, mode, count)
-                table.insert(reports, "kill " .. mode.name .. " +" .. count)
+                table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function(_, itemID, count)
                 table.insert(reports, "drop " .. itemID .. " +" .. count)
             end)
@@ -189,10 +189,10 @@ describe("gamevars", function()
             send(LOOT_VAR, 0x30000, 0) -- claimed: three piles
             send(LOG_VAR, 0, 1) -- and a drop
             advance(1)
-            assert.are.same({ "kill Normal +3", "drop 101 +1" }, reports)
+            assert.are.same({ "kill n +3", "drop 101 +1" }, reports)
             kill(3, 0, 0x50010000)
             change(LOOT_VAR, 0x50010000, 0)
-            assert.are.same({ "kill Normal +3", "drop 101 +1", "kill Enrage +1" }, reports)
+            assert.are.same({ "kill n +3", "drop 101 +1", "kill e +1" }, reports)
         end)
 
         it("leaves a claim uncounted, drops and all, if a kill didn't raise it", function()
@@ -205,25 +205,25 @@ describe("gamevars", function()
             assert.are.same({}, reports)
             kill(3, 0, 0x30000) -- the next chest counts again
             change(LOOT_VAR, 0x30000, 0)
-            assert.are.same({ "kill Normal +3" }, reports)
+            assert.are.same({ "kill n +3" }, reports)
         end)
 
         it("counts claims sharing one var by their own bits, like Sanctum's bosses", function()
             local function only(name) return function() return name end end
             local two = {
-                modes = { { name = "A", kc = "KC_NORMAL", byEvent = true }, { name = "B", kc = "KC_HARD", byEvent = true } },
+                modes = { { key = "a", kc = "KC_NORMAL", byEvent = true }, { key = "b", kc = "KC_HARD", byEvent = true } },
                 items = {},
                 claims = {
-                    { var = "LOOT_BASE", mask = 0x1, kills = { "KC_NORMAL" }, reads = {}, mode = only("A") },
-                    { var = "LOOT_BASE", mask = 0x4, kills = { "KC_HARD" }, reads = {}, mode = only("B") },
+                    { var = "LOOT_BASE", mask = 0x1, kills = { "KC_NORMAL" }, reads = {}, mode = only("a") },
+                    { var = "LOOT_BASE", mask = 0x4, kills = { "KC_HARD" }, reads = {}, mode = only("b") },
                 },
-                modeFor = function(name) return { name = name } end,
+                modeFor = function(key) return { key = key } end,
             }
             gamevars.Stop()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
             loot.value = 0
             gamevars.Start({ two }, function(_, mode, count)
-                table.insert(reports, "kill " .. mode.name .. " +" .. count)
+                table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function() end, function() end)
             advance(1)
             send(KC_VAR, 0, 1) -- A's kill sets its bit
@@ -235,7 +235,7 @@ describe("gamevars", function()
             assert.are.same({}, reports)
             change(LOOT_VAR, 0x5, 0x4)
             change(LOOT_VAR, 0x4, 0)
-            assert.are.same({ "kill A +1", "kill B +1" }, reports)
+            assert.are.same({ "kill a +1", "kill b +1" }, reports)
         end)
 
         it("leaves loot waiting from before it was watched uncounted", function()
@@ -296,13 +296,13 @@ describe("gamevars", function()
         assert.are.same({}, reports)
         change(KC_VAR, 1, 2)
         change(LOG_VAR, 0x02, 0x03)
-        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+        assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
 
         -- Back in the game: a new session, with no kills yet.
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
         advance(5 * 50)
         change(LOG_VAR, 0x03, 0x04)
-        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+        assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
     end)
 
     it("ignores counts sent again from 0, even for a boss just killed", function()
@@ -310,7 +310,7 @@ describe("gamevars", function()
         change(LOG_VAR, 0x02, 0x00) -- the log count drops to 0...
         change(LOG_VAR, 0x00, 0x02) -- ...and comes back: no drop
         change(LOG_VAR, 0x02, 0x03)
-        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+        assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
     end)
 
     it("knows each count's value once the game is ready", function()
@@ -320,7 +320,7 @@ describe("gamevars", function()
         change(KC_VAR, 1, 2)
         change(LOG_VAR, 0x00, 0x02) -- sent again from 0: no drop
         change(LOG_VAR, 0x02, 0x03)
-        assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+        assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
     end)
 
     it("ignores big jumps and decreases", function()
@@ -341,7 +341,7 @@ describe("gamevars", function()
         change(KC_VAR, 2, 3)
         advance(5 * 50)
         change(KC_VAR, 3, 4)
-        assert.are.same({ "kill Normal +1" }, reports)
+        assert.are.same({ "kill n +1" }, reports)
     end)
 
     it("waits for the game if it starts on the login screen", function()
@@ -356,8 +356,8 @@ describe("gamevars", function()
         local CHEST = 500
         local WINDOW = "DROP_CASKET_REWARDINV"
         local chested = {
-            modes = { { name = "Normal", kc = "KC_NORMAL", byEvent = true } },
-            containers = { [CHEST] = { mode = "Normal", window = WINDOW } },
+            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            containers = { [CHEST] = { mode = "n", window = WINDOW } },
             items = { [101] = { log = "LOG_WEAPON", kind = "unique", stack = { most = 9, word = "spike" } } },
         }
 
@@ -375,7 +375,7 @@ describe("gamevars", function()
             gamevars.Stop()
             mock.backpack[CHEST] = 3
             gamevars.Start({ chested }, function(_, mode, count)
-                table.insert(reports, "kill " .. mode.name .. " +" .. count)
+                table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function(_, itemID, count)
                 table.insert(reports, "drop " .. itemID .. " +" .. count)
             end)
@@ -388,7 +388,7 @@ describe("gamevars", function()
             backpack(2)
             send(LOG_VAR, 10, 16) -- six spikes
             advance(1)
-            assert.are.same({ "kill Normal +1", "drop 101 +1" }, reports)
+            assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
         end)
 
         it("doesn't count a chest banked or claimed", function()
@@ -410,7 +410,7 @@ describe("gamevars", function()
             rewardWindow()
             backpack(1) -- two left at once, one window
             advance(1)
-            assert.are.same({ "kill Normal +1" }, reports)
+            assert.are.same({ "kill n +1" }, reports)
         end)
     end)
 

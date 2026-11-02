@@ -217,8 +217,8 @@ local function eventMode(boss, event, old, kept)
     for key in pairs(event.lasts or {}) do
         values[key] = kept[key] -- nil if none was seen
     end
-    local name = event.mode(values, old)
-    return name and boss.modeFor(name)
+    local key = event.mode(values, old)
+    return key and boss.modeFor(key)
 end
 
 -- Reports changes for every boss in bosses on the logic tick after they happen:
@@ -278,7 +278,7 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
         end
         for itemID, container in pairs(boss.containers or {}) do
             for _, mode in ipairs(boss.modes) do
-                if mode.name == container.mode then
+                if mode.key == container.mode then
                     containers.Add(itemID, container.window, function(count) killed(boss, mode, count) end)
                 end
             end

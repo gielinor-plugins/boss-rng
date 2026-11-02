@@ -2,8 +2,8 @@
 -- brothers killed (Linza not counted), a chest rolls min(n + 1, 7) times for a killed
 -- brother's item; Linza adds her own roll. The amulet's rate is from Jagex's Late-Game
 -- Rebalance design preview, which doesn't say whether partial chests roll it, so they're
--- assumed to. Each chest counts as looted, for a mode
--- named by the brothers killed. The kill count only counts chests with 6+ brothers.
+-- assumed to. Each chest counts as looted, for a mode keyed by the brothers killed.
+-- The kill count only counts chests with 6+ brothers.
 
 local common = require("src/bosses/common")
 
@@ -22,12 +22,11 @@ local function pieceChance(n, r)
 end
 
 local FULL_CHEST = 6 -- the fewest brothers (Linza not counted) for the kill count
-local CHEST = "Chest: " -- tracked chests' mode names start with this
 
 local AMULET = 39061 -- Amulet of the forsaken
 local SIGIL = 36156 -- Corruption sigil
 
--- A brother: name (as in mode names), name in game vars, items { [item id] = log var }.
+-- A brother: name, name in game vars, items { [item id] = log var }.
 local function brother(name, varName, pieces)
     local items, size = {}, 0
     for itemID, piece in pairs(pieces) do
@@ -52,9 +51,10 @@ local AKRISAE = brother("Akrisae", "AKRISAE", { [21736] = "HEAD", [21752] = "BOD
 local LINZA = brother("Linza", "SISTER", { -- helm, cuirass, greaves, hammer, shield
     [37433] = "HEAD", [37437] = "BODY", [37441] = "LEGS", [37445] = "HAMMER", [37449] = "SHIELD" })
 
--- The brothers sharing the equipment rolls, in mode name order.
+-- The brothers sharing the equipment rolls; each one's bit in a chest's key is 1 << (i - 1).
 local BROTHERS = { table.unpack(ORIGINALS) }
 table.insert(BROTHERS, AKRISAE)
+local LINZA_BIT = 1 << #BROTHERS
 
 -- Weights picking one brother evenly, then one of their items evenly.
 local function weights(brothers)
@@ -80,50 +80,39 @@ local function chestRolls(brothers, linza, r)
     return rolls
 end
 
--- CHEST, then the brothers in BROTHERS' order, then Linza. Saved: never change the format.
-local function chestName(brothers, linza)
-    local names = {}
-    for _, b in ipairs(brothers) do
-        table.insert(names, b.name)
-    end
-    if linza then
-        table.insert(names, LINZA.name)
-    end
-    return CHEST .. table.concat(names, ", ")
-end
-
-local function chestMode(name)
-    local killed = {}
-    for b in name:sub(#CHEST + 1):gmatch("[^, ]+") do
-        killed[b] = true
-    end
+-- A chest's mode key: "c" and the hex bits of the brothers killed ("cff": all and Linza).
+-- Saved: never change the format.
+local function chestMode(key)
+    local bits = tonumber(key:sub(2), 16) or 0
     local brothers = {}
-    for _, b in ipairs(BROTHERS) do
-        if killed[b.name] then
+    for i, b in ipairs(BROTHERS) do
+        if bits & (1 << (i - 1)) ~= 0 then
             table.insert(brothers, b)
         end
     end
-    local kc = #brothers >= FULL_CHEST and VARS.kc or nil
-    local linza = killed[LINZA.name]
+    local linza = bits & LINZA_BIT ~= 0
     local function rolls(r)
         return chestRolls(brothers, linza, r)
     end
-    return { name = name, kc = kc, rolls = rolls }
+    return { key = key, kc = #brothers >= FULL_CHEST and VARS.kc or nil, rolls = rolls }
 end
 
 -- Read as the chest is looted, not as it opens: the first search brings out the tunnel
 -- brother, who isn't dead yet. Akrisae is the count less the others.
 local function chestLooted(values)
-    local brothers = {}
-    for _, b in ipairs(ORIGINALS) do
+    local bits, originals = 0, 0
+    for i, b in ipairs(ORIGINALS) do
         if values[b.name] == 1 then
-            table.insert(brothers, b)
+            bits, originals = bits | (1 << (i - 1)), originals + 1
         end
     end
-    if values.killedCount - #brothers - values.linzaKilled > 0 then
-        table.insert(brothers, AKRISAE)
+    if values.killedCount - originals - values.linzaKilled > 0 then
+        bits = bits | (1 << #ORIGINALS) -- Akrisae
     end
-    return chestName(brothers, values.linzaKilled == 1)
+    if values.linzaKilled == 1 then
+        bits = bits | LINZA_BIT
+    end
+    return string.format("c%x", bits)
 end
 
 local function lootReads()
@@ -154,7 +143,7 @@ return {
 
     -- Counted only through its kill event: each chest gets its own mode.
     modes = {
-        { name = "Normal", kc = VARS.kc, byEvent = true },
+        { key = "n", kc = VARS.kc, byEvent = true },
     },
     killEvents = { { var = VARS.run, mask = LOOTED, reads = lootReads(), mode = chestLooted } },
     modeFor = chestMode,

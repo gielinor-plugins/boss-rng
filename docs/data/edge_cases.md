@@ -6,7 +6,7 @@ conversion.
 
 ## Rules
 
-- Never rename a boss key, mode name, item id or choice key without converting saved
+- Never rename a boss key, mode key, item id or choice key without converting saved
   data: they're keys in it.
 - Never rename a rate in `src/core/rates/base.lua` without renaming it in every
   update file. A missing name raises an error; `spec/core/rates_spec.lua` fails if an
@@ -25,7 +25,9 @@ conversion.
 | Unique removed | Not supported yet; see below. |
 | Start counting an item (such as Zilyana's `excluded` hum) | Make it `unique`, rate in base: counts over every tracked kill, though earlier drops weren't tracked. Or 0 in base and its rate from the plugin update's day. |
 | Stop counting a unique | Change its `kind` (such as `excluded`). Its saved data stays, unused. |
-| New mode | New mode name and kill count var. Streaks span every mode. |
+| New mode | New mode key and kill count var. Streaks span every mode. |
+| Kill count rule changes (such as which brothers a Barrows kill needs) | A dated rule in the boss file, read with each kill's day. The saved facts don't change. |
+| Saved facts change format for one boss | A version for that boss: see below. |
 
 Example (not real): Solak gains item 99999 at 1 in 300 on day 21000.
 
@@ -48,3 +50,18 @@ The item should vanish: no row, no part in luck on any day. Kills stay.
    Until built, they stay saved but unread.
 
 `any` keeps its start even if the removed item set it.
+
+## A version per boss (planned)
+
+The record's `version` resets every boss, so it's only for a change to the whole
+saved shape. When one boss's saved facts must change format (such as saving a
+value per kill that was saved per run), give that boss its own version:
+
+1. The boss file declares `dataVersion`, and its saved tallies keep the version
+   they were written with. A missing version reads as 1, so data saved before this
+   is built still loads.
+2. On load, tallies behind their boss's version go through the boss file's
+   `convert(tallies, from)` if it has one, or start again for that boss only.
+
+Prefer saving facts and interpreting them in code by day, so most changes need
+neither.

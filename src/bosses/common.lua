@@ -20,11 +20,11 @@ function common.Repeat(rolls, n, roll)
     return rolls
 end
 
--- Normal and hard mode; hard's rolls default to normal's. Names are saved: never change.
+-- Normal and hard mode; hard's rolls default to normal's. Keys are saved: never change.
 function common.Modes(vars, normal, hard)
     return {
-        { name = "Normal", kc = vars.kc, rolls = normal },
-        { name = "Hard mode", kc = vars.kcHard, rolls = hard or normal },
+        { key = "n", kc = vars.kc, rolls = normal },
+        { key = "h", kc = vars.kcHard, rolls = hard or normal },
     }
 end
 

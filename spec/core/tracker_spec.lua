@@ -1,6 +1,6 @@
 local mock = require("spec/mock_api")
 
-local NORMAL, HARD = { name = "Normal", kc = "KC_NORMAL" }, { name = "Hard mode", kc = "KC_HARD" }
+local NORMAL, HARD = { key = "n", kc = "KC_NORMAL" }, { key = "h", kc = "KC_HARD" }
 local BOSS = {
     key = "testboss",
     modes = { NORMAL, HARD },
@@ -29,19 +29,19 @@ describe("tracker", function()
         tracker.AddKills(BOSS, NORMAL, 1, NEXT_DAY)
         tracker.AddKills(BOSS, HARD, 2, DAY)
         local tallies = tracker.Tallies(BOSS)
-        assert.are.same({ Normal = { ["20756"] = 1, ["20757"] = 1 }, ["Hard mode"] = { ["20756"] = 2 } }, tallies.kills)
+        assert.are.same({ n = { ["20756"] = 1, ["20757"] = 1 }, h = { ["20756"] = 2 } }, tallies.kills)
         assert.are.equal(4, tracker.Total(tallies.kills))
         -- Saved as text per mode, days in order.
         local saved = mock.Saved("char:Tester")
-        assert.are.equal(5, saved.version)
-        assert.are.same({ Normal = "20756:1,20757:1", ["Hard mode"] = "20756:2" }, saved.bosses.testboss.kills)
+        assert.are.equal(6, saved.version)
+        assert.are.same({ n = "20756:1,20757:1", h = "20756:2" }, saved.bosses.testboss.kills)
     end)
 
     it("counts a dry streak for the boss and for each unique", function()
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         local tallies = tracker.Tallies(BOSS)
         for _, key in ipairs(DRY_KEYS) do
-            assert.are.same({ Normal = { ["20756"] = 1 } }, tracker.Dry(tallies, key))
+            assert.are.same({ n = { ["20756"] = 1 } }, tracker.Dry(tallies, key))
         end
         assert.is_nil(tallies.dryFrom["103"]) -- pets aren't counted
     end)
@@ -52,8 +52,8 @@ describe("tracker", function()
         tracker.AddKills(BOSS, HARD, 1, NEXT_DAY)
         local tallies = tracker.Tallies(BOSS)
         assert.are.equal(1, tallies.items["101"])
-        assert.are.same({ ["Hard mode"] = { ["20757"] = 1 } }, tracker.Dry(tallies, "any"))
-        assert.are.same({ ["Hard mode"] = { ["20757"] = 1 } }, tracker.Dry(tallies, "101"))
+        assert.are.same({ h = { ["20757"] = 1 } }, tracker.Dry(tallies, "any"))
+        assert.are.same({ h = { ["20757"] = 1 } }, tracker.Dry(tallies, "101"))
         assert.are.equal(3, tracker.Total(tracker.Dry(tallies, "102"))) -- still dry
     end)
 
@@ -90,9 +90,9 @@ describe("tracker", function()
         local function count(mode, day, n)
             for _, key in ipairs(DRY_KEYS) do
                 counted[key] = counted[key] or {}
-                local byDay = counted[key][mode.name] or {}
+                local byDay = counted[key][mode.key] or {}
                 byDay[tostring(day)] = (byDay[tostring(day)] or 0) + n
-                counted[key][mode.name] = byDay
+                counted[key][mode.key] = byDay
             end
         end
         local seed, day = 7, DAY
@@ -130,7 +130,7 @@ describe("tracker", function()
     end)
 
     it("starts again from another version", function()
-        mock.SetSaved("char:Tester", { version = 3, bosses = { testboss = { kills = { Normal = 4 } } } })
+        mock.SetSaved("char:Tester", { version = 3, bosses = { testboss = { kills = { n = 4 } } } })
         reload()
         assert.are.same({ kills = {}, dryFrom = {}, items = {} }, tracker.Tallies(BOSS))
     end)
@@ -151,8 +151,8 @@ describe("tracker", function()
         tracker.AddKills(other, NORMAL, 2, DAY)
         tracker.AddKills(BOSS, NORMAL, 1, NEXT_DAY)
         local saved = mock.Saved("char:Tester").bosses
-        assert.are.equal("20756:1,20757:1", saved.testboss.kills.Normal)
-        assert.are.equal("20756:2", saved.other.kills.Normal)
+        assert.are.equal("20756:1,20757:1", saved.testboss.kills.n)
+        assert.are.equal("20756:2", saved.other.kills.n)
     end)
 
     it("keeps its data after a reload", function()
@@ -184,7 +184,7 @@ describe("tracker", function()
         tracker.OnChange(function() calls = calls + 1 end)
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         assert.are.equal(1, calls)
-        assert.are.equal("20756:1", mock.Saved("char:Tester").bosses.testboss.kills.Normal)
+        assert.are.equal("20756:1", mock.Saved("char:Tester").bosses.testboss.kills.n)
     end)
 
     it("tells listeners about each change", function()

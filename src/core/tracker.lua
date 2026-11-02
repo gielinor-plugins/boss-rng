@@ -10,7 +10,7 @@ local tracker = {}
 
 -- The saved shape's version (see src/core/tallies.lua): any other version starts again.
 -- TODO: set to 1 before release.
-local VERSION = 5
+local VERSION = 6
 
 -- The key of the dry streak counting every unique; the others are item ids.
 tracker.ANY = "any"
@@ -84,7 +84,7 @@ function tracker.AddKills(boss, mode, count, day)
     if not load() then
         return
     end
-    tallies.AddKills(talliesFor(boss).kills, mode.name, day, count)
+    tallies.AddKills(talliesFor(boss).kills, mode.key, day, count)
     record.lastBoss = boss.key
     save()
 end

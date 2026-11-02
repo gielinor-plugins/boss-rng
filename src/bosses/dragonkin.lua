@@ -20,9 +20,9 @@ local function codex(item)
 end
 
 local dungeon = eliteDungeon.New()
-dungeon.Add("Astellarn", VARS.kc .. 1, codex(FLURRY))
-dungeon.Add("Verak Lith", VARS.kc .. 2, codex(FURY))
-dungeon.Add("Black stone dragon", VARS.kc .. 3, codex(BARGE))
+dungeon.Add("a", VARS.kc .. 1, codex(FLURRY)) -- Astellarn
+dungeon.Add("v", VARS.kc .. 2, codex(FURY)) -- Verak Lith
+dungeon.Add("b", VARS.kc .. 3, codex(BARGE)) -- the Black stone dragon
 
 return {
     key = "dragonkin", -- saved data key: never change it

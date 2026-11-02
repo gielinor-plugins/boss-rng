@@ -27,13 +27,10 @@ local function rolls(n)
     end
 end
 
--- Modes by unique rolls ("12 rolls"). Names are saved: never change them.
+-- Modes by unique rolls ("r12"). Keys are saved: never change them.
 local MODES = {}
-local function modeName(n)
-    return n .. (n == 1 and " roll" or " rolls")
-end
 for n = 0, 12 do
-    MODES[modeName(n)] = { name = modeName(n), kc = VARS.kc, byEvent = true, rolls = rolls(n) }
+    MODES["r" .. n] = { key = "r" .. n, kc = VARS.kc, byEvent = true, rolls = rolls(n) }
 end
 
 -- A kill's mode from the player's contribution, or nil if none was seen.
@@ -44,10 +41,10 @@ local function contributionMode(values)
     end
     for _, step in ipairs(ROLLS) do
         if contribution >= step[1] then
-            return modeName(step[2])
+            return "r" .. step[2]
         end
     end
-    return modeName(0)
+    return "r0"
 end
 
 return {
@@ -55,9 +52,9 @@ return {
     name = "Croesus",
     assumptions = {},
 
-    modes = { MODES["12 rolls"] }, -- counted only through its kill event
+    modes = { MODES.r12 }, -- counted only through its kill event
     killEvents = { { var = VARS.kc, reads = {}, lasts = { contribution = VARS.contribution }, mode = contributionMode } },
-    modeFor = function(name) return MODES[name] end,
+    modeFor = function(key) return MODES[key] end,
 
     items = {
         [HELM] = { log = VARS.log .. "BOSS_MAGIC_HELM", kind = "unique" },

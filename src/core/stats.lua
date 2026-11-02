@@ -56,17 +56,17 @@ local function modesOf(boss, tallies)
     local modes, known = {}, {}
     for _, mode in ipairs(boss.modes) do
         table.insert(modes, mode)
-        known[mode.name] = true
+        known[mode.key] = true
     end
-    local names = {}
-    for name in pairs(tallies.kills) do
-        if not known[name] then
-            table.insert(names, name)
+    local keys = {}
+    for key in pairs(tallies.kills) do
+        if not known[key] then
+            table.insert(keys, key)
         end
     end
-    table.sort(names) -- the same order every time
-    for _, name in ipairs(names) do
-        local mode = boss.modeFor and boss.modeFor(name)
+    table.sort(keys) -- the same order every time
+    for _, key in ipairs(keys) do
+        local mode = boss.modeFor and boss.modeFor(key)
         if mode then
             table.insert(modes, mode)
         end
@@ -76,7 +76,7 @@ end
 
 local function eachKill(modes, byMode, fn)
     for _, mode in ipairs(modes) do
-        for day, kills in pairs(byMode[mode.name] or {}) do
+        for day, kills in pairs(byMode[mode.key] or {}) do
             fn(mode, tonumber(day), kills)
         end
     end

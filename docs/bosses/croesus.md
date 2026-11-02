@@ -26,7 +26,7 @@ Scripture of Bik. Each player gets their own rolls, by contribution:
 
 ```lua
 croesus = {
-    kills = { ["12 rolls"] = "20757:30,20758:5", ["8 rolls"] = "20757:2" },
+    kills = { r12 = "20757:30,20758:5", r8 = "20757:2" },
     dryFrom = {},
     items = {},
 }

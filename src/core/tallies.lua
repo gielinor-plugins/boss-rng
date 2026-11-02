@@ -1,6 +1,6 @@
 -- A boss's tallies, { kills, dryFrom, items }, and how they're saved; tracker keeps
 -- them up to date. Keys are text, the only kind Jagex's saved data examples use.
---   kills    { [mode name] = { [day] = kills } } (day 0 when it couldn't be read)
+--   kills    { [mode key] = { [day] = kills } } (day 0 when it couldn't be read)
 --   dryFrom  { [streak key] = start } for each dry streak (the boss's, and each
 --            unique's), read as the kills since its start (tallies.Dry):
 --              (no entry)        from the first tracked kill
@@ -15,11 +15,11 @@ function tallies.Empty()
     return { kills = {}, dryFrom = {}, items = {} }
 end
 
-function tallies.AddKills(byMode, modeName, day, n)
-    local byDay = byMode[modeName] or {}
+function tallies.AddKills(byMode, modeKey, day, n)
+    local byDay = byMode[modeKey] or {}
     local key = tostring(day)
     byDay[key] = (byDay[key] or 0) + n
-    byMode[modeName] = byDay
+    byMode[modeKey] = byDay
 end
 
 function tallies.Total(byMode)

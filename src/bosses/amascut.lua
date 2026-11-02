@@ -41,36 +41,28 @@ local function rolls(gearRate, nexus, shard)
     end
 end
 
-local TIERS = {
-    { enrage = 100, label = "100%" },
-    { enrage = 500, label = "500%" },
-    { enrage = 750, label = "750%" },
-    { enrage = 1000, label = "1,000%" },
-    { enrage = 2000, label = "2,000%+" },
-}
+local TIERS = { 100, 500, 750, 1000, 2000 } -- enrage %, the last for 2,000% and above
 
--- Mode names are saved: never change them.
-local MODES = { Normal = { name = "Normal", kc = VARS.kc, byEvent = true, rolls = rolls("gear", "nexus") } }
-for _, tier in ipairs(TIERS) do
-    local name = "Enrage " .. tier.label
-    local e = tier.enrage
-    MODES[name] = { name = name, kc = VARS.kcEnrage, rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
+-- Normal, and each enrage tier ("e1000"). Mode keys are saved: never change them.
+local MODES = { n = { key = "n", kc = VARS.kc, byEvent = true, rolls = rolls("gear", "nexus") } }
+for _, e in ipairs(TIERS) do
+    MODES["e" .. e] = { key = "e" .. e, kc = VARS.kcEnrage, rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
 end
 
 -- The highest tier at or below enrage (4,000% is 2,000%+), else the lowest.
 local function tierMode(enrage)
     local found = TIERS[1]
     for _, tier in ipairs(TIERS) do
-        if enrage >= tier.enrage then
+        if enrage >= tier then
             found = tier
         end
     end
-    return "Enrage " .. found.label
+    return "e" .. found
 end
 
 -- A chest's piles share one enrage: a new instance can't start until they're claimed.
 local function claimedMode(values, old)
-    return (old & DIFFICULTY) == 0 and "Normal" or tierMode(values.enrage)
+    return (old & DIFFICULTY) == 0 and "n" or tierMode(values.enrage)
 end
 
 return {
@@ -80,16 +72,16 @@ return {
     unit = "pile", -- what luck counts: loot piles claimed (see claims)
     tip = "Open the chest after each kill: stacked loot can't always be counted",
 
-    -- Mode names are saved: never change them. Counted through piles claimed.
+    -- Mode keys are saved: never change them. Counted through piles claimed.
     modes = {
-        MODES.Normal,
-        { name = "Enrage", kc = VARS.kcEnrage, byEvent = true },
+        MODES.n,
+        { key = "e", kc = VARS.kcEnrage, byEvent = true },
     },
     claims = { {
         var = VARS.loot, mask = PILES, kills = { VARS.kc, VARS.kcEnrage },
         reads = { enrage = VARS.enrage }, mode = claimedMode,
     } },
-    modeFor = function(name) return MODES[name] end,
+    modeFor = function(key) return MODES[key] end,
 
     items = {
         [MASK] = { log = VARS.log .. "MAGIC_DEVOURER_HEAD_T95", kind = "unique" },

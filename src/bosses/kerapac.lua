@@ -58,12 +58,12 @@ return {
         pilesChoice("hardPiles", "Hard Mode"),
     },
 
-    -- Mode names are saved: never change them.
+    -- Mode keys are saved: never change them.
     modes = {
-        { name = "Normal", kc = VARS.kc, rolls = function(r, picks)
+        { key = "n", kc = VARS.kc, rolls = function(r, picks)
             return piles(picks.normalPiles, normalPile(r), r)
         end },
-        { name = "Hard mode", kc = VARS.kcHard, rolls = function(r, picks)
+        { key = "h", kc = VARS.kcHard, rolls = function(r, picks)
             return piles(picks.hardPiles, hardPile(r), r)
         end },
     },

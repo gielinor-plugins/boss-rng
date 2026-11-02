@@ -3,7 +3,7 @@
 --   key          saved data key: never change
 --   name         shown name
 --   assumptions  a list of lines, or function(picks) giving one, for ones that hold for some picks
---   modes        a list of { name, kc, rolls, byEvent }. name: saved, never change. kc: kill count
+--   modes        a list of { key, kc, rolls, byEvent }. key: short, saved, never change. kc: kill count
 --                varbit. rolls: a plain list, or function(r, picks) of a day's rate values (named
 --                in src/core/rates/, by boss key) and the player's picks, so each kill uses its
 --                day's rates. byEvent: kills are counted by killEvents, containers or claims, so
@@ -25,10 +25,10 @@
 --   choices      player picks for rates set by one (src/core/choices.lua); choicesHelp: paragraphs
 --                on the settings page saying why and how to set them
 --   killEvents   a list of { var, mask, reads, lasts, mode }: when var (or its mask bits) rises,
---                mode(values) names the kill's mode, or nil to leave it uncounted. lasts = { [key]
+--                mode(values) gives the kill's mode key, or nil to leave it uncounted. lasts = { [key]
 --                = varbit } gives its last value above 0 since the previous kill (for values the
 --                game resets at the kill, like Croesus's contribution)
---   modeFor      function(name): an event's mode; kc nil means outside the kill count
+--   modeFor      function(key): an event's mode; kc nil means outside the kill count
 --   extraKills   label for kills outside the kill count ("partial")
 --   containers   { [item id] = { mode, window } }: counts containers opened, not kills (see
 --                src/core/containers.lua)

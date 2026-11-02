@@ -30,20 +30,20 @@ end
 
 local BOOKS, HARD_BOOKS = rolls("books"), rolls("hardBooks")
 
--- Mode names are saved: never change them.
+-- Vermyx, Kezalam and Nakatra, each then in hard mode. Mode keys are saved: never change them.
 local MODES = {
-    { name = "Vermyx", kc = VARS.kc .. "WYRM_BOSS", rolls = BOOKS },
-    { name = "Vermyx hard mode", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = HARD_BOOKS },
-    { name = "Kezalam", kc = VARS.kc .. "BEAST_BOSS", rolls = BOOKS },
-    { name = "Kezalam hard mode", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = HARD_BOOKS },
-    { name = "Nakatra", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls("books", "weapons") },
-    { name = "Nakatra hard mode", kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE",
+    { key = "v", kc = VARS.kc .. "WYRM_BOSS", rolls = BOOKS },
+    { key = "vh", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = HARD_BOOKS },
+    { key = "k", kc = VARS.kc .. "BEAST_BOSS", rolls = BOOKS },
+    { key = "kh", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = HARD_BOOKS },
+    { key = "n", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls("books", "weapons") },
+    { key = "nh", kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE",
         rolls = rolls("hardBooks", "hardWeapons", "hardShard") },
 }
-local byName = {}
+local byKey = {}
 for _, mode in ipairs(MODES) do
     mode.byEvent = true -- counted through claims
-    byName[mode.name] = mode
+    byKey[mode.key] = mode
 end
 
 -- A boss's claim, for its normal and hard mode (MODES[i] and MODES[i + 1]): its
@@ -52,7 +52,7 @@ local function claim(i, loot, difficulty)
     local normal, hard = MODES[i], MODES[i + 1]
     return {
         var = VARS.loot, mask = loot, kills = { normal.kc, hard.kc }, reads = {},
-        mode = function(_, old) return (old & difficulty) == 0 and normal.name or hard.name end,
+        mode = function(_, old) return (old & difficulty) == 0 and normal.key or hard.key end,
     }
 end
 
@@ -63,7 +63,7 @@ return {
 
     modes = MODES,
     claims = { claim(1, 0x1, 0x300), claim(3, 0x4, 0xC00), claim(5, 0x10, 0x3000) },
-    modeFor = function(name) return byName[name] end,
+    modeFor = function(key) return byKey[key] end,
 
     items = {
         [CODEX] = { log = VARS.log .. "COMBATV2_PRAYER_CODEX_DIVINE_RAGE", kind = "unique" },

@@ -21,7 +21,7 @@ local function pieces(team)
 end
 
 local dungeon = eliteDungeon.New()
-dungeon.Add("The Ambassador", VARS.kc, pieces)
+dungeon.Add("a", VARS.kc, pieces) -- the Ambassador
 
 return {
     key = "shadow_reef", -- saved data key: never change it

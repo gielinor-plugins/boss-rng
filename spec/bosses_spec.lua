@@ -40,6 +40,14 @@ describe("boss data", function()
                 end
             end)
 
+            it("keys each mode uniquely", function()
+                local seen = {}
+                for _, mode in ipairs(boss.modes) do
+                    assert.is_nil(seen[mode.key])
+                    seen[mode.key] = true
+                end
+            end)
+
             it("counts a kill count by its kill events only if it has them", function()
                 for _, mode in ipairs(boss.modes) do
                     assert.is_true(mode.byEvent == true or mode.rolls ~= nil)
@@ -104,27 +112,27 @@ local CASES = {
     { file = "gregorovic", items = 8, rates = { [37075] = 1 / 256, [37080] = 1 / 256 }, hard = { [37021] = 1 / 179 },
         after = { [37021] = 1 / 128 }, afterHard = { [37021] = 1 / 128 } },
     -- Normal mode, then the 100% enrage tier: an armor piece, a weapon, the Nexus and the Shard.
-    { file = "amascut", items = 11, modes = { "Normal", "Enrage 100%" },
+    { file = "amascut", items = 11, modes = { "n", "e100" },
         rates = { [59344] = 3 / 4 / 5 / 600, [59350] = 1 / 4 / 2 / 600, [59358] = 1 / 750 },
         hard = { [59336] = 3 / 4 / 5 / 70, [59354] = 1 / 4 / 2 / 70, [59358] = 1 / 280, [57128] = 1 / 280 } },
     -- Vermyx, then Vermyx in hard mode.
     { file = "sanctum", items = 9, rates = { [57156] = 1 / 250, [57124] = 1 / 250 }, hard = { [57156] = 1 / 200 } },
     -- Solo, then duo: a leg and an add-on, each group split evenly.
-    { file = "araxxi", items = 15, modes = { "Solo", "Duo" },
+    { file = "araxxi", items = 15, modes = { "s", "d" },
         rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 }, hard = { [31719] = 1 / 70 / 3, [31724] = 1 / 200 / 3 } },
     -- All seven brothers (7 rolls at 1/73), Linza (1/96 over five items) and the
     -- amulet (1/480). Dharok has 4 items, Ahrim 6.
-    { file = "barrows", items = 39, modes = { "Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza" },
+    { file = "barrows", items = 39, modes = { "cff" },
         rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5, [39061] = 1 / 480 },
         after = { [39061] = 1 / 240, [37449] = 1 / 96 / 5 } },
     -- One rare roll per chest: normal, then hard mode.
     { file = "vorkath", items = 5, rates = { [56079] = 1 / 45, [56068] = 1 / 249 },
         hard = { [56079] = 1 / 15, [56068] = 1 / 150, [56321] = 1 / 150 } },
     { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
-    { file = "dragonkin", items = 7, modes = { "Astellarn, solo", "Astellarn, 2 players" },
+    { file = "dragonkin", items = 7, modes = { "as", "a2" },
         rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
     -- Any crossbow piece, split evenly.
-    { file = "shadow_reef", items = 7, modes = { "The Ambassador, solo", "The Ambassador, 3 players" },
+    { file = "shadow_reef", items = 7, modes = { "as", "a3" },
         rates = { [47490] = 1 / 55 / 3, [47492] = 1 / 55 / 3 }, hard = { [47494] = 1 / 166 / 3 } },
     { file = "corp", items = 7, rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 } },
     -- Solo, then duo: the same rates.
@@ -153,13 +161,13 @@ local CASES = {
         hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 } },
 }
 
-local function modeNamed(boss, name)
+local function modeKeyed(boss, key)
     for _, mode in ipairs(boss.modes) do
-        if mode.name == name then
+        if mode.key == key then
             return mode
         end
     end
-    return boss.modeFor(name)
+    return boss.modeFor(key)
 end
 
 for _, case in ipairs(CASES) do
@@ -177,7 +185,7 @@ for _, case in ipairs(CASES) do
         -- expected is { rates, hard rates }.
         local function check(day, expected)
             for modeIndex, rates in pairs(expected) do
-                local mode = case.modes and modeNamed(boss, case.modes[modeIndex]) or boss.modes[modeIndex]
+                local mode = case.modes and modeKeyed(boss, case.modes[modeIndex]) or boss.modes[modeIndex]
                 local chances = luck.ItemChances(stats.Rolls(boss, mode, defaults(boss), day))
                 for itemID, rate in pairs(rates) do
                     assert.are.near(rate, chances[itemID], 1e-12)
@@ -202,12 +210,12 @@ it("counts each tracked Araxxi kill as solo or duo by the duo flag", function()
     local boss = require("src/bosses/araxxi")
     local event = boss.killEvents[1]
     assert.are.equal("BSLAY_KILLS_ARAXXI", event.var)
-    assert.are.equal("Solo", event.mode({ duo = 0 }))
-    assert.are.equal("Duo", event.mode({ duo = 1 }))
-    local duo = luck.ItemChances(stats.Rolls(boss, boss.modeFor("Duo"), {}))
+    assert.are.equal("s", event.mode({ duo = 0 }))
+    assert.are.equal("d", event.mode({ duo = 1 }))
+    local duo = luck.ItemChances(stats.Rolls(boss, boss.modeFor("d"), {}))
     assert.are.near(1 / 70 / 3, duo[31718], 1e-12)
-    assert.are.near(1 / 120 / 3, luck.ItemChances(stats.Rolls(boss, boss.modeFor("Solo"), {}))[31722], 1e-12)
-    assert.are.equal("BSLAY_KILLS_ARAXXI", boss.modeFor("Duo").kc)
+    assert.are.near(1 / 120 / 3, luck.ItemChances(stats.Rolls(boss, boss.modeFor("s"), {}))[31722], 1e-12)
+    assert.are.equal("BSLAY_KILLS_ARAXXI", boss.modeFor("d").kc)
 end)
 
 it("scales Kerapac's loot piles by the player's average", function()
@@ -248,10 +256,10 @@ it("counts each tracked Dragonkin Laboratory group kill by the players at the ki
     local event = boss.killEvents[3] -- the Black stone dragon's
     assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", event.var)
     assert.is_nil(event.mode({ players = 0 })) -- not read yet: left uncounted
-    assert.are.equal("Black stone dragon, 1 player", event.mode({ players = 1 }))
-    assert.are.equal("Black stone dragon, 3 players", event.mode({ players = 4 }))
+    assert.are.equal("b1", event.mode({ players = 1 }))
+    assert.are.equal("b3", event.mode({ players = 4 }))
     local mode = boss.modeFor(event.mode({ players = 2 }))
-    assert.are.equal("Black stone dragon, 2 players", mode.name)
+    assert.are.equal("b2", mode.key)
     assert.are.equal("BSLAY_KILLS_DUNGEON_DRAGONFORT3", mode.kc)
     assert.are.near(1 / 166, luck.ItemChances(stats.Rolls(boss, mode, {}))[43393], 1e-12)
 end)
@@ -262,7 +270,7 @@ it("counts the Shadow Reef's group kills by the players at the kill", function()
     assert.are.equal("BSLAY_KILLS_DUNGEON_ULTHVEN3", event.var)
     assert.are.equal("BSLAY_KILLS_DUNGEON_ULTHVEN3_SOLO", boss.modes[1].kc)
     local mode = boss.modeFor(event.mode({ players = 2 }))
-    assert.are.equal("The Ambassador, 2 players", mode.name)
+    assert.are.equal("a2", mode.key)
     assert.are.near(1 / 111 / 3, luck.ItemChances(stats.Rolls(boss, mode, {}))[47490], 1e-12)
 end)
 
@@ -270,23 +278,23 @@ it("counts each tracked Croesus kill at the unique rolls of its contribution", f
     local boss = require("src/bosses/croesus")
     local event = boss.killEvents[1]
     assert.are.equal("EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION", event.lasts.contribution)
-    assert.are.equal("12 rolls", event.mode({ contribution = 466 })) -- seen in game
-    assert.are.equal("11 rolls", event.mode({ contribution = 419 }))
-    assert.are.equal("1 roll", event.mode({ contribution = 60 }))
-    assert.are.equal("0 rolls", event.mode({ contribution = 59 })) -- one loot roll, no uniques
+    assert.are.equal("r12", event.mode({ contribution = 466 })) -- seen in game
+    assert.are.equal("r11", event.mode({ contribution = 419 }))
+    assert.are.equal("r1", event.mode({ contribution = 60 }))
+    assert.are.equal("r0", event.mode({ contribution = 59 })) -- one loot roll, no uniques
     assert.is_nil(event.mode({})) -- no contribution seen: uncounted
-    local two = boss.modeFor("2 rolls")
+    local two = boss.modeFor("r2")
     assert.are.near(2 / 5400, luck.ItemChances(stats.Rolls(boss, two, {}, BEFORE))[52250], 1e-12)
     assert.are.near(2 / 3000, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52250], 1e-12) -- the rebalance
     assert.are.near(2 / 2500, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52345], 1e-12)
-    assert.are.same({}, stats.Rolls(boss, boss.modeFor("0 rolls"), {}))
+    assert.are.same({}, stats.Rolls(boss, boss.modeFor("r0"), {}))
 end)
 
 describe("Barrows", function()
     local boss = require("src/bosses/barrows")
     local SIX = { "Ahrim", "Dharok", "Guthan", "Karil", "Torag", "Verac" }
 
-    -- The chest's mode name from the game's values for these brothers.
+    -- The chest's mode key from the game's values for these brothers.
     local function opened(originals, akrisae, linza)
         local values = { Ahrim = 0, Dharok = 0, Guthan = 0, Karil = 0, Torag = 0, Verac = 0 }
         for _, name in ipairs(originals) do
@@ -297,11 +305,11 @@ describe("Barrows", function()
         return boss.killEvents[1].mode(values)
     end
 
-    it("names a tracked chest by the brothers killed, Akrisae from the count", function()
-        assert.are.equal("Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae, Linza", opened(SIX, true, true))
-        assert.are.equal("Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Linza", opened(SIX, false, true))
-        assert.are.equal("Chest: Ahrim, Dharok, Guthan, Karil, Torag, Verac, Akrisae", opened(SIX, true, false))
-        assert.are.equal("Chest: Ahrim, Dharok, Guthan", opened({ "Ahrim", "Dharok", "Guthan" }, false, false))
+    it("keys a tracked chest by the brothers killed, Akrisae from the count", function()
+        assert.are.equal("cff", opened(SIX, true, true))
+        assert.are.equal("cbf", opened(SIX, false, true))
+        assert.are.equal("c7f", opened(SIX, true, false))
+        assert.are.equal("c7", opened({ "Ahrim", "Dharok", "Guthan" }, false, false))
     end)
 
     it("gives a full chest the kill count and a partial one only its brothers' items", function()
@@ -332,13 +340,13 @@ it("counts Amascut's claimed loot piles by mode: normal, or the enrage's tier", 
     assert.are.equal("AMASCUT_BOSS_VARP_1", claim.var)
     -- The loot var's old values seen in game: 2 piles at 1,000% enrage, 3 in normal mode.
     assert.are.equal(2, (0x500207D0 & claim.mask) >> 16)
-    assert.are.equal("Enrage 1,000%", claim.mode({ enrage = 1000 }, 0x500207D0))
-    assert.are.equal("Normal", claim.mode({ enrage = 1000 }, 0x000307D0))
-    assert.are.equal("Enrage 100%", claim.mode({ enrage = 100 }, 0x100107D0))
-    assert.are.equal("Enrage 500%", claim.mode({ enrage = 749 }, 0x200107D0))
-    assert.are.equal("Enrage 2,000%+", claim.mode({ enrage = 4000 }, 0x700107D0))
+    assert.are.equal("e1000", claim.mode({ enrage = 1000 }, 0x500207D0))
+    assert.are.equal("n", claim.mode({ enrage = 1000 }, 0x000307D0))
+    assert.are.equal("e100", claim.mode({ enrage = 100 }, 0x100107D0))
+    assert.are.equal("e500", claim.mode({ enrage = 749 }, 0x200107D0))
+    assert.are.equal("e2000", claim.mode({ enrage = 4000 }, 0x700107D0))
     assert.are.same({ "BSLAY_KILLS_AMASCUT_BOSS", "BSLAY_KILLS_AMASCUT_BOSS_HARDMODE" }, claim.kills)
-    assert.are.equal("BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", boss.modeFor("Enrage 750%").kc)
+    assert.are.equal("BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", boss.modeFor("e750").kc)
     assert.are.equal("pile", boss.unit)
 end)
 
@@ -349,14 +357,14 @@ it("counts each Sanctum boss's claimed loot as one kill, by its difficulty", fun
     -- waiting bit, with difficulty 0 in normal mode and 1 in hard mode.
     assert.are.equal("RAID_REBIRTH1_VARP_1", nakatra.var)
     assert.are.same({ 0x1, 0x4, 0x10 }, { vermyx.mask, kezalam.mask, nakatra.mask })
-    assert.are.equal("Vermyx", vermyx.mode({}, 0xC001))
-    assert.are.equal("Kezalam", kezalam.mode({}, 0xC004))
-    assert.are.equal("Nakatra", nakatra.mode({}, 0xC010))
-    assert.are.equal("Nakatra hard mode", nakatra.mode({}, 0xD010))
-    assert.are.equal("Vermyx hard mode", vermyx.mode({}, 0xC101))
+    assert.are.equal("v", vermyx.mode({}, 0xC001))
+    assert.are.equal("k", kezalam.mode({}, 0xC004))
+    assert.are.equal("n", nakatra.mode({}, 0xC010))
+    assert.are.equal("nh", nakatra.mode({}, 0xD010))
+    assert.are.equal("vh", vermyx.mode({}, 0xC101))
     assert.are.same({ "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS",
         "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS_HARDMODE" }, nakatra.kills)
-    assert.are.equal("BSLAY_KILLS_RAID_REBIRTH1_BEAST_BOSS_HARDMODE", boss.modeFor("Kezalam hard mode").kc)
+    assert.are.equal("BSLAY_KILLS_RAID_REBIRTH1_BEAST_BOSS_HARDMODE", boss.modeFor("kh").kc)
     assert.is_nil(boss.unit) -- shown as kills
 end)
 
