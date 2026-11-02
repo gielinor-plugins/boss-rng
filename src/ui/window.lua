@@ -13,10 +13,7 @@ local INNER = WIDTH - 2 * 8 - 2 * PAD -- the window's borders are 8 px
 local SUMMARY_Y = 46 -- below the dropdown
 local TABS_Y = 220 -- fixed, so the summary's length never moves the tabs
 
--- Inset 12 px each side, in line with the text, with 8 px above and below the line.
-local DIVIDER = {
-    x = 12, width = -24, widthAnchor = 1.0, marginTop = -35, height = 41, marginBottom = 8,
-}
+local DIVIDER = common.Divider(PAD)
 
 -- The Luck tab: a fixed header, then a framed panel whose rows scroll. A row is a
 -- 40 px item slot, then inline columns at these x positions in the panel.

@@ -2,6 +2,12 @@
 
 local common = {}
 
+-- A divider's options, inset each side by inset (in line with the text), with 8 px
+-- above and below the line.
+function common.Divider(inset)
+    return { x = inset, width = -2 * inset, widthAnchor = 1.0, marginTop = -35, height = 41, marginBottom = 8 }
+end
+
 -- The game's top layer for plugin windows and dialogs.
 function common.TopLayer()
     return ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__PLUGIN_BUILD_LAYER_TOP)

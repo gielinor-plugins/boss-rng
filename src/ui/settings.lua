@@ -6,7 +6,8 @@ local tracker = require("src/core/tracker")
 
 local PAD = 14 -- the page's padding
 local GAP = 8 -- between a row's controls, the layout's default
-local CONTROL_HEIGHT = 30 -- a dropdown's height, which the buttons match
+local ROW_HEIGHT = 30 -- a dropdown's height, which the labels and buttons match
+local LABEL_WIDTH = 90
 local BUTTON_WIDTH = 96
 
 local page = layerView.New({ padding = PAD })
@@ -49,16 +50,20 @@ local function withTrackedKills(list)
     return tracked
 end
 
--- A Reset button on the right of the current row, or of a new one.
-local function addResetButton(host, inline, onClick)
+-- A row's label, in the left column.
+local function addLabel(host, text)
+    host:AddText({ text = text, width = LABEL_WIDTH, height = ROW_HEIGHT })
+end
+
+-- A Reset button at the right of the current row.
+local function addResetButton(host, onClick)
     host:AddSimpleButton("Reset", onClick, {
-        inline = inline, x = -(PAD + BUTTON_WIDTH), xAnchor = 1.0,
-        width = BUTTON_WIDTH, height = CONTROL_HEIGHT,
+        inline = true, x = -(PAD + BUTTON_WIDTH), xAnchor = 1.0, width = BUTTON_WIDTH, height = ROW_HEIGHT,
     })
 end
 
--- Reset every boss, then one boss (at first the one the views show), picked in a
--- dropdown added last so its open list draws over everything else.
+-- Reset every boss, then one boss (at first the one the views show). The dropdown
+-- is added last so its open list draws over everything else.
 local function addDataControls(host, state)
     host:AddTitle({ text = "Data Controls" })
     host:AddText({ text = "Reset clears the kills and drops Boss RNG tracked for this character. "
@@ -68,20 +73,27 @@ local function addDataControls(host, state)
         host:AddText({ text = "Nothing tracked yet." })
         return
     end
-    host:AddText({ text = "Every boss", height = CONTROL_HEIGHT })
-    addResetButton(host, true, function()
+    host:AddDivider(common.Divider(PAD))
+
+    addLabel(host, "All bosses")
+    addResetButton(host, function()
         confirm("Reset tracked data for every boss?", state.onResetAll)
     end)
-    host:AddText({ text = "One boss" })
+
+    addLabel(host, "One boss")
     local shownKey = state.selected and state.list[state.selected].boss.key
     local shown = common.IndexOf(tracked, chosenKey) or common.IndexOf(tracked, shownKey) or 1
     local chosen = tracked[shown].boss
-    addResetButton(host, false, function()
+    addResetButton(host, function()
         confirm("Reset tracked data for " .. chosen.name .. "?", function() state.onReset(chosen) end)
     end)
+    local left = PAD + LABEL_WIDTH + GAP
     common.AddBossPicker(host, tracked, shown, function(boss)
         chosen, chosenKey = boss, boss.key
-    end, { inline = true, x = PAD, width = -(2 * PAD + BUTTON_WIDTH + GAP), widthAnchor = 1.0 })
+    end, {
+        inline = true, x = left, height = ROW_HEIGHT,
+        width = -(left + GAP + BUTTON_WIDTH + PAD), widthAnchor = 1.0,
+    })
 end
 
 function settings.Draw(state)
