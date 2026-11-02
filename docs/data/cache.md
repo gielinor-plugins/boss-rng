@@ -8,7 +8,7 @@ game, so a stale check only costs a recompute.
 `withStats` in `src/ui/state.lua` reruns `stats.ForBoss` only when this key changes:
 
 ```
-<boss key>|<tracker.Changes()>|<all-time kills>|<all-time log counts>|<picks>
+<boss key>|<tracker.Changes()>|<all-time kills>|<all-time log counts>|<readings>
 ```
 
 | Input | Changes when |
@@ -16,7 +16,7 @@ game, so a stale check only costs a recompute.
 | boss key | another boss is picked |
 | `tracker.Changes()` | a kill or drop is recorded, or another character loads |
 | all-time counts | the game sends new counts (read every redraw) |
-| picks | a choice, or a value the boss reads from the game, changes |
+| readings | a value the boss reads from the game (see `reads` in `src/bosses.lua`) changes |
 
 The dropdown reads only `tracker.Total` and `gamevars.AllTimeKills`, so only the
 picked boss's stats are worked out.

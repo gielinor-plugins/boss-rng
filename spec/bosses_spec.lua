@@ -1,19 +1,16 @@
 -- Checks every boss file follows the data format.
 
 local bosses = require("src/bosses")
-local choices = require("src/core/choices")
 local luck = require("src/core/luck")
 local stats = require("src/core/stats")
 
 -- A day before the Late-Game Rebalance (30 Oct 2026), and the day it went live.
 local BEFORE, AFTER = 20756, require("src/core/rates/late_game_rebalance").day
 
-local function defaults(boss)
-    local picks = {}
-    for _, choice in ipairs(boss.choices or {}) do
-        picks[choice.key] = choice.default
-    end
-    return picks
+-- A boss's assumptions for readings (none read yet by default).
+local function assumptions(boss, readings)
+    local own = boss.assumptions
+    return type(own) == "function" and own(readings or {}) or own
 end
 
 local KINDS = { unique = true, shared = true, lore = true, pet = true, excluded = true }
@@ -65,7 +62,7 @@ describe("boss data", function()
             end)
 
             it("states its assumptions, if any, in plain words", function()
-                for _, note in ipairs(choices.Assumptions(boss, defaults(boss))) do
+                for _, note in ipairs(assumptions(boss)) do
                     assert.are.equal("string", type(note))
                     assert.is_nil(note:find("<", 1, true)) -- the game would read it as a tag
                 end
@@ -74,7 +71,7 @@ describe("boss data", function()
             it("only rolls unique items", function()
                 for _, mode in ipairs(boss.modes) do
                     for _, day in ipairs({ BEFORE, AFTER }) do
-                        for itemID in pairs(luck.ItemChances(stats.Rolls(boss, mode, defaults(boss), day))) do
+                        for itemID in pairs(luck.ItemChances(stats.Rolls(boss, mode, {}, day))) do
                             assert.are.equal("unique", boss.items[itemID].kind)
                         end
                     end
@@ -186,7 +183,7 @@ for _, case in ipairs(CASES) do
         local function check(day, expected)
             for modeIndex, rates in pairs(expected) do
                 local mode = case.modes and modeKeyed(boss, case.modes[modeIndex]) or boss.modes[modeIndex]
-                local chances = luck.ItemChances(stats.Rolls(boss, mode, defaults(boss), day))
+                local chances = luck.ItemChances(stats.Rolls(boss, mode, {}, day))
                 for itemID, rate in pairs(rates) do
                     assert.are.near(rate, chances[itemID], 1e-12)
                 end
@@ -236,8 +233,8 @@ end)
 describe("TzKal-Zuk's checkpoints", function()
     local boss = require("src/bosses/zuk")
     local function pieceChance(stones, normalKills, hardKills)
-        local picks = { stones = stones, normalKills = normalKills, hardKills = hardKills }
-        return luck.ItemChances(stats.Rolls(boss, boss.modes[2], picks))[52505] * 3
+        local readings = { stones = stones, normalKills = normalKills, hardKills = hardKills }
+        return luck.ItemChances(stats.Rolls(boss, boss.modes[2], readings))[52505] * 3
     end
 
     it("takes the share of runs without checkpoints from the Igneous stones", function()
@@ -248,7 +245,7 @@ describe("TzKal-Zuk's checkpoints", function()
 
     it("only assumes how checkpoints split between modes when the stones can't tell", function()
         local function notes(stones, normalKills, hardKills)
-            return #choices.Assumptions(boss, { stones = stones, normalKills = normalKills, hardKills = hardKills })
+            return #assumptions(boss, { stones = stones, normalKills = normalKills, hardKills = hardKills })
         end
         assert.are.equal(0, notes(107, 8, 99)) -- every run without checkpoints
         assert.are.equal(0, notes(0, 8, 99)) -- every run with them

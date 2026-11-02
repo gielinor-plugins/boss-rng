@@ -2,11 +2,11 @@
 -- godwars.lua, godwars2.lua and elite_dungeon.lua are helpers). Fields:
 --   key          saved data key: never change
 --   name         shown name
---   assumptions  a list of lines, or function(picks) giving one, for ones that hold for some picks
+--   assumptions  a list of lines, or function(readings) giving one for those that depend on them
 --   modes        a list of { key, kc, rolls, byEvent }. key: short, saved, never change. kc: kill count
---                varbit. rolls: a plain list, or function(r, picks) of a day's rate values (named
---                in src/core/rates/, by boss key) and the player's picks, so each kill uses its
---                day's rates. byEvent: kills are counted by killEvents, containers or claims, so
+--                varbit. rolls: a plain list, or function(r, readings) of a day's rate values (named
+--                in src/core/rates/, by boss key) and the values read from the game (see reads), so
+--                each kill uses its day's rates. byEvent: kills are counted by killEvents, containers or claims, so
 --                kc isn't watched; it has no rolls unless kills are counted for it directly
 --   items        { [item id] = { log, kind, group, stack } }, every item on the boss log page.
 --                log: its log count varbit. kind:
@@ -21,9 +21,7 @@
 --                (items, not drops) shows apart as a count of word ("spike")
 --   pooledBy     set below: a unique listed by more than one boss has one log count, so a drop
 --                counts for the boss killed last (see tracker.AddDrops)
---   reads        { [key] = var }: each value is passed with the picks under key (nil until read)
---   choices      player picks for rates set by one (src/core/choices.lua); choicesHelp: paragraphs
---                on the settings page saying why and how to set them
+--   reads        { [key] = var }: each value is passed in readings under key (nil until read)
 --   killEvents   a list of { var, mask, reads, lasts, piles, mode }: when var (or its mask bits)
 --                rises, mode(values) gives the kill's mode key, or nil to leave it uncounted. lasts =
 --                { [key] = varbit } gives its last value above 0 since the previous kill (for values

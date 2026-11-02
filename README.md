@@ -62,8 +62,8 @@ Boss RNG stores its data **only on your device**. It makes no internet requests
 and sends nothing to anyone.
 
 To start fresh, use Data Controls in Plugin Hub > Manage > Boss RNG: reset one
-boss, or every boss, for the character you're logged in as. Your settings and the
-game's own counts aren't changed.
+boss, or every boss, for the character you're logged in as. The game's own counts
+aren't changed.
 
 Questions or deletion requests: gielinorplugins@gmail.com
 

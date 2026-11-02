@@ -7,9 +7,8 @@ entry). All-time kill and log counts are read from the game, never saved.
 | Key | Holds | Code |
 |---|---|---|
 | `char:<name>` | Tracked kills, drops and dry streaks | `src/core/tracker.lua`, `src/core/tallies.lua` |
-| `choices:<name>` | The player's picks (settings) | `src/core/choices.lua` |
 
-Each record has a `version`. A record with any other version starts again.
+The record has a `version`. A record with any other version starts again.
 
 Keys are always text (item ids, days), and numbers come back as decimals (`13.0`).
 
@@ -19,8 +18,8 @@ Keys are always text (item ids, days), and numbers come back as decimals (`13.0`
 
 `lastBoss`, the boss killed last, gets any pooled unique (one log count shared by
 two bosses). Data Controls on the settings page clears one boss's tallies
-(`tracker.Reset`) or every boss's (`tracker.ResetAll`), after a confirmation;
-`choices:` is kept. Each boss's tallies:
+(`tracker.Reset`) or every boss's (`tracker.ResetAll`), after a confirmation.
+Each boss's tallies:
 
 | Field | Saved as |
 |---|---|
@@ -67,12 +66,6 @@ on day 20757. No codex (56068) or scale (56321).
 ```
 
 `56079` and `any`: 2 kills. `56068` and `56321`: 15. A new kill changes only `kills`.
-
-## `choices:<name>`
-
-`{ version, bosses = { [boss key] = { [choice key] = value } } }`, for example
-`{ kerapac = { normalPiles = 3, hardPiles = 1.5 } }`. Missing or invalid values use
-the default.
 
 ## Size
 

@@ -1,7 +1,5 @@
--- The settings page: for each boss with choices, its name, why and how to set
--- them, and a slider per choice; then Data Controls, to reset tracked data.
+-- The settings page: Data Controls, to reset tracked data.
 
-local choices = require("src/core/choices")
 local common = require("src/ui/common")
 local layerView = require("src/ui/layer_view")
 local tracker = require("src/core/tracker")
@@ -16,31 +14,6 @@ local chosenKey = nil -- the boss chosen to reset, kept while the plugin runs
 local dialog = nil -- the open confirmation, if any
 
 local settings = { Attach = page.Attach, IsOpen = page.IsOpen }
-
--- A choice's label with its value: "Normal Mode: 2.5".
-local function labelFor(choice, value)
-    local shown = value % 1 == 0 and string.format("%d", value) or tostring(value)
-    return choice.label .. ": " .. shown
-end
-
-local function addChoices(host, boss, state)
-    host:AddTitle({ text = boss.name })
-    for _, paragraph in ipairs(boss.choicesHelp) do
-        host:AddText({ text = paragraph })
-    end
-    local picks = choices.For(boss)
-    for _, choice in ipairs(boss.choices) do
-        local label = host:AddText({ text = labelFor(choice, picks[choice.key]) })
-        host:AddSlider({
-            min = choice.min, max = choice.max, step = choice.step,
-            value = picks[choice.key],
-            onChange = function(_, value)
-                label.content = labelFor(choice, value)
-                state.onChoose(boss, choice, value)
-            end,
-        })
-    end
-end
 
 local function closeDialog()
     if dialog then
@@ -89,7 +62,7 @@ end
 local function addDataControls(host, state)
     host:AddTitle({ text = "Data Controls" })
     host:AddText({ text = "Reset clears the kills and drops Boss RNG tracked for this character. "
-        .. "Your settings and the game's own counts are kept." })
+        .. "The game's own counts are kept." })
     local tracked = withTrackedKills(state.list)
     if #tracked == 0 then
         host:AddText({ text = "Nothing tracked yet." })
@@ -112,13 +85,7 @@ local function addDataControls(host, state)
 end
 
 function settings.Draw(state)
-    local host = page.Fresh()
-    for _, boss in ipairs(state.bosses) do
-        if boss.choices then
-            addChoices(host, boss, state)
-        end
-    end
-    addDataControls(host, state)
+    addDataControls(page.Fresh(), state)
 end
 
 function settings.ShowError()

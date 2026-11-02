@@ -1,8 +1,6 @@
 -- Boss RNG's UI: draws the panel, details window and settings page, and redraws
--- them when the picked boss, the picks or tallies change.
+-- them when the picked boss or the tallies change.
 
-local bosses = require("src/bosses")
-local choices = require("src/core/choices")
 local panel = require("src/ui/panel")
 local safe = require("src/utils/safe")
 local settings = require("src/ui/settings")
@@ -45,20 +43,13 @@ local function redrawAll()
     end
 end
 
--- Redraws after ticks logic ticks (default 1), so a component isn't destroyed
--- during its own event. Calling again restarts the wait.
-local function redrawSoon(ticks)
-    local left = ticks or 1
+-- Redraws on the next logic tick, so a component isn't destroyed during its own event.
+local function redrawSoon()
     Event.Logic.Subscribe(REDRAW_REF, function()
-        left = left - 1
-        if left <= 0 then
-            Event.Logic.Unsubscribe(REDRAW_REF)
-            redrawAll()
-        end
+        Event.Logic.Unsubscribe(REDRAW_REF)
+        redrawAll()
     end)
 end
-
-local SLIDER_SETTLE_TICKS = 25 -- half a second without moving
 
 local function pick(boss)
     viewState.Pick(boss.key)
@@ -71,21 +62,13 @@ local function reset(boss)
     tracker.Reset(boss)
 end
 
--- Redraws once the slider settles, so it isn't rebuilt while being dragged.
-local function choose(boss, choice, value)
-    choices.Set(boss, choice, value)
-    redrawSoon(SLIDER_SETTLE_TICKS)
-end
-
 -- What the views draw (see src/ui/state.lua), and what they can do.
 function currentState()
     local list, selected = viewState.Current()
     return {
         list = list,
-        bosses = bosses,
         selected = selected,
         onPick = pick,
-        onChoose = choose,
         onReset = reset,
         onResetAll = tracker.ResetAll,
         onDetails = showWindow,

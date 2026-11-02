@@ -1,8 +1,7 @@
 -- What the views show: the bosses with kills, and the picked one with its
--- all-time totals, picks, stats, table rows and notes.
+-- all-time totals, readings, stats, table rows and notes.
 
 local bosses = require("src/bosses")
-local choices = require("src/core/choices")
 local gamevars = require("src/core/gamevars")
 local stats = require("src/core/stats")
 local tracker = require("src/core/tracker")
@@ -28,20 +27,19 @@ function state.Rows(result)
     return rows
 end
 
-local SETTINGS_TIP = "Adjust settings in Plugin Hub > Manage > Boss RNG"
+-- A boss's assumptions: its list, or what its function gives for the readings.
+local function assumptions(entry)
+    local own = entry.boss.assumptions
+    return type(own) == "function" and own(entry.readings) or own
+end
 
 -- The Info tab's sections, { title, lines } each, when they have lines: the
--- boss's assumptions, and tips (its own, and where to change its settings).
+-- boss's assumptions, then its tip.
 function state.Notes(entry)
     local sections = {}
-    local tips = {}
-    table.insert(tips, entry.boss.tip) -- nil adds nothing
-    if entry.boss.choices then
-        table.insert(tips, SETTINGS_TIP)
-    end
     local all = {
-        { "Luck Assumptions", choices.Assumptions(entry.boss, entry.picks) },
-        { "Tips", tips },
+        { "Luck Assumptions", assumptions(entry) },
+        { "Tips", { entry.boss.tip } }, -- empty without one
     }
     for _, section in ipairs(all) do
         if #section[2] > 0 then
@@ -54,14 +52,6 @@ end
 local selectedKey = nil -- the boss picked in a dropdown
 local lastKillKey = nil -- the last boss killed when the views were last drawn
 
--- A boss's picks, overridden by any values read from the game.
-local function picksFor(boss, allTime)
-    local picks = choices.For(boss)
-    for key, value in pairs(allTime and allTime.values or {}) do
-        picks[key] = value
-    end
-    return picks
-end
 
 -- Bosses with tracked or all-time kills, by name, each { boss, tallies }.
 local function bossesWithKills()
@@ -96,15 +86,16 @@ end
 
 local cached = { inputs = nil, stats = nil }
 
--- Fills in an entry's all-time totals, picks and stats, reusing the last
--- stats while their inputs are unchanged.
+-- Fills in an entry's all-time totals, readings (the values its boss reads from the
+-- game, see reads in src/bosses.lua) and stats, reusing the last stats while their
+-- inputs are unchanged.
 local function withStats(entry)
     entry.allTime = gamevars.AllTime(entry.boss)
-    entry.picks = picksFor(entry.boss, entry.allTime)
     local allTime = entry.allTime or {}
+    entry.readings = allTime.values or {}
     local inputs = table.concat({
         entry.boss.key, tracker.Changes(),
-        asText(allTime.kills), asText(allTime.items), asText(entry.picks),
+        asText(allTime.kills), asText(allTime.items), asText(entry.readings),
     }, "|")
     if cached.inputs ~= inputs then
         cached.inputs, cached.stats = inputs, stats.ForBoss(entry)
@@ -131,7 +122,7 @@ function state.Pick(key)
 end
 
 -- The bosses with kills, and the picked one's index (nil without kills). Only
--- that entry has allTime, picks, stats, rows and notes.
+-- that entry has allTime, readings, stats, rows and notes.
 function state.Current()
     local list = bossesWithKills()
     local selected = #list > 0 and selectedIndex(list) or nil

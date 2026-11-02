@@ -6,7 +6,7 @@ conversion.
 
 ## Rules
 
-- Never rename a boss key, mode key, item id or choice key without converting saved
+- Never rename a boss key, mode key or item id without converting saved
   data: they're keys in it.
 - Never rename a rate in `src/core/rates/base.lua` without renaming it in every
   update file. A missing name raises an error; `spec/core/rates_spec.lua` fails if an
@@ -65,3 +65,17 @@ value per kill that was saved per run), give that boss its own version:
 
 Prefer saving facts and interpreting them in code by day, so most changes need
 neither.
+
+## Player settings (removed 2026-11-02)
+
+The first design let the player set what the game didn't show: Kerapac's loot piles
+per kill, a slider per mode on the settings page (1 to 3, default 3). Picks were
+saved apart from the tallies, under `choices:<name>` with their own version, so a
+reset kept them. A pick applied to every tracked kill in its mode, at that mode's
+rates, and showed on the Info tab.
+
+Counting each kill's piles as they land replaced it (`docs/bosses/kerapac.md`): a
+measured value per kill beats an average the player has to guess, and nothing is
+left to set. If a boss ever needs a setting again, prefer a read at each kill; if
+none exists, bring back this pattern (a separate saved record with a version,
+defaults and range checks).

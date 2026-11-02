@@ -40,8 +40,8 @@ local function totals(kills, items)
     return { kills = kills, items = items }
 end
 
-local function forBoss(boss, t, allTime, picks)
-    return stats.ForBoss({ boss = boss, tallies = t, allTime = allTime, picks = picks })
+local function forBoss(boss, t, allTime, readings)
+    return stats.ForBoss({ boss = boss, tallies = t, allTime = allTime, readings = readings })
 end
 
 describe("stats.ForBoss", function()
@@ -167,9 +167,9 @@ describe("stats.ForBoss", function()
         assert.is_true(forBoss(BOSS, tallies({ n = 30 })).dryAtLeast)
     end)
 
-    it("uses rolls that depend on the player's picks", function()
+    it("uses rolls that depend on values read from the game", function()
         local boss = { items = { [1] = { kind = "unique" } }, modes = { { key = "n", kc = "KC",
-            rolls = function(_, picks) return { { chance = 1 / picks.rate, items = { [1] = 1 } } } end } } }
+            rolls = function(_, readings) return { { chance = 1 / readings.rate, items = { [1] = 1 } } } end } } }
         assert.are.near(2, forBoss(boss, tallies({ n = 100 }), nil, { rate = 50 }).expected, 1e-9)
     end)
 

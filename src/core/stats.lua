@@ -19,17 +19,17 @@ local function valuesOn(boss, day)
     return history and history:On(day) or NO_RATES
 end
 
--- A mode's rolls on a day (nil or 0: today); mode.rolls may be a function of (values, picks).
-function stats.Rolls(boss, mode, picks, day)
+-- A mode's rolls on a day (nil or 0: today); mode.rolls may be a function of (values, readings).
+function stats.Rolls(boss, mode, readings, day)
     local rolls = mode.rolls or {}
     if type(rolls) == "function" then
-        return rolls(valuesOn(boss, day), picks)
+        return rolls(valuesOn(boss, day), readings)
     end
     return rolls
 end
 
--- Rolls(mode, day) and Chances(mode, day) for picks, worked out once per rate version.
-local function ratesTable(boss, picks)
+-- Rolls(mode, day) and Chances(mode, day) for readings, worked out once per rate version.
+local function ratesTable(boss, readings)
     local rolls, chances = {}, {}
     local lookup = {}
     local function cache(store, mode, day)
@@ -39,7 +39,7 @@ local function ratesTable(boss, picks)
     end
     function lookup.Rolls(mode, day)
         local byVersion, version = cache(rolls, mode, day)
-        byVersion[version] = byVersion[version] or stats.Rolls(boss, mode, picks, day)
+        byVersion[version] = byVersion[version] or stats.Rolls(boss, mode, readings, day)
         return byVersion[version]
     end
     function lookup.Chances(mode, day)
@@ -176,7 +176,7 @@ local function allTimeTotals(boss, allTime)
     return totals
 end
 
--- Stats from { boss, tallies, picks, allTime }, or nil without tallies:
+-- Stats from { boss, tallies, readings, allTime }, or nil without tallies:
 --   kills, extraKills   tracked kills in the kill counts, and outside them (partial
 --                       Barrows chests, called extraLabel)
 --   piles               loot piles over tracked kills, for modes that count them (Kerapac), or nil
@@ -194,7 +194,7 @@ function stats.ForBoss(entry)
     if tallies == nil then
         return nil
     end
-    local rates = ratesTable(boss, entry.picks or {})
+    local rates = ratesTable(boss, entry.readings or {})
     local modes = modesOf(boss, tallies)
 
     local result = { kills = 0, extraKills = 0, extraLabel = boss.extraKills, unit = boss.unit, items = {} }

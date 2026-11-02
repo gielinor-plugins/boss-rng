@@ -17,31 +17,31 @@ local CODEX, SCRIPTURE = 52530, 52492
 local SWORD = { name = "Sword pieces" }
 
 -- Share of hard mode kills without checkpoints: stones over all kills (1 until read).
-local function noCheckpointShare(picks)
-    local kills = (picks.normalKills or 0) + (picks.hardKills or 0)
-    if picks.stones == nil or kills == 0 then
+local function noCheckpointShare(readings)
+    local kills = (readings.normalKills or 0) + (readings.hardKills or 0)
+    if readings.stones == nil or kills == 0 then
         return 1
     end
-    return math.min(picks.stones / kills, 1)
+    return math.min(readings.stones / kills, 1)
 end
 
 -- True if the stones can't tell: some kills used checkpoints and some stones could be
 -- from either mode.
-local function unclear(picks)
-    if picks.stones == nil then
+local function unclear(readings)
+    if readings.stones == nil then
         return false
     end
-    local fewest = math.max(0, picks.stones - picks.normalKills)
-    local most = math.min(picks.stones, picks.hardKills)
-    return fewest < most and picks.stones < picks.normalKills + picks.hardKills
+    local fewest = math.max(0, readings.stones - readings.normalKills)
+    local most = math.min(readings.stones, readings.hardKills)
+    return fewest < most and readings.stones < readings.normalKills + readings.hardKills
 end
 
 local function books(chance)
     return { { chance = chance, items = { [CODEX] = 1 } }, { chance = chance, items = { [SCRIPTURE] = 1 } } }
 end
 
-local function hardRolls(r, picks)
-    local share = noCheckpointShare(picks)
+local function hardRolls(r, readings)
+    local share = noCheckpointShare(readings)
     local rolls = books(r.hard)
     table.insert(rolls, 1, {
         chance = share * r.swordNoCheckpoints + (1 - share) * r.sword,
@@ -54,8 +54,8 @@ return {
     key = "zuk", -- saved data key: never change it
     name = "TzKal-Zuk",
     reads = { stones = VARS.stones, normalKills = VARS.kc, hardKills = VARS.kcHard },
-    assumptions = function(picks)
-        return unclear(picks) and { "Checkpoints used as often in both modes" } or {}
+    assumptions = function(readings)
+        return unclear(readings) and { "Checkpoints used as often in both modes" } or {}
     end,
 
     modes = common.Modes(VARS, function(r) return books(r.normal) end, hardRolls),
