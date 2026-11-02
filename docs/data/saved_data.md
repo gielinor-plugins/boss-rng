@@ -2,7 +2,7 @@
 
 Saved with `PersistentDB`, which every character on the computer shares, so keys
 end in the display name (a new name starts a new entry). Code: `src/utils/saved.lua`,
-`src/core/tracker.lua` (version, conversion), `src/core/tallies.lua` (format).
+`src/core/tracker.lua` (version), `src/core/tallies.lua` (format).
 
 | Key | Holds | Version |
 |---|---|---|
@@ -38,7 +38,6 @@ A streak is the kills since its start (`tallies.Dry`):
 |---|---|
 | no entry | every kill |
 | `{ day, at }` | kills after `day`, plus kills on `day` and day `0` beyond `at` |
-| `{ dry = { [mode] = "day:n" } }` | exactly `dry`, added to each kill (converted from version 4) |
 
 `day` is the latest day with kills at the drop (`0` if none); `at` is
 `{ [mode] = { [day] = n } }` for that day and day `0`. Exact because days only go
@@ -62,15 +61,10 @@ on day 20757. No codex (56068) or scale (56321).
 
 `56079` and `any`: 2 kills. `56068` and `56321`: 15. A new kill changes only `kills`.
 
-## Version conversion
+## Versions
 
-`codec.Decode` in `src/core/tracker.lua` converts on load; the next save writes 5.
-
-- **4**: kills were tables; each streak kept its kills. Each becomes no entry if it
-  equals every kill, else a start from its earliest known day (or after every
-  kill), or `{ dry }` if that start doesn't read back the same kills.
-- **Older**: start again. (An early 5's `dryFromFirst` is ignored.)
-- `choices:` has no conversion: another version starts again.
+Any other version starts again: nothing is converted until a release needs it.
+Both versions are set to 1 before release (a TODO in the code).
 
 ## `choices:<name>`
 
@@ -82,4 +76,4 @@ the default.
 
 A saved table entry costs about 100 bytes on disk; a day of kills adds about 10
 characters to a mode's text. One boss with ten uniques played daily for a year is
-about 10 KB (version 4: about 140 KB).
+about 10 KB.

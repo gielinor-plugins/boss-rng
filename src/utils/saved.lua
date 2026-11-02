@@ -18,7 +18,7 @@ end
 -- store.Load() gives the character's record and name (nil if nobody is logged in);
 -- a missing record, or one from another version, starts as fresh(). With codec,
 -- codec.Encode(record) is what's saved and codec.Decode(saved) gives the record
--- back, converting older versions it can (nil to start again).
+-- back (nil to start again).
 function saved.ForCharacter(prefix, version, fresh, codec)
     local store = {}
     local name, record = nil, nil

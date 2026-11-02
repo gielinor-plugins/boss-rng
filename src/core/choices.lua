@@ -9,7 +9,8 @@ local saved = require("src/utils/saved")
 
 local choices = {}
 
--- Saved as { bosses = { [boss key] = { [choice key] = value } } }.
+-- Saved as { bosses = { [boss key] = { [choice key] = value } } }. Any other version
+-- starts again. TODO: set to 1 before release.
 local store = saved.ForCharacter("choices:", 4, function() return { bosses = {} } end)
 
 local function valid(choice, value)

@@ -22,11 +22,16 @@ local function onDay(kills, day)
     return byMode
 end
 
--- Tallies on DAY. Each dry streak ({ [key] = kills by mode }) defaults to all kills.
+-- Tallies on DAY. Each dry streak ({ [key] = kills by mode }) defaults to all kills;
+-- a shorter one starts after the rest of that day's kills.
 local function tallies(kills, items, dry)
     local result = { kills = onDay(kills), items = items or {}, dryFrom = {} }
-    for _, key in ipairs({ "any", "1", "2" }) do
-        result.dryFrom[key] = { dry = onDay((dry or {})[key] or kills) } -- kept as counted
+    for key, streak in pairs(dry or {}) do
+        local before = {}
+        for name, n in pairs(kills) do
+            before[name] = n - (streak[name] or 0)
+        end
+        result.dryFrom[key] = { day = DAY, at = onDay(before) }
     end
     return result
 end

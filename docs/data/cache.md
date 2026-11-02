@@ -5,7 +5,7 @@ game, so a stale check only costs a recompute.
 
 ## Picked boss's stats
 
-`withStats` in `src/ui.lua` reruns `stats.ForBoss` only when this key changes:
+`withStats` in `src/ui/state.lua` reruns `stats.ForBoss` only when this key changes:
 
 ```
 <boss key>|<tracker.Changes()>|<all-time kills>|<all-time log counts>|<picks>
@@ -31,6 +31,23 @@ change) and for all when another character loads.
 
 - `rates.For` builds each boss's rate history once.
 - Each `stats.ForBoss` call keeps rolls and chances per rate version.
+
+## Cost
+
+Measured on 2 November 2026 with Lua 5.4 on a desktop, 10 kills a day in every
+mode, a unique about every 20 days:
+
+| Tracked | `stats.ForBoss` | Encode one boss |
+|---|---|---|
+| Kree'arra, 1 year | 4.7 ms | 1.0 ms |
+| Vorkath, 1 year | 2.3 ms | 0.7 ms |
+| Amascut, 1 year | 7.2 ms | 0.7 ms |
+| Sanctum of Rebirth (6 modes), 1 year | 5.5 ms | 4.2 ms |
+| Kree'arra, 3 years | 20 ms | 3.1 ms |
+
+Each redraw draws the panel and the window, and each kill or drop saves every boss,
+so without these caches a heavy player would pay this on every redraw and kill.
+Typical data (weeks, not years) costs well under a millisecond.
 
 ## Rules
 

@@ -8,7 +8,9 @@ local tallies = require("src/core/tallies")
 
 local tracker = {}
 
-local VERSION = 5 -- of the saved shape (see src/core/tallies.lua); version 4 is converted, older starts again
+-- The saved shape's version (see src/core/tallies.lua): any other version starts again.
+-- TODO: set to 1 before release.
+local VERSION = 5
 
 -- The key of the dry streak counting every unique; the others are item ids.
 tracker.ANY = "any"
@@ -34,8 +36,6 @@ end
 function codec.Decode(saved)
     if saved.version == VERSION then
         return eachBoss(saved, tallies.Decode, VERSION)
-    elseif saved.version == 4 then
-        return eachBoss(saved, tallies.FromVersion4, VERSION)
     end
     return nil
 end
@@ -79,30 +79,12 @@ tracker.Total = tallies.Total
 -- A dry streak's kills; key is ANY or an item id as text.
 tracker.Dry = tallies.Dry
 
-function tracker.DryKeys(boss)
-    local keys = { [tracker.ANY] = true }
-    for itemID, item in pairs(boss.items) do
-        if item.kind == "unique" then
-            keys[tostring(itemID)] = true
-        end
-    end
-    return keys
-end
-
--- Adds kills. Streaks are read as the kills since their start, so only those kept
--- as counted need adding to.
+-- Adds kills. Dry streaks are read as the kills since their start, so they need no change.
 function tracker.AddKills(boss, mode, count, day)
     if not load() then
         return
     end
-    local t = talliesFor(boss)
-    for key in pairs(tracker.DryKeys(boss)) do
-        local start = t.dryFrom[key]
-        if start and start.dry then
-            tallies.AddKills(start.dry, mode.name, day, count)
-        end
-    end
-    tallies.AddKills(t.kills, mode.name, day, count)
+    tallies.AddKills(talliesFor(boss).kills, mode.name, day, count)
     record.lastBoss = boss.key
     save()
 end

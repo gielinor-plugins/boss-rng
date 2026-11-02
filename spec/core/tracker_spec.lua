@@ -7,6 +7,7 @@ local BOSS = {
     items = { [101] = { kind = "unique" }, [102] = { kind = "unique", pooledBy = {} }, [103] = { kind = "pet" } },
 }
 local DAY, NEXT_DAY = 20756, 20757
+local DRY_KEYS = { "any", "101", "102" } -- the boss's streak and each unique's
 
 describe("tracker", function()
     local tracker
@@ -32,7 +33,6 @@ describe("tracker", function()
         assert.are.equal(4, tracker.Total(tallies.kills))
         -- Saved as text per mode, days in order.
         local saved = mock.Saved("char:Tester")
-        assert.is_nil(saved.bosses.testboss.dryFromFirst)
         assert.are.equal(5, saved.version)
         assert.are.same({ Normal = "20756:1,20757:1", ["Hard mode"] = "20756:2" }, saved.bosses.testboss.kills)
     end)
@@ -40,8 +40,7 @@ describe("tracker", function()
     it("counts a dry streak for the boss and for each unique", function()
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         local tallies = tracker.Tallies(BOSS)
-        assert.are.same({ any = true, ["101"] = true, ["102"] = true }, tracker.DryKeys(BOSS))
-        for key in pairs(tracker.DryKeys(BOSS)) do
+        for _, key in ipairs(DRY_KEYS) do
             assert.are.same({ Normal = { ["20756"] = 1 } }, tracker.Dry(tallies, key))
         end
         assert.is_nil(tallies.dryFrom["103"]) -- pets aren't counted
@@ -84,12 +83,12 @@ describe("tracker", function()
         assert.are.same({}, tallies.dryFrom) -- nothing saved for streaks from the first kill
     end)
 
-    -- The dry streaks as version 4 counted them, kill by kill, next to the
-    -- tracker's, through kills, drops and unreadable days (0).
+    -- The dry streaks counted kill by kill, next to the tracker's, through kills,
+    -- drops and unreadable days (0).
     it("keeps the same dry streaks as counting every kill", function()
         local counted = {} -- [key] = { [mode] = { [day] = kills } }
         local function count(mode, day, n)
-            for key in pairs(tracker.DryKeys(BOSS)) do
+            for _, key in ipairs(DRY_KEYS) do
                 counted[key] = counted[key] or {}
                 local byDay = counted[key][mode.name] or {}
                 byDay[tostring(day)] = (byDay[tostring(day)] or 0) + n
@@ -124,49 +123,13 @@ describe("tracker", function()
                 reload()
             end
             local tallies = tracker.Tallies(BOSS)
-            for key in pairs(tracker.DryKeys(BOSS)) do
+            for _, key in ipairs(DRY_KEYS) do
                 assert.are.same(counted[key] or {}, tracker.Dry(tallies, key))
             end
         end
     end)
 
-    describe("with version 4 data", function()
-        local function v4(dry)
-            mock.SetSaved("char:Tester", { version = 4, lastBoss = "testboss", bosses = { testboss = {
-                kills = { Normal = { ["20756"] = 5, ["20757"] = 4, ["0"] = 2 }, ["Hard mode"] = { ["20757"] = 3 } },
-                dry = dry,
-                items = { ["101"] = 1 },
-            } } })
-            reload()
-            return tracker.Tallies(BOSS)
-        end
-
-        it("keeps every dry streak exactly", function()
-            local dry = {
-                any = { Normal = { ["20756"] = 5, ["20757"] = 4, ["0"] = 2 }, ["Hard mode"] = { ["20757"] = 3 } }, -- every kill
-                ["101"] = { Normal = { ["20757"] = 1, ["0"] = 1 }, ["Hard mode"] = { ["20757"] = 2 } }, -- mid day
-                ["102"] = {}, -- a drop after the last kill
-            }
-            local tallies = v4(dry)
-            for key, kills in pairs(dry) do
-                assert.are.same(kills, tracker.Dry(tallies, key))
-            end
-            assert.is_nil(tallies.dryFrom.any) -- every kill: from the first
-            assert.is_nil(tallies.dryFrom["101"].dry) -- turned into a start
-            assert.are.equal(1, tallies.items["101"])
-            assert.are.equal("testboss", tracker.LastBossKey())
-        end)
-
-        it("keeps a streak no start can give as counted, and goes on counting it", function()
-            local odd = { Normal = { ["20756"] = 1 } } -- kills on a day with none after it
-            local tallies = v4({ ["101"] = odd })
-            assert.are.same(odd, tracker.Dry(tallies, "101"))
-            tracker.AddKills(BOSS, NORMAL, 1, 20758)
-            assert.are.same({ Normal = { ["20756"] = 1, ["20758"] = 1 } }, tracker.Dry(tracker.Tallies(BOSS), "101"))
-        end)
-    end)
-
-    it("starts again from a version older than 4", function()
+    it("starts again from another version", function()
         mock.SetSaved("char:Tester", { version = 3, bosses = { testboss = { kills = { Normal = 4 } } } })
         reload()
         assert.are.same({ kills = {}, dryFrom = {}, items = {} }, tracker.Tallies(BOSS))
