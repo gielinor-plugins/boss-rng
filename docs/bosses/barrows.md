@@ -1,4 +1,4 @@
-# Barrows brothers
+# Barrows Brothers
 
 Source: [RuneScape Wiki](https://runescape.wiki/w/Barrows) (CC BY-NC-SA 3.0), checked 28 October 2026; amulet from Jagex's [Late-Game Rebalance design preview](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
 

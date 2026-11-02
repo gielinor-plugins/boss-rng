@@ -48,11 +48,10 @@ return {
     name = "Kerapac",
     assumptions = {},
     choicesHelp = {
-        "Each kill drops 3 loot piles, and each pile has its own chance at a unique. Solo, you get all 3. "
-            .. "In a duo, the top damager gets 2 and the other player 1. In a trio, everyone gets 1.",
-        "Set your average for each mode here: 3 if you kill solo, about 1.5 in a duo, 1 in a trio, or in "
-            .. "between if you mix. It applies to all your tracked kills in that mode.",
-        "Fewer piles means fewer chances at a unique, so the same drops count as luckier.",
+        "Set the loot piles you usually get per kill in each mode: 3 solo, about 1.5 in a duo, 1 in a "
+            .. "trio. It applies to all your tracked kills in that mode.",
+        "Each pile is its own chance at a unique. Fewer piles lower the uniques an average player would "
+            .. "expect, so the same drops rate as luckier.",
     },
     choices = {
         pilesChoice("normalPiles", "Normal Mode"), -- saved data keys: never change them

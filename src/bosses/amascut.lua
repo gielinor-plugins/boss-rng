@@ -78,7 +78,7 @@ return {
     name = "Amascut, the Devourer",
     assumptions = {},
     unit = "pile", -- what luck counts: loot piles claimed (see claims)
-    tip = "Claim loot each kill so it counts",
+    tip = "Open the chest after each kill: stacked loot can't always be counted",
 
     -- Mode names are saved: never change them. Counted through piles claimed.
     modes = {

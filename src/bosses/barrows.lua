@@ -1,4 +1,4 @@
--- Barrows brothers. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. With n
+-- Barrows Brothers. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. With n
 -- brothers killed (Linza not counted), a chest rolls min(n + 1, 7) times for a killed
 -- brother's item; Linza adds her own roll. The amulet's rate is from Jagex's Late-Game
 -- Rebalance design preview, which doesn't say whether partial chests roll it, so they're
@@ -149,8 +149,8 @@ end
 
 return {
     key = "barrows", -- saved data key: never change it
-    name = "Barrows brothers",
-    assumptions = { "Amulet of the forsaken from partial chests too" },
+    name = "Barrows Brothers",
+    assumptions = { "Amulet of the forsaken chance from complete and partial runs" },
 
     -- Counted only through its kill event: each chest gets its own mode.
     modes = {

@@ -30,7 +30,7 @@ game for you.
 
 - Amascut, the Devourer
 - Araxxi
-- Barrows brothers
+- Barrows Brothers
 - Barrows: Rise of the Six
 - Commander Zilyana
 - Corporeal Beast
