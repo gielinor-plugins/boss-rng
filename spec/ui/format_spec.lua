@@ -45,7 +45,7 @@ describe("format", function()
             format.Dry({ kills = 100, dryKills = 12, dryShare = 0.96 }))
         assert.are.equal("1 kill dry · 99% go this long",
             format.Dry({ kills = 1, dryKills = 1, dryShare = 0.003 }))
-        assert.are.equal("unique on your last kill", format.Dry({ kills = 5, dryKills = 0, dryShare = 0 }))
+        assert.are.equal("Unique on your last kill", format.Dry({ kills = 5, dryKills = 0, dryShare = 0 }))
     end)
 
     it("marks a dry streak that may be longer", function()

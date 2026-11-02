@@ -85,13 +85,13 @@ function format.DryCount(result)
     return format.Number(result.dryKills) .. (result.dryAtLeast and "+" or "")
 end
 
--- "12 kills dry · 4% go this long", or "unique on your last kill".
+-- "12 kills dry · 4% go this long", or "Unique on your last kill".
 function format.Dry(result)
     if result.kills == 0 or format.DryCount(result) == "" then
         return ""
     end
     if result.dryKills == 0 then
-        return "unique on your last " .. unit(result)
+        return "Unique on your last " .. unit(result)
     end
     local plural = (result.dryKills == 1 and not result.dryAtLeast) and "" or "s"
     local kills = format.DryCount(result) .. " " .. unit(result) .. plural
