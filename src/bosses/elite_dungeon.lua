@@ -4,7 +4,7 @@
 
 local eliteDungeon = {}
 
-eliteDungeon.ASSUMPTION = "Group rates use everyone in the dungeon"
+eliteDungeon.ASSUMPTION = "Teammates who sit out a boss still affect its drop rate"
 
 local PLAYERS = "DUNGEON_PLAYERS_AT_BOSS_KILL" -- players in the dungeon at the kill
 local TEAMS = { "solo", "duo", "trio" } -- rate names by players (see src/core/rates/base.lua)
