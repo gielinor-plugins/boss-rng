@@ -114,24 +114,16 @@ local function withStats(entry)
     return entry
 end
 
-local function indexOf(list, key)
-    for i, entry in ipairs(list) do
-        if entry.boss.key == key then
-            return i
-        end
-    end
-    return nil
-end
-
 -- The boss picked in a dropdown, else the last killed, else the first.
--- A kill at another boss clears the dropdown pick.
+-- A kill at another boss clears the dropdown pick (a reset clearing the last
+-- boss killed doesn't).
 local function selectedIndex(list)
     local last = tracker.LastBossKey()
-    if last ~= lastKillKey then
+    if last ~= nil and last ~= lastKillKey then
         lastKillKey = last
         selectedKey = nil
     end
-    return indexOf(list, selectedKey) or indexOf(list, last) or 1
+    return common.IndexOf(list, selectedKey) or common.IndexOf(list, last) or 1
 end
 
 function state.Pick(key)

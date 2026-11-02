@@ -18,7 +18,9 @@ Keys are always text (item ids, days), and numbers come back as decimals (`13.0`
 `{ version, lastBoss = <boss key>, bosses = { [boss key] = tallies } }`
 
 `lastBoss`, the boss killed last, gets any pooled unique (one log count shared by
-two bosses). Each boss's tallies:
+two bosses). Data Controls on the settings page clears one boss's tallies
+(`tracker.Reset`) or every boss's (`tracker.ResetAll`), after a confirmation;
+`choices:` is kept. Each boss's tallies:
 
 | Field | Saved as |
 |---|---|

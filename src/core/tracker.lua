@@ -107,6 +107,27 @@ function tracker.AddDrops(boss, itemID, count)
     save()
 end
 
+-- Clears the character's tallies for a boss.
+function tracker.Reset(boss)
+    if not load() then
+        return
+    end
+    record.bosses[boss.key], encoded[boss.key] = nil, nil
+    if record.lastBoss == boss.key then
+        record.lastBoss = nil
+    end
+    save()
+end
+
+-- Clears the character's tallies for every boss.
+function tracker.ResetAll()
+    if not load() then
+        return
+    end
+    record.bosses, record.lastBoss, encoded = {}, nil, {}
+    save()
+end
+
 -- The character's tallies for a boss (empty if none yet), or nil if nobody's logged in.
 function tracker.Tallies(boss)
     if not load() then

@@ -60,9 +60,15 @@ end
 
 local SLIDER_SETTLE_TICKS = 25 -- half a second without moving
 
-local function pick(key)
-    viewState.Pick(key)
+local function pick(boss)
+    viewState.Pick(boss.key)
     redrawSoon()
+end
+
+-- Shows the boss whose data was reset; the reset redraws the views.
+local function reset(boss)
+    viewState.Pick(boss.key)
+    tracker.Reset(boss)
 end
 
 -- Redraws once the slider settles, so it isn't rebuilt while being dragged.
@@ -80,6 +86,8 @@ function currentState()
         selected = selected,
         onPick = pick,
         onChoose = choose,
+        onReset = reset,
+        onResetAll = tracker.ResetAll,
         onDetails = showWindow,
     }
 end

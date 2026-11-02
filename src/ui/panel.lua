@@ -31,7 +31,7 @@ function panel.Draw(state)
     host:AddSimpleButton("View details", function()
         safe.Call("opening the window", state.onDetails)
     end, { marginTop = 8, width = width, height = 32 })
-    common.AddBossPicker(host, state, PAD)
+    common.AddBossPicker(host, state.list, state.selected, state.onPick, { y = PAD })
 end
 
 function panel.ShowError()

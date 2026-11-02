@@ -155,6 +155,36 @@ describe("tracker", function()
         assert.are.equal("20756:2", saved.other.kills.n)
     end)
 
+    it("resets one boss, keeping the others, and starts it fresh", function()
+        local other = { key = "other", modes = { NORMAL }, items = {} }
+        tracker.AddKills(other, NORMAL, 2, DAY)
+        tracker.AddKills(BOSS, NORMAL, 3, DAY)
+        tracker.AddDrops(BOSS, 101, 1)
+        tracker.Reset(BOSS)
+        tracker.AddKills(BOSS, NORMAL, 1, NEXT_DAY)
+        mock.Reset(true) -- reload, to go through saving
+        mock.inGame = true
+        reload()
+        local tallies = tracker.Tallies(BOSS)
+        assert.are.equal(1, tracker.Total(tallies.kills))
+        assert.are.same({}, tallies.items)
+        assert.are.equal(1, tracker.Total(tracker.Dry(tallies, "101")))
+        assert.are.equal(2, tracker.Total(tracker.Tallies(other).kills))
+    end)
+
+    it("resets every boss and tells listeners", function()
+        local calls = 0
+        tracker.AddKills(BOSS, NORMAL, 1, DAY)
+        tracker.OnChange(function() calls = calls + 1 end)
+        tracker.ResetAll()
+        assert.are.equal(1, calls)
+        mock.Reset(true)
+        mock.inGame = true
+        reload()
+        assert.are.same({ kills = {}, dryFrom = {}, items = {} }, tracker.Tallies(BOSS))
+        assert.is_nil(tracker.LastBossKey())
+    end)
+
     it("keeps its data after a reload", function()
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         mock.Reset(true)

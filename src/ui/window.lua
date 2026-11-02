@@ -171,8 +171,7 @@ end
 
 function window.Draw(state)
     window.Close()
-    local parent = ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__PLUGIN_BUILD_LAYER_TOP)
-    win = prettyui.Window.new(parent, {
+    win = prettyui.Window.new(common.TopLayer(), {
         title = "Boss RNG", x = position.x, y = position.y, width = WIDTH, height = HEIGHT,
         scrollable = false, destroyOnClose = true,
         layout = { startY = SUMMARY_Y, padding = PAD },
@@ -190,7 +189,7 @@ function window.Draw(state)
     local entry = state.list[state.selected]
     addSummary(entry.stats)
     addTabs(entry)
-    common.AddBossPicker(win, state, 8)
+    common.AddBossPicker(win, state.list, state.selected, state.onPick, { y = 8 })
 end
 
 return window
