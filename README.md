@@ -19,8 +19,9 @@ Only information the game already shows you:
   without either being open. Each rise is a kill or a drop. Changes in the first
   seconds after login are ignored, so the login sync isn't taken for kills.
 - **What sets a kill's rates**, read as it happens: Amascut's enrage and loot
-  piles, Croesus contribution, elite dungeon team size, Araxxi's duo, the Barrows
-  brothers killed, and Vorkath chests opened.
+  piles, Kerapac's loot piles (the ones you own as they land), Croesus
+  contribution, elite dungeon team size, Araxxi's duo, the Barrows brothers
+  killed, and Vorkath chests opened.
 - **The date**, from the game clock, so each kill uses the drop rates at the time.
 
 It never reads hidden values such as bad luck mitigation, and never acts in the

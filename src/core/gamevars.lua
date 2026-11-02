@@ -3,12 +3,13 @@
 -- vars. These counts aren't hidden (the Beasts tab and boss log show them, and Jagex
 -- confirmed they may be read without either open); hidden values such as bad luck
 -- mitigation are never read. Counts are varbits, slices of a base var whose old and
--- new value VarTransmit sends. For containers and claims, see their modules.
+-- new value VarTransmit sends. For containers, claims and piles, see their modules.
 
 local bits = require("src/utils/bits")
 local claims = require("src/core/claims")
 local containers = require("src/core/containers")
 local days = require("src/utils/days")
+local piles = require("src/core/piles")
 local safe = require("src/utils/safe")
 
 local gamevars = {}
@@ -122,6 +123,18 @@ local function onInventory(event)
     end
 end
 
+local function onPileAdded(event)
+    if isReady() then
+        piles.OnAdded(event)
+    end
+end
+
+local function onPileChanged(event)
+    if isReady() then
+        piles.OnChanged(event)
+    end
+end
+
 -- A tick's kill and drop can arrive in either order (at Kree'arra the drop came
 -- first), so kills are reported first: a drop counts after the kill it landed with.
 local function flush()
@@ -136,8 +149,9 @@ end
 
 local function onLogic(event)
     tick = event.logicTick
-    flush()
+    flush() -- kill events read this tick's piles, so they're cleared after
     claims.EndTick()
+    piles.EndTick()
     if isReady() and not announced then
         announced = true
         eachCount(function(slice)
@@ -217,6 +231,9 @@ local function eventMode(boss, event, old, kept)
     for key in pairs(event.lasts or {}) do
         values[key] = kept[key] -- nil if none was seen
     end
+    if event.piles then
+        values.piles = piles.Count()
+    end
     local key = event.mode(values, old)
     return key and boss.modeFor(key)
 end
@@ -239,6 +256,7 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
             end
         end
         for _, event in ipairs(boss.killEvents or {}) do
+            piles.Watch(event.piles or {})
             local kept = {} -- each of event.lasts' last value above 0 since the last kill
             for key, name in pairs(event.lasts or {}) do
                 local found = var.VarPlayer[name]
@@ -303,6 +321,8 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
     Event.VarTransmit.Subscribe(REF, onVarTransmit)
     Event.InventoryAdded.Subscribe(REF, onInventory)
     Event.InventoryUpdated.Subscribe(REF, onInventory)
+    Event.ObjStackEntityAdded.Subscribe(REF, onPileAdded)
+    Event.ObjStackEntityChanged.Subscribe(REF, onPileChanged)
 end
 
 function gamevars.Stop()
@@ -311,9 +331,12 @@ function gamevars.Stop()
     Event.VarTransmit.Unsubscribe(REF)
     Event.InventoryAdded.Unsubscribe(REF)
     Event.InventoryUpdated.Unsubscribe(REF)
+    Event.ObjStackEntityAdded.Unsubscribe(REF)
+    Event.ObjStackEntityChanged.Unsubscribe(REF)
     watched, lasts = {}, {}
     claims.Clear()
     containers.Clear()
+    piles.Clear()
     pending = { kills = {}, drops = {} }
     readyAtTick = nil
     onReady, announced, killedThisSession = nil, false, {}

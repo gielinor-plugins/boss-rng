@@ -49,6 +49,20 @@ describe("stats.ForBoss", function()
         assert.is_nil(forBoss(BOSS, nil))
     end)
 
+    it("adds up loot piles for modes that count them", function()
+        local piled = {
+            modes = {
+                { key = "p1", kc = "KC", piles = 1, rolls = {} },
+                { key = "p3", kc = "KC", piles = 3, rolls = {} },
+            },
+            items = {},
+        }
+        local result = forBoss(piled, tallies({ p1 = 2, p3 = 5 }))
+        assert.are.equal(7, result.kills)
+        assert.are.equal(17, result.piles)
+        assert.is_nil(forBoss(BOSS, tallies({ n = 5 })).piles) -- a boss without piles
+    end)
+
     it("adds up expected drops per mode over tracked kills", function()
         local result = forBoss(BOSS, tallies({ n = 100, h = 20 }))
         assert.are.equal(120, result.kills)

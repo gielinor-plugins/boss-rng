@@ -153,8 +153,8 @@ local CASES = {
     -- Full contribution: 12 rolls at 1/5,400 each, then 1/3,000 armor and 1/2,500 others.
     { file = "croesus", items = 10, rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 },
         after = { [52250] = 12 / 3000, [52345] = 12 / 2500, [52213] = 12 / 2500 } },
-    -- Three loot piles, the default.
-    { file = "kerapac", items = 7, rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
+    -- Three loot piles, normal then hard mode.
+    { file = "kerapac", items = 7, modes = { "n3", "h3" }, rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
         hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 } },
     -- Hard mode before the stones are read: 1/27 for any sword piece.
     { file = "zuk", items = 7, rates = { [52530] = 1 / 100, [52492] = 1 / 100 },
@@ -218,13 +218,19 @@ it("counts each tracked Araxxi kill as solo or duo by the duo flag", function()
     assert.are.equal("BSLAY_KILLS_ARAXXI", boss.modeFor("d").kc)
 end)
 
-it("scales Kerapac's loot piles by the player's average", function()
+it("counts Kerapac's kills by the loot piles seen at them", function()
     local boss = require("src/bosses/kerapac")
-    local picks = { normalPiles = 1.5, hardPiles = 1 }
-    assert.are.near(1.5 / 256 / 3, luck.ItemChances(stats.Rolls(boss, boss.modes[1], picks))[51767], 1e-12)
-    assert.are.near(1 / 400 / 3, luck.ItemChances(stats.Rolls(boss, boss.modes[2], picks))[51782], 1e-12)
-    assert.are.same({ "Normal Mode loot piles per kill: 1.5", "Hard Mode loot piles per kill: 1" },
-        choices.Assumptions(boss, picks))
+    local normal, hard = boss.killEvents[1], boss.killEvents[2]
+    assert.are.same({ 51804, 51805 }, normal.piles) -- Resonant anima of Jas, in every pile
+    assert.are.equal("n3", normal.mode({ piles = 3 }))
+    assert.are.equal("h2", hard.mode({ piles = 2 }))
+    assert.are.equal("n1", normal.mode({ piles = 0 })) -- away at the kill
+    assert.are.equal("n3", normal.mode({ piles = 4 }))
+    local twoPiles = boss.modeFor("n2")
+    assert.are.equal(2, twoPiles.piles)
+    assert.are.near(2 / 256 / 3, luck.ItemChances(stats.Rolls(boss, twoPiles, {}))[51767], 1e-12)
+    assert.are.near(1 / 400 / 3, luck.ItemChances(stats.Rolls(boss, boss.modeFor("h1"), {}))[51782], 1e-12)
+    assert.are.equal("BSLAY_KILLS_EGWD_JAS_BOSS_HARDMODE", boss.modeFor("h1").kc)
 end)
 
 describe("TzKal-Zuk's checkpoints", function()

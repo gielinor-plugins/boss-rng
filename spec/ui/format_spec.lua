@@ -84,6 +84,13 @@ describe("format", function()
         assert.are.equal("Tracked: 3 kills · 0 uniques", format.Tracked({ kills = 3, received = 0 }))
         assert.are.equal("", format.Tracked({ kills = 0, received = 0 }))
         assert.are.equal("212 tracked kills · 1 unique", format.TrackedShort({ kills = 212, received = 1 }))
+        -- Kerapac's loot piles.
+        assert.are.equal("Tracked: 40 kills (97 piles) · 2 uniques",
+            format.Tracked({ kills = 40, piles = 97, received = 2 }))
+        -- The panel leaves out partial kills and piles.
+        assert.are.equal("9 tracked kills · 0 uniques",
+            format.TrackedShort({ kills = 9, extraKills = 4, extraLabel = "partial", received = 0 }))
+        assert.are.equal("40 tracked kills · 2 uniques", format.TrackedShort({ kills = 40, piles = 97, received = 2 }))
         assert.are.equal("", format.TrackedShort({ kills = 0, received = 0 }))
     end)
 

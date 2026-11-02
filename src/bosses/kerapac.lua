@@ -1,7 +1,8 @@
 -- Kerapac. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. Each kill gives
--- three loot piles, each rolling a unique; staff pieces drop in sequence, so they're one
--- group. The kill count doesn't say how many piles the player got, and counting them as
--- they land isn't reliable, so the player sets their average per mode.
+-- three loot piles, split by damage (solo all three, duo two and one, trio one each), and
+-- each rolls for a unique; staff pieces drop in sequence, so they're one group. Each kill
+-- counts the player's piles, seen as the ground stacks they own that gain Resonant anima
+-- of Jas at the kill (tested: docs/bosses/kerapac.md).
 
 local common = require("src/bosses/common")
 
@@ -15,18 +16,10 @@ local VARS = {
 local SYMBOL, GEM, SHAFT = 51776, 51779, 51782
 local WRAPS, CODEX, SCRIPTURE = 51767, 51843, 51812
 local STAFF = { name = "Staff pieces" }
-
--- A pile's rolls for each loot pile, scaled to the share (count of r.piles) the player gets.
-local function piles(count, pile, r)
-    local share = count / r.piles
-    local rolls = {}
-    for _, roll in ipairs(pile) do
-        common.Repeat(rolls, r.piles, { chance = roll.chance * share, items = roll.items })
-    end
-    return rolls
-end
-
 local OTHERS = common.Even({ WRAPS, CODEX, SCRIPTURE })
+
+local ANIMA = { 51804, 51805 } -- Resonant anima of Jas, tradeable or not: in every pile
+local MAX_PILES = 3
 
 local function normalPile(r)
     return { { chance = r.normal, items = OTHERS } }
@@ -39,34 +32,47 @@ local function hardPile(r)
     }
 end
 
-local function pilesChoice(key, label)
-    return { key = key, label = label, unit = " loot piles per kill", default = 3, min = 1, max = 3, step = 0.25 }
+local TRACKED = {}
+
+-- Modes for 1 to 3 piles in one difficulty ("n2": normal mode, 2 piles), each pile
+-- rolling pile(r). Keys are saved: never change them.
+local function addPileModes(prefix, kc, pile)
+    for count = 1, MAX_PILES do
+        TRACKED[prefix .. count] = { key = prefix .. count, kc = kc, piles = count, rolls = function(r)
+            local rolls = {}
+            for _ = 1, count do
+                for _, roll in ipairs(pile(r)) do
+                    table.insert(rolls, roll)
+                end
+            end
+            return rolls
+        end }
+    end
+end
+
+addPileModes("n", VARS.kc, normalPile)
+addPileModes("h", VARS.kcHard, hardPile)
+
+-- A kill's mode by the piles seen at it. None seen means the player was away, most
+-- likely not the top damager, so it counts as 1.
+local function killEvent(kc, prefix)
+    return { var = kc, reads = {}, piles = ANIMA, mode = function(values)
+        return prefix .. math.max(1, math.min(values.piles, MAX_PILES))
+    end }
 end
 
 return {
     key = "kerapac", -- saved data key: never change it
     name = "Kerapac",
-    assumptions = {},
-    choicesHelp = {
-        "Set the loot piles you usually get per kill in each mode: 3 solo, about 1.5 in a duo, 1 in a "
-            .. "trio. It applies to all your tracked kills in that mode.",
-        "Each pile is its own chance at a unique. Fewer piles lower the uniques an average player would "
-            .. "expect, so the same drops rate as luckier.",
-    },
-    choices = {
-        pilesChoice("normalPiles", "Normal Mode"), -- saved data keys: never change them
-        pilesChoice("hardPiles", "Hard Mode"),
-    },
+    assumptions = { "Kills you were away for count as 1 loot pile" },
 
-    -- Mode keys are saved: never change them.
+    -- Counted only through its kill events, by piles.
     modes = {
-        { key = "n", kc = VARS.kc, rolls = function(r, picks)
-            return piles(picks.normalPiles, normalPile(r), r)
-        end },
-        { key = "h", kc = VARS.kcHard, rolls = function(r, picks)
-            return piles(picks.hardPiles, hardPile(r), r)
-        end },
+        { key = "n", kc = VARS.kc, byEvent = true },
+        { key = "h", kc = VARS.kcHard, byEvent = true },
     },
+    killEvents = { killEvent(VARS.kc, "n"), killEvent(VARS.kcHard, "h") },
+    modeFor = function(key) return TRACKED[key] end,
 
     items = {
         [SYMBOL] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_TOP", kind = "unique", group = STAFF },

@@ -135,6 +135,35 @@ describe("gamevars", function()
         assert.are.same({ "Score 7" }, reports)
     end)
 
+    it("gives a kill event the piles the player owns that gained a watched item in its tick", function()
+        gamevars.Stop()
+        local evented = {
+            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            items = {},
+            killEvents = { { var = "KC_NORMAL", reads = {}, piles = { 501, 502 }, mode = function(values)
+                return "Piles " .. values.piles
+            end } },
+            modeFor = function(key) return { key = key } end,
+        }
+        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.key) end, function() end)
+        advance(1)
+        local function stack(name, tile, itemID, owned, counts)
+            counts.objStackEntity, counts.objType, counts.isOwner = { coordGrid = tile }, { id = itemID }, owned
+            mock.Fire(name, counts)
+        end
+        stack("ObjStackEntityAdded", "a", 501, true, { count = 40 })
+        stack("ObjStackEntityChanged", "b", 502, true, { oldCount = 0, newCount = 50 })
+        stack("ObjStackEntityChanged", "b", 501, true, { oldCount = 0, newCount = 5 }) -- the same pile
+        stack("ObjStackEntityChanged", "c", 501, true, { oldCount = 10, newCount = 60 }) -- joins older loot
+        stack("ObjStackEntityAdded", "d", 501, false, { count = 40 }) -- a teammate's
+        stack("ObjStackEntityAdded", "e", 999, true, { count = 1 }) -- not a watched item
+        stack("ObjStackEntityChanged", "f", 501, true, { oldCount = 10, newCount = 0 }) -- picked up
+        change(KC_VAR, 1, 2)
+        assert.are.same({ "Piles 3" }, reports)
+        change(KC_VAR, 2, 3) -- none in this kill's tick: away at the kill
+        assert.are.same({ "Piles 3", "Piles 0" }, reports)
+    end)
+
     it("can watch bits of a var the game doesn't name as a varbit", function()
         gamevars.Stop()
         local evented = {

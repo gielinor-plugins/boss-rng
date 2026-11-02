@@ -179,6 +179,7 @@ end
 -- Stats from { boss, tallies, picks, allTime }, or nil without tallies:
 --   kills, extraKills   tracked kills in the kill counts, and outside them (partial
 --                       Barrows chests, called extraLabel)
+--   piles               loot piles over tracked kills, for modes that count them (Kerapac), or nil
 --   since               day of the first tracked kill, or nil
 --   expected, received  uniques an average player would have, and uniques tracked
 --   luck, killsToLuck   share of players with fewer uniques (or nil, see luckOf),
@@ -202,6 +203,9 @@ function stats.ForBoss(entry)
     eachKill(modes, tallies.kills, function(mode, day, kills)
         local key = mode.kc and "kills" or "extraKills"
         result[key] = result[key] + kills
+        if mode.piles then
+            result.piles = (result.piles or 0) + kills * mode.piles
+        end
         if day > 0 and (result.since == nil or day < result.since) then
             result.since = day
         end

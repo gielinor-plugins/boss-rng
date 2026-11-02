@@ -113,19 +113,26 @@ function format.Dry(result)
 end
 
 -- "212 kills (+4 partial) · 2 uniques".
-local function trackedCounts(result, word)
-    local label = result.extraLabel or "other"
-    local extra = (result.extraKills or 0) > 0
-        and (" (+" .. format.Number(result.extraKills) .. " " .. label .. ")") or ""
-    return count(result.kills, word) .. extra .. " · " .. count(result.received, "unique")
+-- Kills, then with details any kills outside the kill count and loot piles, then uniques.
+local function trackedCounts(result, word, details)
+    local text = count(result.kills, word)
+    if details and (result.extraKills or 0) > 0 then
+        text = text .. " (+" .. format.Number(result.extraKills) .. " " .. (result.extraLabel or "other") .. ")"
+    end
+    if details and result.piles then
+        text = text .. " (" .. count(result.piles, "pile") .. ")"
+    end
+    return text .. " · " .. count(result.received, "unique")
 end
 
--- "Tracked: 212 kills (+4 partial) · 2 uniques", or "" with none.
+-- "Tracked: 212 kills (+4 partial) · 2 uniques", with any loot piles ("40 kills (97
+-- piles)"), or "" with none.
 function format.Tracked(result)
-    return format.IsTracked(result) and ("Tracked: " .. trackedCounts(result, unit(result))) or ""
+    return format.IsTracked(result) and ("Tracked: " .. trackedCounts(result, unit(result), true)) or ""
 end
 
--- The same in a few words, for the panel: "212 tracked kills · 2 uniques".
+-- The same in a few words, for the panel, without partial kills or piles: "212 tracked
+-- kills · 2 uniques".
 function format.TrackedShort(result)
     return not format.IsTracked(result) and "" or trackedCounts(result, "tracked " .. unit(result))
 end

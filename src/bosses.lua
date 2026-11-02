@@ -24,10 +24,12 @@
 --   reads        { [key] = var }: each value is passed with the picks under key (nil until read)
 --   choices      player picks for rates set by one (src/core/choices.lua); choicesHelp: paragraphs
 --                on the settings page saying why and how to set them
---   killEvents   a list of { var, mask, reads, lasts, mode }: when var (or its mask bits) rises,
---                mode(values) gives the kill's mode key, or nil to leave it uncounted. lasts = { [key]
---                = varbit } gives its last value above 0 since the previous kill (for values the
---                game resets at the kill, like Croesus's contribution)
+--   killEvents   a list of { var, mask, reads, lasts, piles, mode }: when var (or its mask bits)
+--                rises, mode(values) gives the kill's mode key, or nil to leave it uncounted. lasts =
+--                { [key] = varbit } gives its last value above 0 since the previous kill (for values
+--                the game resets at the kill, like Croesus's contribution). piles = { item ids }
+--                gives values.piles: the player's loot piles that gained one in the kill's tick
+--                (see src/core/piles.lua)
 --   modeFor      function(key): an event's mode; kc nil means outside the kill count
 --   extraKills   label for kills outside the kill count ("partial")
 --   containers   { [item id] = { mode, window } }: counts containers opened, not kills (see
