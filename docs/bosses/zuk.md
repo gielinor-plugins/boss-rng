@@ -18,7 +18,7 @@ Pieces drop in order (a random one, then the other two), so they're one row.
 - Every run without checkpoints, in either mode, gives an Igneous stone, so your
   stones' share of your kills sets the hard mode piece rate.
 - Stones don't say the mode. When that matters (some runs used checkpoints),
-  checkpoints are assumed used as often in both modes (the "i" says so).
+  checkpoints are assumed used as often in both modes (the Info tab says so).
 
 ## Vars read
 

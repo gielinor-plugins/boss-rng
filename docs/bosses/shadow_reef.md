@@ -21,7 +21,7 @@ limb, mechanism and stock are one row.
 - The Ambassador has solo and group kill counts. A group kill counts at the
   team size in the dungeon at the kill.
 - Everyone in the dungeon counts, not just the fight, so a teammate sitting out
-  a boss lowers that kill's rate below what you had (the "i" says so).
+  a boss lowers that kill's rate below what you had (the Info tab says so).
 - The Crassian Leviathan and Taraket aren't counted.
 
 ## Vars read

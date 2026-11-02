@@ -11,7 +11,7 @@ each.
 ## How kills are counted
 
 - The kill count rises at the kill, looted or not, so every chest is assumed
-  looted (the "i" says so).
+  looted (the Info tab says so).
 
 ## Vars read
 

@@ -15,7 +15,7 @@ Hard mode has the same rates.
 
 ## How kills are counted
 
-- Assumed solo (the "i" says so): the kill count doesn't say who you killed
+- Assumed solo (the Info tab says so): the kill count doesn't say who you killed
   with, and group kills share drops, so group killers' luck reads low.
 - Normal and hard mode kill counts are both counted.
 

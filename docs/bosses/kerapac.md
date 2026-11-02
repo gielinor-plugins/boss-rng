@@ -22,7 +22,7 @@ Staff pieces drop in order (shaft, gem, then symbol), so they're one row.
 - The kill count doesn't say how many piles you got, and counting them as they
   land isn't reliable. So each mode uses your average piles per kill, 1 to 3, set
   on the settings page (Plugin Hub, Manage, Boss RNG's gear). It starts at 3 (as
-  if solo), applies to all kills in that mode, and the "i" shows it.
+  if solo), applies to all kills in that mode, and the Info tab shows it.
 
 ## Vars read
 

@@ -14,7 +14,7 @@ A hit picks a killed brother evenly, then one of his items evenly.
 | Amulet of the forsaken, every chest | 1 in 480 (1 in 240 from the late November 2026 update) |
 
 The preview doesn't say if partial chests can give the amulet; assumed yes (the
-"i" says so).
+Info tab says so).
 
 ## How kills are counted
 

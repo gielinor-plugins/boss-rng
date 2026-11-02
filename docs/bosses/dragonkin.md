@@ -19,7 +19,7 @@ Fury, Black stone dragon: Barge). Teams are at most three.
 - A group kill counts at the rate for the players in the dungeon at the kill
   (solo if your partner left). If that can't be read, the kill isn't counted.
 - Everyone in the dungeon counts, not just the fight, so a teammate sitting out
-  a boss lowers that kill's rate below what you had (the "i" says so).
+  a boss lowers that kill's rate below what you had (the Info tab says so).
 
 ## Vars read
 
