@@ -82,9 +82,12 @@ Only `main.lua`, `plugin.json`, `src/` and `resources/` (if added) are shipped.
 
 - **Tests:** run `busted` from the project root.
 - **In game:** join the plugin beta world (see the
-  [official tutorial](https://developer.runescape.com/rs/tutorial/1helloworld.html)),
-  run `tools/sync.sh`, then in the console (Alt or Option + the key under Esc) run
-  `prf` and `pon boss_rng`. After each edit, run `tools/sync.sh` and `prl boss_rng`.
+  [official tutorial](https://developer.runescape.com/rs/tutorial/1helloworld.html))
+  and install the dependency named in `plugin.json` from the Plugin Hub, since
+  dev mode doesn't download it. Run `tools/sync.sh`, then in the console (Alt or
+  Option + the key under Esc) run `prf` and `pon boss_rng`. After each edit, run
+  `tools/sync.sh` and `prl boss_rng`. After changing `plugin.json`'s
+  dependencies, restart the client.
 - **Release:** `tools/package.sh` builds `dist/boss_rng-<version>.zip` for mod.io.
 
 ## Credits
