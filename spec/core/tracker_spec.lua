@@ -125,7 +125,8 @@ describe("tracker", function()
                 day = day + 1 + random(3)
             elseif roll == 1 then
                 local itemID = random(2) == 0 and 101 or 102
-                tracker.AddKills(BOSS, NORMAL, 1, day) -- 102 is pooled: only after a kill of this boss
+                -- 102 is pooled: only after a kill of this boss
+                tracker.AddKills(BOSS, NORMAL, 1, day)
                 count(NORMAL, day, 1)
                 tracker.AddDrops(BOSS, itemID, 1)
                 counted[tostring(itemID)], counted.any = {}, {}

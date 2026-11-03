@@ -367,7 +367,8 @@ describe("stats with kills counted at each kill", function()
 
     it("estimates kills until luck shows at the rate of kills in the kill count", function()
         assert.are.equal(5, forBoss(EVENTED, tallies({ Full = 5 })).killsToLuck) -- 0.5 more at 0.1
-        assert.are.equal(3, forBoss(EVENTED, tallies({ Full = 5, Partial = 4 })).killsToLuck) -- 0.3 more
+        -- 0.3 more
+        assert.are.equal(3, forBoss(EVENTED, tallies({ Full = 5, Partial = 4 })).killsToLuck)
     end)
 
     it("leaves out kills of modes the boss no longer has", function()

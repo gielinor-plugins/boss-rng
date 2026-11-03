@@ -12,7 +12,8 @@ local VARS = {
     kc = "BSLAY_KILLS_EGWD_WEN_BOSS_HARDMODE",
     log = "ITEMLOG_ITEM_EGWD_WEN_", -- each item's log count (Arch-Glacor's internal name is Wen)
     enrage = "EGWD_WEN_BOSS_CURRENT_ENRAGE", -- the fight's, until the next one starts
-    streak = "EGWD_WEN_BOSS_CURRENT_STREAK", -- kills in the streak, this one included; 0 once claimed
+    -- Kills in the streak, this one included; 0 once claimed
+    streak = "EGWD_WEN_BOSS_CURRENT_STREAK",
 }
 
 local CORE, SCRIPTURE, ARTEFACT, NILAS = 52020, 52115, 52021, 52019
@@ -53,7 +54,7 @@ return {
     modeFor = function(key)
         return key == HARD.key and HARD or nil
     end,
-    claimedBy = { var = VARS.streak, most = CLAIM_MOST },
+    dropsAtClaim = { var = VARS.streak, most = CLAIM_MOST },
 
     items = {
         [CORE] = { log = VARS.log .. "BOSS_INGREDIENT_HARDMODE" },

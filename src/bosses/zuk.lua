@@ -12,7 +12,8 @@ local VARS = {
     kcHard = "BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE",
     log = "ITEMLOG_ITEM_EGWD_FUL_", -- each item's log count (TzKal-Zuk's internal name is Ful)
     codex = "ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_MAGMA_TEMPEST",
-    stones = "ITEMLOG_ITEM_EGWD_FUL_BOSS_INFERNAL_STONE", -- Igneous stones: runs without checkpoints
+    -- Igneous stones: runs without checkpoints
+    stones = "ITEMLOG_ITEM_EGWD_FUL_BOSS_INFERNAL_STONE",
 }
 
 local BLADE, CORE, HILT = 52505, 52507, 52509

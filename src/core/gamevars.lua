@@ -26,7 +26,7 @@ local SETTLE_TICKS = 5 * 50
 -- Bigger jumps (like a login sync) and any decrease are ignored.
 local MAX_CHANGE = 3
 
--- Uniques waiting for a claim (claimedBy in src/bosses.lua) reach the boss log with it;
+-- Uniques waiting for a claim (dropsAtClaim in src/bosses.lua) reach the boss log with it;
 -- allow this long after the claim.
 local CLAIM_TICKS = 10 * 50
 
@@ -37,7 +37,7 @@ local readyAtTick = nil -- nil while not in the game
 local onReady = nil -- called once vars can be trusted after entering the game
 local announced = false -- whether onReady was called since entering the game
 local killedThisSession = {} -- [boss] = true once a kill is reported since entering the game
-local claimedAt = {} -- [boss] = tick its loot was last claimed (claimedBy in src/bosses.lua)
+local claimedAt = {} -- [boss] = tick its loot was last claimed (dropsAtClaim in src/bosses.lua)
 
 -- [base var id] = { name, update(value) }: varbits read after each change of their base var.
 local followed = {}
@@ -247,7 +247,7 @@ end
 -- Whether a boss's unique can drop now: after a kill since entering the game or, for
 -- loot that waits for a claim, just after the claim.
 local function canDrop(boss)
-    if boss.claimedBy then
+    if boss.dropsAtClaim then
         return claimedAt[boss] ~= nil and tick - claimedAt[boss] <= CLAIM_TICKS
     end
     return killedThisSession[boss]
@@ -317,9 +317,9 @@ end
 -- Drops: each unique's log count rising, after a kill or, for loot that waits for a
 -- claim, after the claim.
 local function watchDrops(boss)
-    if boss.claimedBy then
+    if boss.dropsAtClaim then
         local held = 0
-        follow(boss.claimedBy.var, function(now)
+        follow(boss.dropsAtClaim.var, function(now)
             if isReady() and held > 0 and now == 0 then
                 claimedAt[boss] = tick
             end
@@ -332,7 +332,7 @@ local function watchDrops(boss)
             if canDrop(boss) then
                 onDrops(boss, itemID, stack and 1 or count)
             end
-        end, nil, stack or (boss.claimedBy and boss.claimedBy.most))
+        end, nil, stack or (boss.dropsAtClaim and boss.dropsAtClaim.most))
     end
 end
 

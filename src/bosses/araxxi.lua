@@ -6,7 +6,8 @@ local common = require("src/bosses/common")
 local VARS = {
     kc = "BSLAY_KILLS_ARAXXI",
     duo = "SB_DUO", -- 1 in a duo fight, private or public; 0 solo
-    log = "ITEMLOG_ITEM_SB_", -- each item's log count (Araxxor's internal name is SB, the spider boss)
+    -- Each item's log count (Araxxor's internal name is SB, the spider boss)
+    log = "ITEMLOG_ITEM_SB_",
 }
 
 local LEG_TOP, LEG_MIDDLE, LEG_BOTTOM = 31718, 31719, 31720

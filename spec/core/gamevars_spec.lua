@@ -219,11 +219,14 @@ describe("gamevars", function()
             end
             stack("ObjStackEntityAdded", "a", 501, true, { count = 40 })
             stack("ObjStackEntityChanged", "b", 502, true, { oldCount = 0, newCount = 50 })
-            stack("ObjStackEntityChanged", "b", 501, true, { oldCount = 0, newCount = 5 }) -- the same pile
-            stack("ObjStackEntityChanged", "c", 501, true, { oldCount = 10, newCount = 60 }) -- joins older loot
+            -- The same pile
+            stack("ObjStackEntityChanged", "b", 501, true, { oldCount = 0, newCount = 5 })
+            -- Joins older loot
+            stack("ObjStackEntityChanged", "c", 501, true, { oldCount = 10, newCount = 60 })
             stack("ObjStackEntityAdded", "d", 501, false, { count = 40 }) -- a teammate's
             stack("ObjStackEntityAdded", "e", 999, true, { count = 1 }) -- not a watched item
-            stack("ObjStackEntityChanged", "f", 501, true, { oldCount = 10, newCount = 0 }) -- picked up
+            -- Picked up
+            stack("ObjStackEntityChanged", "f", 501, true, { oldCount = 10, newCount = 0 })
             change(KC_VAR, 1, 2)
             assert.are.same({ "Piles 3" }, reports)
             change(KC_VAR, 2, 3) -- none in this kill's tick: away at the kill
@@ -264,7 +267,7 @@ describe("gamevars", function()
         local claimed = {
             modes = { { key = "n", kc = "KC_NORMAL" } },
             items = { [101] = { log = "LOG_WEAPON" } },
-            claimedBy = { var = "LOG_SHARED", most = 200 }, -- the streak: 0 once claimed
+            dropsAtClaim = { var = "LOG_SHARED", most = 200 }, -- the streak: 0 once claimed
         }
         gamevars.Start({ claimed }, function() end, function(_, itemID, count)
             table.insert(reports, "drop " .. itemID .. " +" .. count)

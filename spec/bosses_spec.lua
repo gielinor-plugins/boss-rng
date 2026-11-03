@@ -447,7 +447,8 @@ it("counts each tracked Croesus kill at the unique rolls of its contribution", f
     assert.is_nil(event.mode({})) -- no contribution seen: uncounted
     local two = boss.modeFor("r2")
     assert.are.near(2 / 5400, luck.ItemChances(stats.Rolls(boss, two, {}, BEFORE))[52250], 1e-12)
-    assert.are.near(2 / 3000, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52250], 1e-12) -- the rebalance
+    -- The rebalance
+    assert.are.near(2 / 3000, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52250], 1e-12)
     assert.are.near(2 / 2500, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52345], 1e-12)
     assert.are.same({}, stats.Rolls(boss, boss.modeFor("r0"), {}))
 end)

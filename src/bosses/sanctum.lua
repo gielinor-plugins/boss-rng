@@ -9,7 +9,8 @@ local common = require("src/bosses/common")
 local VARS = {
     kc = "BSLAY_KILLS_RAID_REBIRTH1_", -- then each boss's name, with _HARDMODE for hard mode
     log = "ITEMLOG_ITEM_", -- then each unique's log count name
-    loot = "RAID_REBIRTH1_VARP_1", -- each boss's waiting loot and its difficulty (rare fields never read)
+    -- Each boss's waiting loot and its difficulty (rare fields never read)
+    loot = "RAID_REBIRTH1_VARP_1",
 }
 
 local CODEX, SCRIPTURE, ROAR, ODE = 57156, 57124, 57162, 57158

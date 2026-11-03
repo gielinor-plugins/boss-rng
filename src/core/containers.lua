@@ -6,7 +6,8 @@ local containers = {}
 
 local byItem = {} -- [item id] = { window, report }
 local held = {} -- the backpack's count of each, as last read
-local opening = { windows = {}, fell = {} } -- this tick's windows opened (by inventory name) and counts that fell (by item id)
+-- This tick's windows opened (by inventory name) and counts that fell (by item id)
+local opening = { windows = {}, fell = {} }
 
 -- Watches itemID, opened with window (an inventory name); report(count) per tick.
 function containers.Add(itemID, window, report)
