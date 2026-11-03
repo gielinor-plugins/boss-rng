@@ -9,8 +9,7 @@ local tallies = require("src/core/tallies")
 local tracker = {}
 
 -- The saved shape's version (see src/core/tallies.lua): any other version starts again.
--- TODO: set to 1 before release.
-local VERSION = 6
+local VERSION = 1
 
 -- The key of the dry streak counting every unique; the others are item ids.
 tracker.ANY = "any"

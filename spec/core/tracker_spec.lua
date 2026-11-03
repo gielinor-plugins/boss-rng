@@ -40,7 +40,7 @@ describe("tracker", function()
         assert.are.equal(4, tracker.Total(tallies.kills))
         -- Saved as text per mode, days in order.
         local saved = mock.Saved("char:Tester")
-        assert.are.equal(6, saved.version)
+        assert.are.equal(1, saved.version)
         assert.are.same({ n = "20756:1,20757:1", h = "20756:2" }, saved.bosses.testboss.kills)
     end)
 
