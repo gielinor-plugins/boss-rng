@@ -292,125 +292,154 @@ local function canDrop(boss)
     return killedThisSession[boss]
 end
 
--- Reports changes for every boss in bosses on the logic tick after they happen:
---   onKills(boss, mode, count, day, sums)  a KC rise, kill event, opened container or
---                                          claim; sums: a kill event's (or nil)
---   onDrops(boss, itemID, count)           a unique's log count rose (a stack's rise is one)
--- and calls ready() each time vars can be trusted. The game can resend log counts long
--- after login as jumps from 0, so only bosses killed this session, or just claimed,
--- can have drops.
-function gamevars.Start(bosses, onKills, onDrops, ready)
-    onReady = ready
-    local function killed(boss, mode, count, sums)
-        killedThisSession[boss] = true
-        onKills(boss, mode, count, today(), sums)
+-- Called with each kill and drop (see gamevars.Start).
+local onKills, onDrops = nil, nil
+
+local function killed(boss, mode, count, sums)
+    killedThisSession[boss] = true
+    onKills(boss, mode, count, today(), sums)
+end
+
+-- Kills counted by a kill count rising, for modes not counted by events.
+local function watchKillCounts(boss)
+    for _, mode in ipairs(boss.modes) do
+        if not mode.byEvent then
+            watch(mode.kc, "kills", function(count)
+                killed(boss, mode, count)
+            end)
+        end
     end
-    for _, boss in ipairs(bosses) do
+end
+
+local function watchKillEvents(boss)
+    for _, event in ipairs(boss.killEvents or {}) do
+        piles.Watch(event.piles or {})
+        local kept = {} -- each of event.lasts' last value above 0 since the last kill
+        for key, name in pairs(event.lasts or {}) do
+            follow(name, function(now)
+                if now > 0 then
+                    kept[key] = now
+                end
+            end)
+        end
+        local rose = {} -- each of event.rises that rose this tick
+        table.insert(risen, rose)
+        for key, name in pairs(event.rises or {}) do
+            watch(name, "rises", function()
+                rose[key] = true
+            end)
+        end
+        watch(event.var, "kills", function()
+            local mode, values = eventMode(boss, event, nil, kept, rose)
+            for key in pairs(kept) do
+                kept[key] = nil
+            end
+            if mode then
+                killed(boss, mode, 1, sumsOf(event, values))
+            end
+        end, event.mask)
+    end
+end
+
+local function watchClaims(boss)
+    for _, claim in ipairs(boss.claims or {}) do
+        local base = var.VarPlayer[claim.var]
+        if base then
+            local countKill = claims.Add(base, claim.mask, function(old, count)
+                local mode = eventMode(boss, claim, old)
+                if mode then
+                    killed(boss, mode, count)
+                end
+            end)
+            for _, kc in ipairs(claim.kills) do
+                watch(kc, "kills", countKill)
+            end
+        else
+            print("[Boss RNG] Unknown var " .. claim.var)
+        end
+    end
+end
+
+local function watchContainers(boss)
+    for itemID, container in pairs(boss.containers or {}) do
         for _, mode in ipairs(boss.modes) do
-            if not mode.byEvent then
-                watch(mode.kc, "kills", function(count)
+            if mode.key == container.mode then
+                containers.Add(itemID, container.window, function(count)
                     killed(boss, mode, count)
                 end)
             end
         end
-        for _, event in ipairs(boss.killEvents or {}) do
-            piles.Watch(event.piles or {})
-            local kept = {} -- each of event.lasts' last value above 0 since the last kill
-            for key, name in pairs(event.lasts or {}) do
-                follow(name, function(now)
-                    if now > 0 then
-                        kept[key] = now
-                    end
-                end)
+    end
+end
+
+-- Drops: each unique's log count rising, after a kill or, for loot that waits for a
+-- claim, after the claim.
+local function watchDrops(boss)
+    if boss.claimedBy then
+        local held = 0
+        follow(boss.claimedBy.var, function(now)
+            if isReady() and held > 0 and now == 0 then
+                claimedAt[boss] = tick
             end
-            local rose = {} -- each of event.rises that rose this tick
-            table.insert(risen, rose)
-            for key, name in pairs(event.rises or {}) do
-                watch(name, "rises", function()
-                    rose[key] = true
-                end)
+            held = now
+        end)
+    end
+    for itemID, item in pairs(boss.items) do
+        local stack = item.stack and item.stack.most
+        watch(item.log, "drops", function(count)
+            if canDrop(boss) then
+                onDrops(boss, itemID, stack and 1 or count)
             end
-            watch(event.var, "kills", function()
-                local mode, values = eventMode(boss, event, nil, kept, rose)
-                for key in pairs(kept) do
-                    kept[key] = nil
-                end
-                if mode then
-                    killed(boss, mode, 1, sumsOf(event, values))
-                end
-            end, event.mask)
-        end
-        for _, claim in ipairs(boss.claims or {}) do
-            local base = var.VarPlayer[claim.var]
-            if base then
-                local countKill = claims.Add(base, claim.mask, function(old, count)
-                    local mode = eventMode(boss, claim, old)
-                    if mode then
-                        killed(boss, mode, count)
-                    end
-                end)
-                for _, kc in ipairs(claim.kills) do
-                    watch(kc, "kills", countKill)
-                end
-            else
-                print("[Boss RNG] Unknown var " .. claim.var)
-            end
-        end
-        for itemID, container in pairs(boss.containers or {}) do
-            for _, mode in ipairs(boss.modes) do
-                if mode.key == container.mode then
-                    containers.Add(itemID, container.window, function(count)
-                        killed(boss, mode, count)
-                    end)
-                end
-            end
-        end
-        if boss.claimedBy then
-            local held = 0
-            follow(boss.claimedBy.var, function(now)
-                if isReady() and held > 0 and now == 0 then
-                    claimedAt[boss] = tick
-                end
-                held = now
-            end)
-        end
-        for itemID, item in pairs(boss.items) do
-            local stack = item.stack and item.stack.most
-            watch(item.log, "drops", function(count)
-                if canDrop(boss) then
-                    onDrops(boss, itemID, stack and 1 or count)
-                end
-            end, nil, stack or (boss.claimedBy and boss.claimedBy.most))
-        end
+        end, nil, stack or (boss.claimedBy and boss.claimedBy.most))
+    end
+end
+
+local HANDLERS = {
+    Logic = onLogic,
+    GameStateChanged = onGameStateChanged,
+    VarTransmit = onVarTransmit,
+    InventoryAdded = onInventory,
+    InventoryUpdated = onInventory,
+    ObjStackEntityAdded = onPileAdded,
+    ObjStackEntityChanged = onPileChanged,
+}
+
+-- Reports changes for every boss in bosses on the logic tick after they happen:
+--   kills(boss, mode, count, day, sums)  a KC rise, kill event, opened container or
+--                                        claim; sums: a kill event's (or nil)
+--   drops(boss, itemID, count)           a unique's log count rose (a stack's rise is one)
+-- and calls ready() each time vars can be trusted. The game can resend log counts long
+-- after login as jumps from 0, so only bosses killed this session, or just claimed,
+-- can have drops.
+function gamevars.Start(bosses, kills, drops, ready)
+    onKills, onDrops, onReady = kills, drops, ready
+    for _, boss in ipairs(bosses) do
+        watchKillCounts(boss)
+        watchKillEvents(boss)
+        watchClaims(boss)
+        watchContainers(boss)
+        watchDrops(boss)
     end
 
     -- Started in the game: no state change arrives, and login vars are already in.
     readyAtTick = Player.IsAvailable() and 0 or nil
 
-    Event.Logic.Subscribe(REF, onLogic)
-    Event.GameStateChanged.Subscribe(REF, onGameStateChanged)
-    Event.VarTransmit.Subscribe(REF, onVarTransmit)
-    Event.InventoryAdded.Subscribe(REF, onInventory)
-    Event.InventoryUpdated.Subscribe(REF, onInventory)
-    Event.ObjStackEntityAdded.Subscribe(REF, onPileAdded)
-    Event.ObjStackEntityChanged.Subscribe(REF, onPileChanged)
+    for name, handler in pairs(HANDLERS) do
+        Event[name].Subscribe(REF, handler)
+    end
 end
 
 function gamevars.Stop()
-    Event.Logic.Unsubscribe(REF)
-    Event.GameStateChanged.Unsubscribe(REF)
-    Event.VarTransmit.Unsubscribe(REF)
-    Event.InventoryAdded.Unsubscribe(REF)
-    Event.InventoryUpdated.Unsubscribe(REF)
-    Event.ObjStackEntityAdded.Unsubscribe(REF)
-    Event.ObjStackEntityChanged.Unsubscribe(REF)
+    for name in pairs(HANDLERS) do
+        Event[name].Unsubscribe(REF)
+    end
     watched, followed, risen, claimedAt = {}, {}, {}, {}
     claims.Clear()
     containers.Clear()
     piles.Clear()
     pending = { rises = {}, kills = {}, drops = {} }
     readyAtTick = nil
-    onReady, announced, killedThisSession = nil, false, {}
+    onKills, onDrops, onReady, announced, killedThisSession = nil, nil, nil, false, {}
 end
 
 return gamevars
