@@ -14,36 +14,64 @@ local REF = "bossrng_ui"
 local REDRAW_REF = "bossrng_ui_redraw"
 
 local currentState -- defined below
+local drawn = {} -- [view] = what it last drew (see shownKey)
 
-local function redrawPanel()
-    if panel.IsOpen() and not safe.Call("drawing the panel", panel.Draw, currentState()) then
+-- What the panel and window show: the boss list, and the shown boss's inputs.
+local function shownKey(state)
+    local parts = {}
+    for i, entry in ipairs(state.list) do
+        parts[i] = entry.boss.key
+    end
+    local shown = state.list[state.selected]
+    table.insert(parts, shown and shown.inputs or "")
+    return table.concat(parts, ",")
+end
+
+local function drawPanel(state)
+    if safe.Call("drawing the panel", panel.Draw, state) then
+        drawn.panel = shownKey(state)
+    else
         safe.Call("drawing the panel error", panel.ShowError)
     end
 end
 
 -- Closes the window if drawing fails, rather than leave it half drawn.
-local function showWindow()
-    if not safe.Call("drawing the window", window.Draw, currentState()) then
+local function drawWindow(state)
+    if safe.Call("drawing the window", window.Draw, state) then
+        drawn.window = shownKey(state)
+    else
         window.Close()
     end
 end
 
-local function redrawSettings()
-    if settings.IsOpen()
-        and not safe.Call("drawing the settings", settings.Draw, currentState()) then
+local function showWindow()
+    drawWindow(currentState())
+end
+
+-- The settings page is small and rarely open, so it's always redrawn.
+local function drawSettings(state)
+    if not safe.Call("drawing the settings", settings.Draw, state) then
         safe.Call("drawing the settings error", settings.ShowError)
     end
 end
 
+-- Redraws the open views, skipping the panel and window when what they show is unchanged.
 local function redrawAll()
-    redrawPanel()
-    redrawSettings()
-    if window.IsOpen() then
-        showWindow()
+    local state = currentState()
+    local key = shownKey(state)
+    if panel.IsOpen() and drawn.panel ~= key then
+        drawPanel(state)
+    end
+    if settings.IsOpen() then
+        drawSettings(state)
+    end
+    if window.IsOpen() and drawn.window ~= key then
+        drawWindow(state)
     end
 end
 
--- Redraws on the next logic tick, so a component isn't destroyed during its own event.
+-- Redraws on the next logic tick, once however often it's asked for in a tick, and
+-- not during a component's own event.
 local function redrawSoon()
     Event.Logic.Subscribe(REDRAW_REF, function()
         Event.Logic.Unsubscribe(REDRAW_REF)
@@ -56,7 +84,7 @@ local function pick(boss)
     redrawSoon()
 end
 
--- Shows the boss whose data was reset; the reset redraws the views.
+-- Shows the boss whose data was reset; the reset asks for a redraw.
 local function reset(boss)
     viewState.Pick(boss.key)
     tracker.Reset(boss)
@@ -78,20 +106,20 @@ end
 -- The game clears the settings page and fires this each time it opens.
 local function onSettingsLayerReady(event)
     settings.Attach(event.component)
-    redrawSettings()
+    drawSettings(currentState())
 end
 
 -- The game clears the panel and fires this each time it opens or is resized.
 local function onContentLayerReady(event)
     panel.Attach(event.component)
-    redrawPanel()
+    drawPanel(currentState())
 end
 
 -- Redraws the views, e.g. once all-time totals can be read after login.
 bossUi.Refresh = redrawAll
 
 function bossUi.Start()
-    tracker.OnChange(redrawAll)
+    tracker.OnChange(redrawSoon)
     Event.ContentLayerReady.Subscribe(REF, onContentLayerReady)
     Event.SettingsLayerReady.Subscribe(REF, onSettingsLayerReady)
 end

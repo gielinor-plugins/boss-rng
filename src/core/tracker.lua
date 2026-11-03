@@ -43,29 +43,34 @@ end
 local store = saved.ForCharacter("char:", VERSION, function() return { bosses = {} } end, codec)
 local record = nil -- the logged in character's, once loaded
 local listeners = {}
-local changes = 0 -- counts every change to the tallies, and every character switch
+local switches = 0 -- counts character switches and resets of every boss
+local changes = {} -- [boss key] = changes to its tallies
 
 -- Loads the logged in character's record if needed; false if nobody is logged in.
 local function load()
     local loaded = store.Load()
     if loaded ~= record then
         record, encoded = loaded, {}
-        changes = changes + 1
+        switches = switches + 1
     end
     return record ~= nil
 end
 
 local function save()
-    changes = changes + 1
     store.Save()
     for _, listener in ipairs(listeners) do
         safe.Call("updating after a change", listener)
     end
 end
 
+local function changed(boss)
+    encoded[boss.key] = nil
+    changes[boss.key] = (changes[boss.key] or 0) + 1
+end
+
 -- A boss's tallies to change, created if needed; re-encoded at the next save.
 local function talliesFor(boss)
-    encoded[boss.key] = nil
+    changed(boss)
     local t = record.bosses[boss.key]
     if t == nil then
         t = tallies.Empty()
@@ -112,7 +117,8 @@ function tracker.Reset(boss)
     if not load() then
         return
     end
-    record.bosses[boss.key], encoded[boss.key] = nil, nil
+    record.bosses[boss.key] = nil
+    changed(boss)
     if record.lastBoss == boss.key then
         record.lastBoss = nil
     end
@@ -125,6 +131,7 @@ function tracker.ResetAll()
         return
     end
     record.bosses, record.lastBoss, encoded = {}, nil, {}
+    switches = switches + 1
     save()
 end
 
@@ -143,10 +150,10 @@ function tracker.LastBossKey()
     return record.lastBoss
 end
 
--- Changes whenever any tallies given out might have.
-function tracker.Changes()
+-- Changes whenever the boss's tallies given out might have.
+function tracker.Changes(boss)
     load()
-    return changes
+    return switches .. ":" .. (changes[boss.key] or 0)
 end
 
 function tracker.OnChange(listener)

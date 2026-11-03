@@ -94,13 +94,13 @@ local function withStats(entry)
     local allTime = entry.allTime or {}
     entry.readings = allTime.values or {}
     local inputs = table.concat({
-        entry.boss.key, tracker.Changes(),
+        entry.boss.key, tracker.Changes(entry.boss),
         asText(allTime.kills), asText(allTime.items), asText(entry.readings),
     }, "|")
     if cached.inputs ~= inputs then
         cached.inputs, cached.stats = inputs, stats.ForBoss(entry)
     end
-    entry.stats = cached.stats
+    entry.inputs, entry.stats = inputs, cached.stats
     entry.rows, entry.notes = state.Rows(entry.stats), state.Notes(entry)
     return entry
 end
@@ -122,7 +122,8 @@ function state.Pick(key)
 end
 
 -- The bosses with kills, and the picked one's index (nil without kills). Only
--- that entry has allTime, readings, stats, rows and notes.
+-- that entry has allTime, readings, stats, rows and notes, and inputs: text that
+-- changes whenever they might.
 function state.Current()
     local list = bossesWithKills()
     local selected = #list > 0 and selectedIndex(list) or nil

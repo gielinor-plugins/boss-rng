@@ -135,14 +135,20 @@ describe("tracker", function()
         assert.are.same({ kills = {}, dryFrom = {}, items = {} }, tracker.Tallies(BOSS))
     end)
 
-    it("tells when tallies may have changed: a kill, a drop or another character", function()
-        local before = tracker.Changes()
-        tracker.AddKills(BOSS, NORMAL, 1, DAY)
-        local afterKill = tracker.Changes()
-        assert.is_true(afterKill ~= before)
-        assert.are.equal(afterKill, tracker.Changes()) -- nothing new
-        mock.characterName = "Other"
-        assert.is_true(tracker.Changes() ~= afterKill)
+    it("tells when a boss's tallies may have changed: its kills, drops or reset, or another character", function()
+        local other = { key = "other", modes = { NORMAL }, items = {} }
+        local function changesAfter(action)
+            local before = tracker.Changes(BOSS)
+            action()
+            return tracker.Changes(BOSS) ~= before
+        end
+        assert.is_false(changesAfter(function() tracker.AddKills(other, NORMAL, 1, DAY) end))
+        assert.is_true(changesAfter(function() tracker.AddKills(BOSS, NORMAL, 1, DAY) end))
+        assert.is_true(changesAfter(function() tracker.AddDrops(BOSS, 101, 1) end))
+        assert.is_true(changesAfter(function() tracker.Reset(BOSS) end))
+        assert.is_true(changesAfter(tracker.ResetAll))
+        assert.is_true(changesAfter(function() mock.characterName = "Other" end))
+        assert.is_false(changesAfter(function() end))
     end)
 
     it("saves each boss's latest kills, re-encoding only the one that changed", function()
