@@ -58,7 +58,6 @@ local function claim(i, loot, difficulty)
         var = VARS.loot,
         mask = loot,
         kills = { normal.kc, hard.kc },
-        reads = {},
         mode = function(_, old)
             return (old & difficulty) == 0 and normal.key or hard.key
         end,

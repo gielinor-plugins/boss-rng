@@ -129,13 +129,6 @@ describe("stats.ForBoss", function()
         assert.is_nil(result.luck)
         assert.is_nil(result.killsToLuck)
         assert.are.equal(0, result.dryShare)
-        assert.is_nil(result.since)
-    end)
-
-    it("remembers the day of the first tracked kill", function()
-        local t = tallies({ n = 5 })
-        t.kills.n[tostring(DAY - 3)] = 2
-        assert.are.equal(DAY - 3, forBoss(BOSS, t).since)
     end)
 
     describe("with all-time totals", function()
@@ -335,7 +328,6 @@ describe("stats with rates that changed", function()
         local byMode = { n = { ["0"] = 10 } }
         local result = forBoss(CHANGED, { kills = byMode, dryFrom = {}, items = {} })
         assert.are.near(10 / 5, result.expected, 1e-9)
-        assert.is_nil(result.since)
     end)
 end)
 

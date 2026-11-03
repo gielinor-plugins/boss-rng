@@ -3,7 +3,7 @@
 
 local luck = require("src/core/luck")
 local rates = require("src/core/rates")
-local tracker = require("src/core/tracker")
+local tallies = require("src/core/tallies")
 
 local stats = {}
 
@@ -35,7 +35,7 @@ local function ratesTable(boss, readings, t)
     local rolls, chances = {}, {}
     local lookup = {}
     local function cached(store, mode, day, make)
-        local means = tracker.Means(t, mode.key, day)
+        local means = tallies.Means(t, mode.key, day)
         local key = means and day or valuesOn(boss, day)
         store[mode] = store[mode] or {}
         store[mode][key] = store[mode][key] or make(means)
@@ -56,14 +56,14 @@ end
 
 -- A boss's modes, then each mode its kill events counted (see src/bosses.lua). Saved
 -- kills of a mode the boss no longer has are left out.
-local function modesOf(boss, tallies)
+local function modesOf(boss, t)
     local modes, known = {}, {}
     for _, mode in ipairs(boss.modes) do
         table.insert(modes, mode)
         known[mode.key] = true
     end
     local keys = {}
-    for key in pairs(tallies.kills) do
+    for key in pairs(t.kills) do
         if not known[key] then
             table.insert(keys, key)
         end
@@ -86,10 +86,10 @@ local function eachKill(modes, byMode, fn)
     end
 end
 
-local function killsThatCanDrop(modes, rates, byMode, itemID)
+local function killsThatCanDrop(modes, lookup, byMode, itemID)
     local total = 0
     eachKill(modes, byMode, function(mode, day, kills)
-        if rates.Chances(mode, day)[itemID] then
+        if lookup.Chances(mode, day)[itemID] then
             total = total + kills
         end
     end)
@@ -97,10 +97,10 @@ local function killsThatCanDrop(modes, rates, byMode, itemID)
 end
 
 -- Share of players who would have had one of counted (item ids) within byMode's kills.
-local function dryShare(modes, rates, byMode, counted)
+local function dryShare(modes, lookup, byMode, counted)
     local missAll = 1
     eachKill(modes, byMode, function(mode, day, kills)
-        local chance = luck.ChanceOfAny(rates.Rolls(mode, day), counted)
+        local chance = luck.ChanceOfAny(lookup.Rolls(mode, day), counted)
         missAll = missAll * (1 - luck.DryPercentile(chance, kills))
     end)
     return 1 - missAll
@@ -189,7 +189,6 @@ end
 --   kills, extraKills   tracked kills in the kill counts, and outside them (partial
 --                       Barrows chests, called extraLabel)
 --   piles               loot piles over tracked kills, for modes that count them (Kerapac), or nil
---   since               day of the first tracked kill, or nil
 --   expected, received  uniques an average player would have, and uniques tracked
 --   luck, killsToLuck   share of players with fewer uniques (or nil, see luckOf),
 --                       and kills until it shows
@@ -199,27 +198,24 @@ end
 --   items               per unique, or group (with its group): { expected, received,
 --                       luck, dryKills, dryAtLeast, dryShare, allTime }
 function stats.ForBoss(entry)
-    local boss, tallies, allTime = entry.boss, entry.tallies, entry.allTime
-    if tallies == nil then
+    local boss, t, allTime = entry.boss, entry.tallies, entry.allTime
+    if t == nil then
         return nil
     end
-    local rates = ratesTable(boss, entry.readings or {}, tallies)
-    local modes = modesOf(boss, tallies)
+    local lookup = ratesTable(boss, entry.readings or {}, t)
+    local modes = modesOf(boss, t)
 
     local result =
         { kills = 0, extraKills = 0, extraLabel = boss.extraKills, unit = boss.unit, items = {} }
     local expected = {} -- by item id
     local countedExpected = 0 -- over kills in the kill counts
-    eachKill(modes, tallies.kills, function(mode, day, kills)
+    eachKill(modes, t.kills, function(mode, day, kills)
         local key = mode.kc and "kills" or "extraKills"
         result[key] = result[key] + kills
         if mode.piles then
             result.piles = (result.piles or 0) + kills * mode.piles
         end
-        if day > 0 and (result.since == nil or day < result.since) then
-            result.since = day
-        end
-        for itemID, chance in pairs(rates.Chances(mode, day)) do
+        for itemID, chance in pairs(lookup.Chances(mode, day)) do
             expected[itemID] = (expected[itemID] or 0) + kills * chance
             if mode.kc then
                 countedExpected = countedExpected + kills * chance
@@ -235,15 +231,15 @@ function stats.ForBoss(entry)
     result.expected, result.received = 0, 0
     local counted = {} -- the uniques in the boss's dry streak
     local function shareOf(itemID, ids)
-        return dryShare(modes, rates, tracker.Dry(tallies, tostring(itemID)), ids)
+        return dryShare(modes, lookup, tallies.Dry(t, tostring(itemID)), ids)
     end
     for itemID, item in pairs(boss.items) do
         local key = tostring(itemID)
         local row = {
             expected = expected[itemID] or 0,
-            received = tallies.items[key] or 0,
-            dryKills = killsThatCanDrop(modes, rates, tracker.Dry(tallies, key), itemID),
-            dryAtLeast = tallies.items[key] == nil and mayHaveEarlier,
+            received = t.items[key] or 0,
+            dryKills = killsThatCanDrop(modes, lookup, tallies.Dry(t, key), itemID),
+            dryAtLeast = t.items[key] == nil and mayHaveEarlier,
             allTime = allTime and not item.stack and allTime.items[key] or nil,
         }
         row.luck = luckOf(row.expected, row.received)
@@ -261,10 +257,10 @@ function stats.ForBoss(entry)
             or result.expected / math.max(1, result.extraKills)
         result.killsToLuck = killsToLuck(result.expected, rate)
     end
-    local dry = tracker.Dry(tallies, tracker.ANY)
-    result.dryKills = tracker.Total(dry)
+    local dry = tallies.Dry(t, tallies.ANY)
+    result.dryKills = tallies.Total(dry)
     result.dryAtLeast = result.received == 0 and mayHaveEarlier
-    result.dryShare = dryShare(modes, rates, dry, counted)
+    result.dryShare = dryShare(modes, lookup, dry, counted)
     grouped(boss, result.items, shareOf)
     return result
 end

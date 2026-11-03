@@ -13,7 +13,7 @@ local risen = {} -- each kill event's rises seen this tick
 -- value(name) and a claim var's old value; nil if a value can't be read or it gives none.
 function killevents.Mode(boss, event, value, old, kept, rose)
     local values = {}
-    for key, name in pairs(event.reads) do
+    for key, name in pairs(event.reads or {}) do
         values[key] = value(name)
         if values[key] == nil then
             return nil

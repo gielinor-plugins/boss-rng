@@ -13,6 +13,7 @@ format is documented at the top of `src/bosses.lua`.
 ## Commands
 
 - Tests: `busted` from the project root. Run them after every change.
+- Lint: `luacheck .` (settings in `.luacheckrc`) must pass.
 - Beta client: `tools/sync.sh` copies the plugin into the client's `dev_plugins`
   folder (`BOSS_RNG_DEV_DIR` overrides the target). The developer then reloads it
   by running `prl boss_rng` in the game console. Agents can't run game commands.

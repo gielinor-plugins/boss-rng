@@ -132,7 +132,6 @@ describe("gamevars", function()
             killEvents = {
                 {
                     var = "KC_NORMAL",
-                    reads = {},
                     lasts = { score = "LOG_SHARED" },
                     mode = function(values)
                         return values.score and "Score " .. values.score or nil
@@ -165,7 +164,6 @@ describe("gamevars", function()
             killEvents = {
                 {
                     var = "KC_NORMAL",
-                    reads = {},
                     rises = { stone = "LOG_SHARED" },
                     mode = function(values)
                         return values.stone and "Stone" or "None"
@@ -197,7 +195,6 @@ describe("gamevars", function()
                 killEvents = {
                     {
                         var = "KC_NORMAL",
-                        reads = {},
                         piles = { 501, 502 },
                         mode = function(values)
                             return "Piles " .. values.piles
@@ -296,7 +293,6 @@ describe("gamevars", function()
                 {
                     var = "LOG_BASE",
                     mask = 0x1000000,
-                    reads = {},
                     mode = function()
                         return "Chest"
                     end,
@@ -324,7 +320,6 @@ describe("gamevars", function()
                     var = "LOOT_BASE",
                     mask = 0x70000,
                     kills = { "KC_NORMAL" },
-                    reads = {},
                     mode = function(_, old)
                         return old & 0xF0000000 == 0 and "n" or "e"
                     end,
@@ -401,14 +396,12 @@ describe("gamevars", function()
                         var = "LOOT_BASE",
                         mask = 0x1,
                         kills = { "KC_NORMAL" },
-                        reads = {},
                         mode = only("a"),
                     },
                     {
                         var = "LOOT_BASE",
                         mask = 0x4,
                         kills = { "KC_HARD" },
-                        reads = {},
                         mode = only("b"),
                     },
                 },

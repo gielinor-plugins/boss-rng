@@ -2,7 +2,7 @@
 
 local common = require("src/ui/common")
 local layerView = require("src/ui/layer_view")
-local tracker = require("src/core/tracker")
+local tallies = require("src/core/tallies")
 
 local PAD = 14 -- the page's padding
 local GAP = 8 -- between a row's controls, the layout's default
@@ -45,7 +45,7 @@ end
 local function withTrackedKills(list)
     local tracked = {}
     for _, entry in ipairs(list) do
-        if tracker.Total(entry.tallies.kills) > 0 then
+        if tallies.Total(entry.tallies.kills) > 0 then
             table.insert(tracked, entry)
         end
     end

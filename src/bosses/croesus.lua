@@ -74,7 +74,6 @@ return {
     killEvents = {
         {
             var = VARS.kc,
-            reads = {},
             lasts = { contribution = VARS.contribution },
             mode = contributionMode,
         },

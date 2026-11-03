@@ -13,6 +13,9 @@
 
 local tallies = {}
 
+-- The key of the dry streak counting every unique; the others are item ids.
+tallies.ANY = "any"
+
 function tallies.Empty()
     return { kills = {}, sums = {}, dryFrom = {}, items = {} }
 end
@@ -94,7 +97,7 @@ local function since(kills, start)
     if start == nil then
         return kills
     end
-    local since = {}
+    local result = {}
     for mode, byDay in pairs(kills) do
         for key, n in pairs(byDay) do
             local day = tonumber(key)
@@ -104,12 +107,12 @@ local function since(kills, start)
                 n = 0
             end
             if n > 0 then
-                since[mode] = since[mode] or {}
-                since[mode][key] = n
+                result[mode] = result[mode] or {}
+                result[mode][key] = n
             end
         end
     end
-    return since
+    return result
 end
 
 function tallies.Dry(t, key)

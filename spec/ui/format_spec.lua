@@ -106,10 +106,10 @@ describe("format", function()
         assert.are.equal("1.0 drop", format.AverageShort({ expected = 1.02 }))
     end)
 
-    it("words the tracked totals, with the day tracking started", function()
+    it("words the tracked totals", function()
         assert.are.equal(
             "Tracked: 212 kills · 1 unique",
-            format.Tracked({ since = 20755, kills = 212, received = 1 })
+            format.Tracked({ kills = 212, received = 1 })
         )
         assert.are.equal(
             "Tracked: 9 kills (+4 partial) · 0 uniques",

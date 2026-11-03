@@ -3,62 +3,76 @@
 -- these; the game's all-time totals are shown as facts.
 
 local safe = require("src/utils/safe")
-local saved = require("src/utils/saved")
 local tallies = require("src/core/tallies")
 
 local tracker = {}
 
+-- Saved under PREFIX and the character's display name, since every character on the
+-- computer shares the plugin's saved data. A name change starts a new entry.
+local PREFIX = "char:"
+
 -- The saved shape's version (see src/core/tallies.lua): any other version starts again.
 local VERSION = 1
 
--- The key of the dry streak counting every unique; the others are item ids.
-tracker.ANY = "any"
-
-local codec = {}
 local encoded = {} -- each boss's encoded tallies, kept until they change (see talliesFor)
 
-local function eachBoss(from, convert, version)
-    local to = { version = version, lastBoss = from.lastBoss, bosses = {} }
+local function eachBoss(from, convert)
+    local to = { version = VERSION, lastBoss = from.lastBoss, bosses = {} }
     for key, t in pairs(from.bosses or {}) do
         to.bosses[key] = convert(t, key)
     end
     return to
 end
 
-function codec.Encode(from)
-    return eachBoss(from, function(t, key)
+local function encode(record)
+    return eachBoss(record, function(t, key)
         encoded[key] = encoded[key] or tallies.Encode(t)
         return encoded[key]
-    end, from.version)
+    end)
 end
 
-function codec.Decode(saved)
-    if saved.version == VERSION then
-        return eachBoss(saved, tallies.Decode, VERSION)
+-- The saved record as tallies, or a fresh one if there's none or it's another version.
+local function decode(stored)
+    if stored == nil or stored.version ~= VERSION then
+        return { version = VERSION, bosses = {} }
     end
-    return nil
+    return eachBoss(stored, tallies.Decode)
 end
 
-local store = saved.ForCharacter("char:", VERSION, function()
-    return { bosses = {} }
-end, codec)
-local record = nil -- the logged in character's, once loaded
+local function characterName()
+    if not Player.IsAvailable() then
+        return nil
+    end
+    local entity = Player.GetEntity()
+    if entity == nil or entity.displayName == "" then
+        return nil
+    end
+    return entity.displayName
+end
+
+local name, record = nil, nil -- the logged in character's, once loaded
 local listeners = {}
 local switches = 0 -- counts character switches and resets of every boss
 local changes = {} -- [boss key] = changes to its tallies
 
 -- Loads the logged in character's record if needed; false if nobody is logged in.
 local function load()
-    local loaded = store.Load()
-    if loaded ~= record then
-        record, encoded = loaded, {}
+    local current = characterName()
+    if current == nil then
+        return false
+    end
+    if current ~= name then
+        name = current
+        record, encoded = decode(PersistentDB:GetStructuredData(PREFIX .. name)), {}
         switches = switches + 1
     end
-    return record ~= nil
+    return true
 end
 
 local function save()
-    store.Save()
+    if not PersistentDB:SetStructuredData(PREFIX .. name, encode(record)) then
+        print("[Boss RNG] Could not save data for " .. name)
+    end
     for _, listener in ipairs(listeners) do
         safe.Call("updating after a change", listener)
     end
@@ -80,14 +94,6 @@ local function talliesFor(boss)
     return t
 end
 
-tracker.Total = tallies.Total
-
--- A dry streak's kills; key is ANY or an item id as text.
-tracker.Dry = tallies.Dry
-
--- The averages of a mode's sums over its kills on a day, or nil.
-tracker.Means = tallies.Means
-
 -- Adds kills, and their sums (or nil). Dry streaks are read as the kills since their
 -- start, so they need no change.
 function tracker.AddKills(boss, mode, count, day, sums)
@@ -107,13 +113,14 @@ function tracker.AddDrops(boss, itemID, count)
     if not load() then
         return
     end
-    if boss.items[itemID].pooledBy == nil or record.lastBoss == boss.key then
-        local t = talliesFor(boss)
-        local key = tostring(itemID)
-        t.items[key] = (t.items[key] or 0) + count
-        t.dryFrom[key] = tallies.StartNow(t.kills)
-        t.dryFrom[tracker.ANY] = tallies.StartNow(t.kills)
+    if boss.items[itemID].pooledBy ~= nil and record.lastBoss ~= boss.key then
+        return
     end
+    local t = talliesFor(boss)
+    local key = tostring(itemID)
+    t.items[key] = (t.items[key] or 0) + count
+    t.dryFrom[key] = tallies.StartNow(t.kills)
+    t.dryFrom[tallies.ANY] = tallies.StartNow(t.kills)
     save()
 end
 

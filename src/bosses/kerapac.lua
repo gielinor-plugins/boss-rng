@@ -65,7 +65,6 @@ addPileModes("h", VARS.kcHard, hardPile)
 local function killEvent(kc, prefix)
     return {
         var = kc,
-        reads = {},
         piles = ANIMA,
         mode = function(values)
             return prefix .. math.max(1, math.min(values.piles, MAX_PILES))

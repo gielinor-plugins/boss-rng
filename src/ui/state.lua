@@ -4,6 +4,7 @@
 local bosses = require("src/bosses")
 local gamevars = require("src/core/gamevars")
 local stats = require("src/core/stats")
+local tallies = require("src/core/tallies")
 local tracker = require("src/core/tracker")
 local common = require("src/ui/common")
 
@@ -56,12 +57,9 @@ local lastKillKey = nil -- the last boss killed when the views were last drawn
 local function bossesWithKills()
     local list = {}
     for _, boss in ipairs(bosses) do
-        local tallies = tracker.Tallies(boss)
-        if
-            tallies
-            and (tracker.Total(tallies.kills) > 0 or (gamevars.AllTimeKills(boss) or 0) > 0)
-        then
-            table.insert(list, { boss = boss, tallies = tallies })
+        local t = tracker.Tallies(boss)
+        if t and (tallies.Total(t.kills) > 0 or (gamevars.AllTimeKills(boss) or 0) > 0) then
+            table.insert(list, { boss = boss, tallies = t })
         end
     end
     table.sort(list, function(a, b)
