@@ -48,8 +48,10 @@ version before adding a feature. Where they differ, the current guidelines apply
 ## Project rules
 
 - **Saved keys never change.** Boss keys, mode keys and item ids are saved per
-  character. Renaming one loses players' data. See `docs/data/compatibility.md`
-  before changing rates, modes, items or bosses.
+  character. Renaming one loses players' data. `spec/saved_keys_spec.lua` lists
+  every boss and mode key that can be saved, and fails if one stops loading. Only
+  add to it. See `docs/data/compatibility.md` before changing rates, modes, items
+  or bosses.
 - **Credit drop rates.** Rates come from the RuneScape Wiki (CC BY-NC-SA 3.0).
   Each doc page, and each boss file or the shared file it uses, names the source
   and the date it was checked.
@@ -72,7 +74,8 @@ version before adding a feature. Where they differ, the current guidelines apply
 3. Add `docs/bosses/<key>.md`: drop rates, how kills are counted, vars read, in-game
    tests, and what isn't counted, with the boss log ids of items left out of the
    boss file. Copy the layout of an existing page.
-4. Add a case to `spec/bosses_spec.lua`, plus tests for any special counting.
+4. Add a case to `spec/bosses_spec.lua`, plus tests for any special counting, and
+   list its boss and mode keys in `spec/saved_keys_spec.lua`.
 5. Confirm every var in game before relying on it: when it changes relative to
    the kill, and that it holds what its name suggests. Record what was seen in the
    doc page's Tests section.

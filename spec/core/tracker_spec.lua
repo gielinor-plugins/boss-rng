@@ -184,7 +184,7 @@ describe("tracker", function()
         end
     )
 
-    it("saves each boss's latest kills, re-encoding only the one that changed", function()
+    it("saves every boss's kills when one changes", function()
         local other = { key = "other", modes = { NORMAL }, items = {} }
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         tracker.AddKills(other, NORMAL, 2, DAY)
