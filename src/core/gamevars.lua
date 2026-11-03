@@ -34,8 +34,8 @@ local watched = {} -- [base var id] = slices to check when that var changes
 local pending = { rises = {}, kills = {}, drops = {} } -- changes waiting for the next tick
 local tick = 0
 local readyAtTick = nil -- nil while not in the game
-local onReady = nil -- called once vars can be trusted after entering the game
-local announced = false -- whether onReady was called since entering the game
+local onRefresh = nil -- called when all-time totals may change without a tally changing
+local announced = false -- whether onRefresh was called since entering the game
 local killedThisSession = {} -- [boss] = true once a kill is reported since entering the game
 local claimedAt = {} -- [boss] = tick its loot was last claimed (dropsAtClaim in src/bosses.lua)
 
@@ -187,7 +187,7 @@ local function onLogic(event)
         end)
         claims.Ready()
         containers.Ready()
-        safe.Call("updating once the game is ready", onReady)
+        safe.Call("updating once the game is ready", onRefresh)
     end
 end
 
@@ -261,12 +261,18 @@ local function killed(boss, mode, count, sums)
     onKills(boss, mode, count, today(), sums)
 end
 
--- Kills counted by a kill count rising, for modes not counted by events.
+-- Kills counted by a kill count rising, for modes not counted by events. A kill
+-- counted later, at a chest or claim, still changes the all-time kills shown.
 local function watchKillCounts(boss)
+    local countedLater = boss.containers ~= nil or boss.claims ~= nil
     for _, mode in ipairs(boss.modes) do
         if not mode.byEvent then
             watch(mode.kc, "kills", function(count)
                 killed(boss, mode, count)
+            end)
+        elseif countedLater then
+            watch(mode.kc, "kills", function()
+                safe.Call("updating after a kill", onRefresh)
             end)
         end
     end
@@ -350,11 +356,12 @@ local HANDLERS = {
 --   kills(boss, mode, count, day, sums)  a KC rise, kill event, opened container or
 --                                        claim; sums: a kill event's (or nil)
 --   drops(boss, itemID, count)           a unique's log count rose (a stack's rise is one)
--- and calls ready() each time vars can be trusted. The game can resend log counts long
+-- and calls refresh() each time vars can be trusted, and when a kill counted later (at
+-- a chest or claim) raises a kill count. The game can resend log counts long
 -- after login as jumps from 0, so only bosses killed this session, or just claimed,
 -- can have drops.
-function gamevars.Start(bosses, kills, drops, ready)
-    onKills, onDrops, onReady = kills, drops, ready
+function gamevars.Start(bosses, kills, drops, refresh)
+    onKills, onDrops, onRefresh = kills, drops, refresh
     for _, boss in ipairs(bosses) do
         watchKillCounts(boss)
         watchKillEvents(boss)
@@ -382,7 +389,7 @@ function gamevars.Stop()
     piles.Clear()
     pending = { rises = {}, kills = {}, drops = {} }
     readyAtTick = nil
-    onKills, onDrops, onReady, announced, killedThisSession = nil, nil, nil, false, {}
+    onKills, onDrops, onRefresh, announced, killedThisSession = nil, nil, nil, false, {}
 end
 
 return gamevars

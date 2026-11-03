@@ -589,17 +589,20 @@ describe("gamevars", function()
                 table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function(_, itemID, count)
                 table.insert(reports, "drop " .. itemID .. " +" .. count)
+            end, function()
+                table.insert(reports, "refresh")
             end)
             advance(1) -- ready: the backpack's chests are read
+            reports = {}
         end)
 
         it("counts a chest opened, not the kill count, and its drop as one", function()
-            change(KC_VAR, 1, 2) -- the kill: not counted
+            change(KC_VAR, 1, 2) -- the kill: not counted, only redrawn
             rewardWindow()
             backpack(2)
             send(LOG_VAR, 10, 16) -- six spikes
             advance(1)
-            assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
+            assert.are.same({ "refresh", "kill n +1", "drop 101 +1" }, reports)
         end)
 
         it("doesn't count a chest banked or claimed", function()
