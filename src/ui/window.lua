@@ -110,7 +110,7 @@ local function addRow(panel, row, tracked)
         -- game text breaks lines on <br>
         tooltip = tracked and (row.name .. "<br>Average player: " .. format.AverageShort(item))
             or row.name,
-        itemInset = 2, -- 36 px icons, the width the game draws them
+        itemInset = 4,
         disabled = received == 0, -- dimmed until one is tracked
         quantity = received > 0 and received or nil,
         quantityMode = ui.ObjectQuantityDisplayMode.ALWAYS,
