@@ -26,7 +26,8 @@
 --                gives true if it rose in the kill's tick (Zuk's Igneous stones). piles = { item ids }
 --                gives values.piles: the player's loot piles that gained one in the kill's tick
 --                (see src/core/piles.lua). sums = { keys of values }: added up over each day's
---                kills and passed to rolls as averages (Arch-Glacor's enrage and streak)
+--                kills and passed to rolls as averages (Arch-Glacor's enrage and streak). See
+--                src/core/killevents.lua
 --   claimedBy    { var, most }: var falls to 0 when waiting loot is claimed (Arch-Glacor's
 --                streak). Drops count only just after a claim, not after any kill this session,
 --                and a unique's log can rise by up to most at once

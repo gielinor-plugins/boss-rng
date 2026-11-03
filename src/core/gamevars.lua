@@ -3,12 +3,14 @@
 -- vars. These counts aren't hidden (the Beasts tab and boss log show them, and Jagex
 -- confirmed they may be read without either open); hidden values such as bad luck
 -- mitigation are never read. Counts are varbits, slices of a base var whose old and
--- new value VarTransmit sends. For containers, claims and piles, see their modules.
+-- new value VarTransmit sends. For containers, claims, kill events and piles, see their
+-- modules.
 
 local bits = require("src/utils/bits")
 local claims = require("src/core/claims")
 local containers = require("src/core/containers")
 local days = require("src/utils/days")
+local killevents = require("src/core/killevents")
 local piles = require("src/core/piles")
 local safe = require("src/utils/safe")
 
@@ -39,8 +41,6 @@ local claimedAt = {} -- [boss] = tick its loot was last claimed (claimedBy in sr
 
 -- [base var id] = { name, update(value) }: varbits read after each change of their base var.
 local followed = {}
-
-local risen = {} -- each kill event's rises (see src/bosses.lua) seen this tick
 
 local function queueKill(report, change)
     table.insert(pending.kills, { report = report, change = change })
@@ -172,11 +172,7 @@ local function flush()
         end
         pending[group] = {}
     end
-    for _, rose in ipairs(risen) do
-        for key in pairs(rose) do
-            rose[key] = nil
-        end
-    end
+    killevents.EndTick()
 end
 
 local function onLogic(event)
@@ -248,41 +244,6 @@ local function today()
     return minutes and days.FromMinutes(minutes) or 0
 end
 
--- The mode a kill event or claim says the kill was (see src/bosses.lua), given a
--- claim var's old value, or nil if a value can't be read or it gives none.
-local function eventMode(boss, event, old, kept, rose)
-    local values = {}
-    for key, name in pairs(event.reads) do
-        values[key] = value(name)
-        if values[key] == nil then
-            return nil
-        end
-    end
-    for key in pairs(event.lasts or {}) do
-        values[key] = kept[key] -- nil if none was seen
-    end
-    for key in pairs(event.rises or {}) do
-        values[key] = rose[key] == true
-    end
-    if event.piles then
-        values.piles = piles.Count()
-    end
-    local key = event.mode(values, old)
-    return key and boss.modeFor(key), values
-end
-
--- The values a kill event adds up by day (sums in src/bosses.lua), or nil.
-local function sumsOf(event, values)
-    if event.sums == nil then
-        return nil
-    end
-    local sums = {}
-    for _, key in ipairs(event.sums) do
-        sums[key] = values[key]
-    end
-    return sums
-end
-
 -- Whether a boss's unique can drop now: after a kill since entering the game or, for
 -- loot that waits for a claim, just after the claim.
 local function canDrop(boss)
@@ -311,33 +272,14 @@ local function watchKillCounts(boss)
     end
 end
 
+-- How kill events read vars (see src/core/killevents.lua).
+local READER = { watch = watch, follow = follow, value = value }
+
 local function watchKillEvents(boss)
     for _, event in ipairs(boss.killEvents or {}) do
-        piles.Watch(event.piles or {})
-        local kept = {} -- each of event.lasts' last value above 0 since the last kill
-        for key, name in pairs(event.lasts or {}) do
-            follow(name, function(now)
-                if now > 0 then
-                    kept[key] = now
-                end
-            end)
-        end
-        local rose = {} -- each of event.rises that rose this tick
-        table.insert(risen, rose)
-        for key, name in pairs(event.rises or {}) do
-            watch(name, "rises", function()
-                rose[key] = true
-            end)
-        end
-        watch(event.var, "kills", function()
-            local mode, values = eventMode(boss, event, nil, kept, rose)
-            for key in pairs(kept) do
-                kept[key] = nil
-            end
-            if mode then
-                killed(boss, mode, 1, sumsOf(event, values))
-            end
-        end, event.mask)
+        killevents.Add(boss, event, READER, function(mode, sums)
+            killed(boss, mode, 1, sums)
+        end)
     end
 end
 
@@ -346,7 +288,7 @@ local function watchClaims(boss)
         local base = var.VarPlayer[claim.var]
         if base then
             local countKill = claims.Add(base, claim.mask, function(old, count)
-                local mode = eventMode(boss, claim, old)
+                local mode = killevents.Mode(boss, claim, value, old)
                 if mode then
                     killed(boss, mode, count)
                 end
@@ -433,8 +375,9 @@ function gamevars.Stop()
     for name in pairs(HANDLERS) do
         Event[name].Unsubscribe(REF)
     end
-    watched, followed, risen, claimedAt = {}, {}, {}, {}
+    watched, followed, claimedAt = {}, {}, {}
     claims.Clear()
+    killevents.Clear()
     containers.Clear()
     piles.Clear()
     pending = { rises = {}, kills = {}, drops = {} }
