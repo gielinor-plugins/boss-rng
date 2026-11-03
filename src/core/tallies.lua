@@ -97,7 +97,9 @@ local function encodeDays(byDay)
     for key in pairs(byDay) do
         table.insert(keys, key)
     end
-    table.sort(keys, function(a, b) return tonumber(a) < tonumber(b) end)
+    table.sort(keys, function(a, b)
+        return tonumber(a) < tonumber(b)
+    end)
     local parts = {}
     for i, key in ipairs(keys) do
         parts[i] = key .. ":" .. string.format("%d", byDay[key])
@@ -126,7 +128,11 @@ function tallies.Encode(t)
 end
 
 function tallies.Decode(saved)
-    return { kills = eachMode(saved.kills or {}, decodeDays), dryFrom = saved.dryFrom or {}, items = saved.items or {} }
+    return {
+        kills = eachMode(saved.kills or {}, decodeDays),
+        dryFrom = saved.dryFrom or {},
+        items = saved.items or {},
+    }
 end
 
 return tallies

@@ -39,13 +39,32 @@
 --                they're counted
 
 local BOSS_FILES = {
-    "graardor", "kreearra", "kril", "nex", "zilyana", -- God Wars
-    "furies", "gregorovic", "helwyr", "vindicta", -- God Wars 2
-    "amascut", "sanctum", -- Amascut and Sanctum of Rebirth
-    "araxxi", "barrows", "rots", "solak",
-    "croesus", "kerapac", "zuk", -- Elder God Wars Dungeon
-    "dragonkin", "shadow_reef", -- elite dungeons
-    "corp", "elidinis", "magister", "raksha", "rasial", "vorkath",
+    "amascut",
+    "araxxi",
+    "barrows",
+    "corp",
+    "croesus",
+    "dragonkin",
+    "elidinis",
+    "furies",
+    "graardor",
+    "gregorovic",
+    "helwyr",
+    "kerapac",
+    "kreearra",
+    "kril",
+    "magister",
+    "nex",
+    "raksha",
+    "rasial",
+    "rots",
+    "sanctum",
+    "shadow_reef",
+    "solak",
+    "vindicta",
+    "vorkath",
+    "zilyana",
+    "zuk",
 }
 
 local bosses = {}

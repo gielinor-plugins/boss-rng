@@ -12,7 +12,11 @@ local History = {}
 History.__index = History
 
 -- Errors on an unknown name, so a misspelled rate fails loudly instead of reading nil.
-local STRICT = setmetatable({}, { __index = function(_, name) error("No rate named " .. tostring(name), 2) end })
+local STRICT = setmetatable({}, {
+    __index = function(_, name)
+        error("No rate named " .. tostring(name), 2)
+    end,
+})
 
 -- A history from versions, oldest first, each { since, values }: since is the day it
 -- went live (nil for the first; false if not live yet). Missing values come from the last.

@@ -17,7 +17,6 @@ local SPIKE, SCALE, CODEX = 56079, 56321, 56068
 local CHEST, CHEST_HARD = 56071, 56072 -- Zemouregal & Vorkath loot (normal), (hard)
 local REWARD_WINDOW = "DROP_CASKET_REWARDINV" -- the inventory a chest opens into
 
-
 return {
     key = "vorkath", -- saved data key: never change it
     name = "Zemouregal & Vorkath",
@@ -26,12 +25,28 @@ return {
 
     -- Mode keys are saved: never change them. Counted through chests opened.
     modes = {
-        { key = "n", kc = VARS.kc, byEvent = true,
-            rolls = function(r) return { common.OneOf({ [SPIKE] = r.spike, [CODEX] = r.codex }) } end },
-        { key = "h", kc = VARS.kcHard, byEvent = true,
+        {
+            key = "n",
+            kc = VARS.kc,
+            byEvent = true,
             rolls = function(r)
-                return { common.OneOf({ [SPIKE] = r.hardSpike, [CODEX] = r.hardCodex, [SCALE] = r.hardScale }) }
-            end },
+                return { common.OneOf({ [SPIKE] = r.spike, [CODEX] = r.codex }) }
+            end,
+        },
+        {
+            key = "h",
+            kc = VARS.kcHard,
+            byEvent = true,
+            rolls = function(r)
+                return {
+                    common.OneOf({
+                        [SPIKE] = r.hardSpike,
+                        [CODEX] = r.hardCodex,
+                        [SCALE] = r.hardScale,
+                    }),
+                }
+            end,
+        },
     },
     containers = {
         [CHEST] = { mode = "n", window = REWARD_WINDOW },

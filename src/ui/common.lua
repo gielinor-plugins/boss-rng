@@ -5,7 +5,14 @@ local common = {}
 -- A divider's options, inset each side by inset (in line with the text), with 8 px
 -- above and below the line.
 function common.Divider(inset)
-    return { x = inset, width = -2 * inset, widthAnchor = 1.0, marginTop = -35, height = 41, marginBottom = 8 }
+    return {
+        x = inset,
+        width = -2 * inset,
+        widthAnchor = 1.0,
+        marginTop = -35,
+        height = 41,
+        marginBottom = 8,
+    }
 end
 
 -- The game's top layer for plugin windows and dialogs.
@@ -24,13 +31,17 @@ function common.IndexOf(list, key)
 end
 
 function common.ItemName(itemID)
-    local ok, name = pcall(function() return config.Obj.FromID(math.tointeger(itemID)).name end)
+    local ok, name = pcall(function()
+        return config.Obj.FromID(math.tointeger(itemID)).name
+    end)
     return ok and name or ("Item " .. tostring(itemID))
 end
 
 -- Pixels wide, or nil if the font can't be measured.
 local function textWidth(content, font)
-    local ok, width = pcall(function() return config.Font.FromID(font):GetStringWidth(content) end)
+    local ok, width = pcall(function()
+        return config.Font.FromID(font):GetStringWidth(content)
+    end)
     return ok and width or nil
 end
 

@@ -19,7 +19,10 @@ local SWORD = { name = "Sword pieces" }
 local STONE_CAP = 250 -- the boss log counts no more Igneous stones
 
 local function books(chance)
-    return { { chance = chance, items = { [CODEX] = 1 } }, { chance = chance, items = { [SCRIPTURE] = 1 } } }
+    return {
+        { chance = chance, items = { [CODEX] = 1 } },
+        { chance = chance, items = { [SCRIPTURE] = 1 } },
+    }
 end
 
 -- Hard mode's rolls, with a sword piece at the rate named sword.
@@ -52,13 +55,26 @@ return {
     end,
 
     modes = {
-        { key = "n", kc = VARS.kc, rolls = function(r) return books(r.normal) end },
+        {
+            key = "n",
+            kc = VARS.kc,
+            rolls = function(r)
+                return books(r.normal)
+            end,
+        },
         HARD.h,
     },
     killEvents = {
-        { var = VARS.kcHard, reads = { stones = VARS.stones }, rises = { stone = VARS.stones }, mode = hardKill },
+        {
+            var = VARS.kcHard,
+            reads = { stones = VARS.stones },
+            rises = { stone = VARS.stones },
+            mode = hardKill,
+        },
     },
-    modeFor = function(key) return HARD[key] end,
+    modeFor = function(key)
+        return HARD[key]
+    end,
 
     items = {
         [BLADE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_TOP", kind = "unique", group = SWORD },

@@ -82,7 +82,9 @@ describe("gamevars", function()
 
     it("keeps reporting when one report fails", function()
         gamevars.Stop()
-        gamevars.Start({ BOSS }, function() error("broken kill report") end, function(_, itemID)
+        gamevars.Start({ BOSS }, function()
+            error("broken kill report")
+        end, function(_, itemID)
             table.insert(reports, "drop " .. itemID)
         end)
         send(KC_VAR, 1, 2)
@@ -91,39 +93,61 @@ describe("gamevars", function()
         assert.are.same({ "drop 101" }, reports)
     end)
 
-    it("reports a kill event's kill for the mode its values say, not its kill count's own mode", function()
-        gamevars.Stop()
-        local evented = {
-            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
-            items = {},
-            killEvents = { { var = "LOG_SHARED", reads = { who = "WHO" }, mode = function(values)
-                return values.who > 0 and "Chest " .. values.who or nil
-            end } },
-            modeFor = function(key) return { key = key } end,
-        }
-        gamevars.Start({ evented }, function(_, mode, count)
-            table.insert(reports, mode.key .. " +" .. count)
-        end, function() end)
-        mock.SetValue("WHO", 3)
-        change(KC_VAR, 1, 2) -- the kill count alone: not watched
-        change(LOG_VAR, 0, 0x010000) -- the event var goes up
-        assert.are.same({ "Chest 3 +1" }, reports)
-        mock.SetValue("WHO", 0)
-        change(LOG_VAR, 0x010000, 0x020000) -- no mode for it: left uncounted
-        assert.are.same({ "Chest 3 +1" }, reports)
-    end)
+    it(
+        "reports a kill event's kill for the mode its values say, not its kill count's own mode",
+        function()
+            gamevars.Stop()
+            local evented = {
+                modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+                items = {},
+                killEvents = {
+                    {
+                        var = "LOG_SHARED",
+                        reads = { who = "WHO" },
+                        mode = function(values)
+                            return values.who > 0 and "Chest " .. values.who or nil
+                        end,
+                    },
+                },
+                modeFor = function(key)
+                    return { key = key }
+                end,
+            }
+            gamevars.Start({ evented }, function(_, mode, count)
+                table.insert(reports, mode.key .. " +" .. count)
+            end, function() end)
+            mock.SetValue("WHO", 3)
+            change(KC_VAR, 1, 2) -- the kill count alone: not watched
+            change(LOG_VAR, 0, 0x010000) -- the event var goes up
+            assert.are.same({ "Chest 3 +1" }, reports)
+            mock.SetValue("WHO", 0)
+            change(LOG_VAR, 0x010000, 0x020000) -- no mode for it: left uncounted
+            assert.are.same({ "Chest 3 +1" }, reports)
+        end
+    )
 
     it("gives a kill event the last value above 0 of a varbit reset at the kill", function()
         gamevars.Stop()
         local evented = {
             modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
             items = {},
-            killEvents = { { var = "KC_NORMAL", reads = {}, lasts = { score = "LOG_SHARED" }, mode = function(values)
-                return values.score and "Score " .. values.score or nil
-            end } },
-            modeFor = function(key) return { key = key } end,
+            killEvents = {
+                {
+                    var = "KC_NORMAL",
+                    reads = {},
+                    lasts = { score = "LOG_SHARED" },
+                    mode = function(values)
+                        return values.score and "Score " .. values.score or nil
+                    end,
+                },
+            },
+            modeFor = function(key)
+                return { key = key }
+            end,
         }
-        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.key) end, function() end)
+        gamevars.Start({ evented }, function(_, mode)
+            table.insert(reports, mode.key)
+        end, function() end)
         advance(1)
         mock.SetValue("LOG_SHARED", 7)
         send(LOG_VAR, 0, 0x070000) -- the score rises through the fight
@@ -140,12 +164,23 @@ describe("gamevars", function()
         local evented = {
             modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
             items = {},
-            killEvents = { { var = "KC_NORMAL", reads = {}, rises = { stone = "LOG_SHARED" }, mode = function(values)
-                return values.stone and "Stone" or "None"
-            end } },
-            modeFor = function(key) return { key = key } end,
+            killEvents = {
+                {
+                    var = "KC_NORMAL",
+                    reads = {},
+                    rises = { stone = "LOG_SHARED" },
+                    mode = function(values)
+                        return values.stone and "Stone" or "None"
+                    end,
+                },
+            },
+            modeFor = function(key)
+                return { key = key }
+            end,
         }
-        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.key) end, function() end)
+        gamevars.Start({ evented }, function(_, mode)
+            table.insert(reports, mode.key)
+        end, function() end)
         advance(1)
         send(KC_VAR, 1, 2)
         change(LOG_VAR, 0, 0x010000) -- in the kill's tick, after it
@@ -154,44 +189,72 @@ describe("gamevars", function()
         assert.are.same({ "Stone", "None" }, reports)
     end)
 
-    it("gives a kill event the piles the player owns that gained a watched item in its tick", function()
-        gamevars.Stop()
-        local evented = {
-            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
-            items = {},
-            killEvents = { { var = "KC_NORMAL", reads = {}, piles = { 501, 502 }, mode = function(values)
-                return "Piles " .. values.piles
-            end } },
-            modeFor = function(key) return { key = key } end,
-        }
-        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.key) end, function() end)
-        advance(1)
-        local function stack(name, tile, itemID, owned, counts)
-            counts.objStackEntity, counts.objType, counts.isOwner = { coordGrid = tile }, { id = itemID }, owned
-            mock.Fire(name, counts)
+    it(
+        "gives a kill event the piles the player owns that gained a watched item in its tick",
+        function()
+            gamevars.Stop()
+            local evented = {
+                modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+                items = {},
+                killEvents = {
+                    {
+                        var = "KC_NORMAL",
+                        reads = {},
+                        piles = { 501, 502 },
+                        mode = function(values)
+                            return "Piles " .. values.piles
+                        end,
+                    },
+                },
+                modeFor = function(key)
+                    return { key = key }
+                end,
+            }
+            gamevars.Start({ evented }, function(_, mode)
+                table.insert(reports, mode.key)
+            end, function() end)
+            advance(1)
+            local function stack(name, tile, itemID, owned, counts)
+                counts.objStackEntity, counts.objType, counts.isOwner =
+                    { coordGrid = tile }, { id = itemID }, owned
+                mock.Fire(name, counts)
+            end
+            stack("ObjStackEntityAdded", "a", 501, true, { count = 40 })
+            stack("ObjStackEntityChanged", "b", 502, true, { oldCount = 0, newCount = 50 })
+            stack("ObjStackEntityChanged", "b", 501, true, { oldCount = 0, newCount = 5 }) -- the same pile
+            stack("ObjStackEntityChanged", "c", 501, true, { oldCount = 10, newCount = 60 }) -- joins older loot
+            stack("ObjStackEntityAdded", "d", 501, false, { count = 40 }) -- a teammate's
+            stack("ObjStackEntityAdded", "e", 999, true, { count = 1 }) -- not a watched item
+            stack("ObjStackEntityChanged", "f", 501, true, { oldCount = 10, newCount = 0 }) -- picked up
+            change(KC_VAR, 1, 2)
+            assert.are.same({ "Piles 3" }, reports)
+            change(KC_VAR, 2, 3) -- none in this kill's tick: away at the kill
+            assert.are.same({ "Piles 3", "Piles 0" }, reports)
         end
-        stack("ObjStackEntityAdded", "a", 501, true, { count = 40 })
-        stack("ObjStackEntityChanged", "b", 502, true, { oldCount = 0, newCount = 50 })
-        stack("ObjStackEntityChanged", "b", 501, true, { oldCount = 0, newCount = 5 }) -- the same pile
-        stack("ObjStackEntityChanged", "c", 501, true, { oldCount = 10, newCount = 60 }) -- joins older loot
-        stack("ObjStackEntityAdded", "d", 501, false, { count = 40 }) -- a teammate's
-        stack("ObjStackEntityAdded", "e", 999, true, { count = 1 }) -- not a watched item
-        stack("ObjStackEntityChanged", "f", 501, true, { oldCount = 10, newCount = 0 }) -- picked up
-        change(KC_VAR, 1, 2)
-        assert.are.same({ "Piles 3" }, reports)
-        change(KC_VAR, 2, 3) -- none in this kill's tick: away at the kill
-        assert.are.same({ "Piles 3", "Piles 0" }, reports)
-    end)
+    )
 
     it("can watch bits of a var the game doesn't name as a varbit", function()
         gamevars.Stop()
         local evented = {
             modes = {},
             items = {},
-            killEvents = { { var = "LOG_BASE", mask = 0x1000000, reads = {}, mode = function() return "Chest" end } },
-            modeFor = function(key) return { key = key } end,
+            killEvents = {
+                {
+                    var = "LOG_BASE",
+                    mask = 0x1000000,
+                    reads = {},
+                    mode = function()
+                        return "Chest"
+                    end,
+                },
+            },
+            modeFor = function(key)
+                return { key = key }
+            end,
         }
-        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.key) end, function() end)
+        gamevars.Start({ evented }, function(_, mode)
+            table.insert(reports, mode.key)
+        end, function() end)
         change(LOG_VAR, 0x020000, 0x1020000)
         assert.are.same({ "Chest" }, reports)
     end)
@@ -202,9 +265,20 @@ describe("gamevars", function()
         local claimed = {
             modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
             items = { [101] = { log = "LOG_WEAPON", kind = "unique" } },
-            claims = { { var = "LOOT_BASE", mask = 0x70000, kills = { "KC_NORMAL" }, reads = {},
-                mode = function(_, old) return old & 0xF0000000 == 0 and "n" or "e" end } },
-            modeFor = function(key) return { key = key } end,
+            claims = {
+                {
+                    var = "LOOT_BASE",
+                    mask = 0x70000,
+                    kills = { "KC_NORMAL" },
+                    reads = {},
+                    mode = function(_, old)
+                        return old & 0xF0000000 == 0 and "n" or "e"
+                    end,
+                },
+            },
+            modeFor = function(key)
+                return { key = key }
+            end,
         }
 
         -- Starts watching with value waiting in the loot var.
@@ -257,15 +331,36 @@ describe("gamevars", function()
         end)
 
         it("counts claims sharing one var by their own bits, like Sanctum's bosses", function()
-            local function only(name) return function() return name end end
+            local function only(name)
+                return function()
+                    return name
+                end
+            end
             local two = {
-                modes = { { key = "a", kc = "KC_NORMAL", byEvent = true }, { key = "b", kc = "KC_HARD", byEvent = true } },
+                modes = {
+                    { key = "a", kc = "KC_NORMAL", byEvent = true },
+                    { key = "b", kc = "KC_HARD", byEvent = true },
+                },
                 items = {},
                 claims = {
-                    { var = "LOOT_BASE", mask = 0x1, kills = { "KC_NORMAL" }, reads = {}, mode = only("a") },
-                    { var = "LOOT_BASE", mask = 0x4, kills = { "KC_HARD" }, reads = {}, mode = only("b") },
+                    {
+                        var = "LOOT_BASE",
+                        mask = 0x1,
+                        kills = { "KC_NORMAL" },
+                        reads = {},
+                        mode = only("a"),
+                    },
+                    {
+                        var = "LOOT_BASE",
+                        mask = 0x4,
+                        kills = { "KC_HARD" },
+                        reads = {},
+                        mode = only("b"),
+                    },
                 },
-                modeFor = function(key) return { key = key } end,
+                modeFor = function(key)
+                    return { key = key }
+                end,
             }
             gamevars.Stop()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
@@ -297,7 +392,9 @@ describe("gamevars", function()
     it("reports each kill with today, from the game clock", function()
         gamevars.Stop()
         local days = {}
-        gamevars.Start({ BOSS }, function(_, _, _, day) table.insert(days, day) end, function() end)
+        gamevars.Start({ BOSS }, function(_, _, _, day)
+            table.insert(days, day)
+        end, function() end)
         mock.SetValue("CLOCK_TIME_DATE_MINUTES", 29888748) -- 30 Oct 2026, 01:48 UTC
         change(KC_VAR, 1, 2)
         mock.SetValue("CLOCK_TIME_DATE_MINUTES", nil)
@@ -315,8 +412,11 @@ describe("gamevars", function()
         for name, value in pairs({ KC_NORMAL = 40, KC_HARD = 2, LOG_WEAPON = 3, LOG_ARMOR = 1 }) do
             var.VarPlayer[name].value = value
         end
-        assert.are.same({ kills = { KC_NORMAL = 40, KC_HARD = 2 }, items = { ["101"] = 3, ["102"] = 1 }, values = {} },
-            gamevars.AllTime(BOSS))
+        assert.are.same({
+            kills = { KC_NORMAL = 40, KC_HARD = 2 },
+            items = { ["101"] = 3, ["102"] = 1 },
+            values = {},
+        }, gamevars.AllTime(BOSS))
         mock.Fire("GameStateChanged", { newState = GameState.LOGINSCREEN })
         assert.is_nil(gamevars.AllTime(BOSS))
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
@@ -328,7 +428,9 @@ describe("gamevars", function()
     it("says when vars can be trusted after entering the game", function()
         local ready = 0
         gamevars.Stop()
-        gamevars.Start({ BOSS }, function() end, function() end, function() ready = ready + 1 end)
+        gamevars.Start({ BOSS }, function() end, function() end, function()
+            ready = ready + 1
+        end)
         advance(1)
         assert.are.equal(1, ready)
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
@@ -395,7 +497,9 @@ describe("gamevars", function()
     it("waits for the game if it starts on the login screen", function()
         gamevars.Stop()
         mock.inGame = false
-        gamevars.Start({ BOSS }, function() table.insert(reports, "kill") end, function() end)
+        gamevars.Start({ BOSS }, function()
+            table.insert(reports, "kill")
+        end, function() end)
         change(KC_VAR, 1, 2)
         assert.are.same({}, reports)
     end)
@@ -406,7 +510,13 @@ describe("gamevars", function()
         local chested = {
             modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
             containers = { [CHEST] = { mode = "n", window = WINDOW } },
-            items = { [101] = { log = "LOG_WEAPON", kind = "unique", stack = { most = 9, word = "spike" } } },
+            items = {
+                [101] = {
+                    log = "LOG_WEAPON",
+                    kind = "unique",
+                    stack = { most = 9, word = "spike" },
+                },
+            },
         }
 
         -- Sets the backpack's chest count, as an inventory update.

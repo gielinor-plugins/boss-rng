@@ -12,8 +12,18 @@ local VARS = {
 
 -- The fewest contribution for each number of unique rolls (below 60, none).
 local ROLLS = {
-    { 420, 12 }, { 400, 11 }, { 380, 10 }, { 360, 9 }, { 345, 8 }, { 330, 7 },
-    { 310, 6 }, { 280, 5 }, { 230, 4 }, { 180, 3 }, { 100, 2 }, { 60, 1 },
+    { 420, 12 },
+    { 400, 11 },
+    { 380, 10 },
+    { 360, 9 },
+    { 345, 8 },
+    { 330, 7 },
+    { 310, 6 },
+    { 280, 5 },
+    { 230, 4 },
+    { 180, 3 },
+    { 100, 2 },
+    { 60, 1 },
 }
 
 local HELM, TOP, BOTTOMS, GLOVES, BOOTS = 52250, 52256, 52258, 52252, 52254 -- Cryptbloom
@@ -23,7 +33,11 @@ local OTHERS = { SPOREHAMMER, FOULTORCH, SPORE_SACK, SCRIPTURE }
 
 local function rolls(n)
     return function(r)
-        return common.Repeat({}, n, common.OneOf(common.Each(ARMOR, r.armor, common.Each(OTHERS, r.other))))
+        return common.Repeat(
+            {},
+            n,
+            common.OneOf(common.Each(ARMOR, r.armor, common.Each(OTHERS, r.other)))
+        )
     end
 end
 
@@ -53,8 +67,17 @@ return {
     assumptions = {},
 
     modes = { MODES.r12 }, -- counted only through its kill event
-    killEvents = { { var = VARS.kc, reads = {}, lasts = { contribution = VARS.contribution }, mode = contributionMode } },
-    modeFor = function(key) return MODES[key] end,
+    killEvents = {
+        {
+            var = VARS.kc,
+            reads = {},
+            lasts = { contribution = VARS.contribution },
+            mode = contributionMode,
+        },
+    },
+    modeFor = function(key)
+        return MODES[key]
+    end,
 
     items = {
         [HELM] = { log = VARS.log .. "BOSS_MAGIC_HELM", kind = "unique" },

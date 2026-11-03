@@ -27,17 +27,21 @@ return {
 
     modes = common.Modes(VARS, rolls),
 
-    items = godwars.Items({
-        [SWORD] = { log = VARS.log .. "SWORD", kind = "unique" },
-        [CROSSBOW] = { log = VARS.log .. "CROSSBOW", kind = "unique" },
-        [OFFHAND_CROSSBOW] = { log = VARS.log .. "CROSSBOW_OFFHAND", kind = "unique" },
-        [WHISPER] = { log = VARS.log .. "AMULET_MELEE", kind = "unique" },
-        [HISS] = { log = VARS.log .. "AMULET_MAGIC", kind = "unique" },
-        [MURMUR] = { log = VARS.log .. "AMULET_RANGED", kind = "unique" },
-        [HILT] = { log = VARS.log .. "HILT", kind = "unique" },
-        -- The wiki gives no rate for the hum ("very rare"), so it isn't counted.
-        [HUM] = { log = VARS.log .. "AMULET_NECROMANCY", kind = "excluded" },
-        [25040] = { kind = "lore" }, -- Zilyana's Notes
-        [33807] = { kind = "pet" }, -- Commander Miniana
-    }, VARS.warpriest, { HELM = 28767, CAPE = 28770, BODY = 28761, LEGS = 28764, GLOVES = 28755, BOOTS = 28758 }),
+    items = godwars.Items(
+        {
+            [SWORD] = { log = VARS.log .. "SWORD", kind = "unique" },
+            [CROSSBOW] = { log = VARS.log .. "CROSSBOW", kind = "unique" },
+            [OFFHAND_CROSSBOW] = { log = VARS.log .. "CROSSBOW_OFFHAND", kind = "unique" },
+            [WHISPER] = { log = VARS.log .. "AMULET_MELEE", kind = "unique" },
+            [HISS] = { log = VARS.log .. "AMULET_MAGIC", kind = "unique" },
+            [MURMUR] = { log = VARS.log .. "AMULET_RANGED", kind = "unique" },
+            [HILT] = { log = VARS.log .. "HILT", kind = "unique" },
+            -- The wiki gives no rate for the hum ("very rare"), so it isn't counted.
+            [HUM] = { log = VARS.log .. "AMULET_NECROMANCY", kind = "excluded" },
+            [25040] = { kind = "lore" }, -- Zilyana's Notes
+            [33807] = { kind = "pet" }, -- Commander Miniana
+        },
+        VARS.warpriest,
+        { HELM = 28767, CAPE = 28770, BODY = 28761, LEGS = 28764, GLOVES = 28755, BOOTS = 28758 }
+    ),
 }

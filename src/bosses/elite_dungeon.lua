@@ -24,15 +24,22 @@ function eliteDungeon.New()
     -- A boss by id (a short saved key: never change it). Its solo kill count is
     -- kc .. "_SOLO"; rolls(team)(r) gives a team's rolls.
     function dungeon.Add(id, kc, rolls)
-        table.insert(dungeon.modes, { key = id .. "s", kc = kc .. "_SOLO", rolls = rolls(TEAMS[1]) })
+        table.insert(
+            dungeon.modes,
+            { key = id .. "s", kc = kc .. "_SOLO", rolls = rolls(TEAMS[1]) }
+        )
         table.insert(dungeon.modes, { key = id .. "g", kc = kc, byEvent = true })
         for players, team in ipairs(TEAMS) do
             local key = playersMode(id, players)
             dungeon.tracked[key] = { key = key, kc = kc, rolls = rolls(team) }
         end
-        table.insert(dungeon.killEvents, { var = kc, reads = { players = PLAYERS }, mode = function(values)
-            return playersMode(id, values.players)
-        end })
+        table.insert(dungeon.killEvents, {
+            var = kc,
+            reads = { players = PLAYERS },
+            mode = function(values)
+                return playersMode(id, values.players)
+            end,
+        })
     end
 
     function dungeon.ModeFor(key)

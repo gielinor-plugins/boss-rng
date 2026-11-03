@@ -26,15 +26,19 @@ return {
 
     modes = common.Modes(VARS, rolls),
 
-    items = godwars.Items({
-        [HELMET] = { log = VARS.log .. "HEAD", kind = "unique" },
-        [CHESTPLATE] = { log = VARS.log .. "BODY", kind = "unique" },
-        [CHAINSKIRT] = { log = VARS.log .. "LEGS", kind = "unique" },
-        [GLOVES] = { log = VARS.log .. "HANDS", kind = "unique" },
-        [BOOTS] = { log = VARS.log .. "FEET", kind = "unique" },
-        [BUCKLER] = { log = VARS.log .. "SHIELD", kind = "unique" },
-        [HILT] = { log = VARS.log .. "HILT", kind = "unique" },
-        [25043] = { kind = "lore" }, -- Armadyl lore book
-        [33804] = { kind = "pet" }, -- Chick'arra
-    }, VARS.warpriest, { HELM = 30300, CAPE = 30303, BODY = 30294, LEGS = 30297, GLOVES = 30288, BOOTS = 30291 }),
+    items = godwars.Items(
+        {
+            [HELMET] = { log = VARS.log .. "HEAD", kind = "unique" },
+            [CHESTPLATE] = { log = VARS.log .. "BODY", kind = "unique" },
+            [CHAINSKIRT] = { log = VARS.log .. "LEGS", kind = "unique" },
+            [GLOVES] = { log = VARS.log .. "HANDS", kind = "unique" },
+            [BOOTS] = { log = VARS.log .. "FEET", kind = "unique" },
+            [BUCKLER] = { log = VARS.log .. "SHIELD", kind = "unique" },
+            [HILT] = { log = VARS.log .. "HILT", kind = "unique" },
+            [25043] = { kind = "lore" }, -- Armadyl lore book
+            [33804] = { kind = "pet" }, -- Chick'arra
+        },
+        VARS.warpriest,
+        { HELM = 30300, CAPE = 30303, BODY = 30294, LEGS = 30297, GLOVES = 30288, BOOTS = 30291 }
+    ),
 }

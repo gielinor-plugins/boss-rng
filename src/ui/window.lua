@@ -91,7 +91,12 @@ end
 -- A text column on panel's current row, at x and width, beside its 40 px slot.
 local function column(panel, text, x, width, align)
     panel:AddText({
-        text = text, x = x, width = width, height = 40, inline = true, maxLines = 1,
+        text = text,
+        x = x,
+        width = width,
+        height = 40,
+        inline = true,
+        maxLines = 1,
         alignHorizontal = align,
     })
 end
@@ -133,7 +138,11 @@ local function addHeader(page)
     page:AddText({ text = "Item", x = INSET + 2, width = NAME_X + NAME_WIDTH, height = 20 })
     page:AddText({ text = "Luck", inline = true, x = INSET + VALUE_X, width = 60, height = 20 })
     page:AddText({
-        text = "Dry", inline = true, x = INSET + DRY_X, width = DRY_WIDTH, height = 20,
+        text = "Dry",
+        inline = true,
+        x = INSET + DRY_X,
+        width = DRY_WIDTH,
+        height = 20,
         alignHorizontal = RIGHT,
     })
 end
@@ -150,7 +159,9 @@ local function addTabs(entry)
         height = 42 + PAGE_HEIGHT, -- the tab strip is 42 px
         activeIndex = activeTab,
         contentLayout = { startY = 4, padding = 6, rowGap = 4 },
-        onChange = function(_, index) activeTab = index end,
+        onChange = function(_, index)
+            activeTab = index
+        end,
     })
     local page = tabs:GetPage(1)
     addHeader(page)
@@ -169,8 +180,13 @@ end
 function window.Draw(state)
     window.Close()
     win = prettyui.Window.new(common.TopLayer(), {
-        title = "Boss RNG", x = position.x, y = position.y, width = WIDTH, height = HEIGHT,
-        scrollable = false, destroyOnClose = true,
+        title = "Boss RNG",
+        x = position.x,
+        y = position.y,
+        width = WIDTH,
+        height = HEIGHT,
+        scrollable = false,
+        destroyOnClose = true,
         layout = { startY = SUMMARY_Y, padding = PAD },
         onClose = function(closing)
             if win == closing then

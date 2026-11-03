@@ -31,7 +31,9 @@ describe("rates.History", function()
     end)
 
     it("errors on a rate name no version has", function()
-        assert.has_error(function() return history:On(250).c end)
+        assert.has_error(function()
+            return history:On(250).c
+        end)
     end)
 end)
 

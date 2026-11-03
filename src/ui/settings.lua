@@ -35,7 +35,9 @@ local function confirm(body, reset)
             dialog = nil
             reset()
         end,
-        onCancel = function() dialog = nil end,
+        onCancel = function()
+            dialog = nil
+        end,
     })
 end
 
@@ -58,7 +60,11 @@ end
 -- A Reset button at the right of the current row.
 local function addResetButton(host, onClick)
     host:AddSimpleButton("Reset", onClick, {
-        inline = true, x = -(PAD + BUTTON_WIDTH), xAnchor = 1.0, width = BUTTON_WIDTH, height = ROW_HEIGHT,
+        inline = true,
+        x = -(PAD + BUTTON_WIDTH),
+        xAnchor = 1.0,
+        width = BUTTON_WIDTH,
+        height = ROW_HEIGHT,
     })
 end
 
@@ -66,8 +72,10 @@ end
 -- is added last so its open list draws over everything else.
 local function addDataControls(host, state)
     host:AddTitle({ text = "Data Controls" })
-    host:AddText({ text = "Reset clears the kills and drops Boss RNG tracked for this character. "
-        .. "The game's own counts are kept." })
+    host:AddText({
+        text = "Reset clears the kills and drops Boss RNG tracked for this character. "
+            .. "The game's own counts are kept.",
+    })
     local tracked = withTrackedKills(state.list)
     if #tracked == 0 then
         host:AddText({ text = "Nothing tracked yet." })
@@ -85,14 +93,19 @@ local function addDataControls(host, state)
     local shown = common.IndexOf(tracked, chosenKey) or common.IndexOf(tracked, shownKey) or 1
     local chosen = tracked[shown].boss
     addResetButton(host, function()
-        confirm("Reset tracked data for " .. chosen.name .. "?", function() state.onReset(chosen) end)
+        confirm("Reset tracked data for " .. chosen.name .. "?", function()
+            state.onReset(chosen)
+        end)
     end)
     local left = PAD + LABEL_WIDTH + GAP
     common.AddBossPicker(host, tracked, shown, function(boss)
         chosen, chosenKey = boss, boss.key
     end, {
-        inline = true, x = left, height = ROW_HEIGHT,
-        width = -(left + GAP + BUTTON_WIDTH + PAD), widthAnchor = 1.0,
+        inline = true,
+        x = left,
+        height = ROW_HEIGHT,
+        width = -(left + GAP + BUTTON_WIDTH + PAD),
+        widthAnchor = 1.0,
     })
 end
 

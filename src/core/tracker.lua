@@ -40,7 +40,9 @@ function codec.Decode(saved)
     return nil
 end
 
-local store = saved.ForCharacter("char:", VERSION, function() return { bosses = {} } end, codec)
+local store = saved.ForCharacter("char:", VERSION, function()
+    return { bosses = {} }
+end, codec)
 local record = nil -- the logged in character's, once loaded
 local listeners = {}
 local switches = 0 -- counts character switches and resets of every boss

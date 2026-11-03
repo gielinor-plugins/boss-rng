@@ -48,7 +48,10 @@ describe("boss data", function()
             it("counts a kill count by its kill events only if it has them", function()
                 for _, mode in ipairs(boss.modes) do
                     assert.is_true(mode.byEvent == true or mode.rolls ~= nil)
-                    assert.is_true(not mode.byEvent or (boss.killEvents or boss.containers or boss.claims) ~= nil)
+                    assert.is_true(
+                        not mode.byEvent
+                            or (boss.killEvents or boss.containers or boss.claims) ~= nil
+                    )
                 end
             end)
 
@@ -86,76 +89,205 @@ end)
 local HILT = 63 / 64 / 512 -- a general's hilt: only rolled when the unique table misses
 local NEX = 1 / 384
 local CASES = {
-    { file = "graardor", items = 18, rates = { [25022] = 1 / 384, [11704] = HILT },
-        after = { [25022] = 1 / 320, [25019] = 1 / 320, [11704] = 1 / 384 } },
-    { file = "kreearra", items = 18, rates = { [11718] = 1 / 384, [11702] = HILT },
-        after = { [11718] = 1 / 320, [25013] = 1 / 320, [11702] = 1 / 384 } },
-    { file = "zilyana", items = 19, rates = { [11730] = 1 / 320, [25037] = 1 / 640, [25034] = 1 / 320, [11706] = HILT },
-        after = { [11730] = 1 / 320, [25037] = 1 / 320, [34855] = 1 / 320, [11706] = 1 / 384 } },
-    { file = "kril", items = 20, rates = { [24992] = 1 / 512, [11716] = 1 / 512, [11708] = HILT },
-        after = { [24992] = 1 / 320, [25001] = 1 / 320, [11716] = 1 / 384, [11736] = 1 / 64, [11708] = 1 / 384 } },
+    {
+        file = "graardor",
+        items = 18,
+        rates = { [25022] = 1 / 384, [11704] = HILT },
+        after = { [25022] = 1 / 320, [25019] = 1 / 320, [11704] = 1 / 384 },
+    },
+    {
+        file = "kreearra",
+        items = 18,
+        rates = { [11718] = 1 / 384, [11702] = HILT },
+        after = { [11718] = 1 / 320, [25013] = 1 / 320, [11702] = 1 / 384 },
+    },
+    {
+        file = "zilyana",
+        items = 19,
+        rates = { [11730] = 1 / 320, [25037] = 1 / 640, [25034] = 1 / 320, [11706] = HILT },
+        after = { [11730] = 1 / 320, [25037] = 1 / 320, [34855] = 1 / 320, [11706] = 1 / 384 },
+    },
+    {
+        file = "kril",
+        items = 20,
+        rates = { [24992] = 1 / 512, [11716] = 1 / 512, [11708] = HILT },
+        after = {
+            [24992] = 1 / 320,
+            [25001] = 1 / 320,
+            [11716] = 1 / 384,
+            [11736] = 1 / 64,
+            [11708] = 1 / 384,
+        },
+    },
     { file = "nex", items = 21, rates = { [20135] = NEX, [25664] = NEX, [20171] = NEX } },
-    { file = "helwyr", items = 8,
+    {
+        file = "helwyr",
+        items = 8,
         rates = { [37027] = 1 / 256, [40600] = 1 / 256, [37033] = (1 - 6 / 256) / 64 },
         hard = { [37085] = 1 / 179, [37033] = (1 - 6 / 179) / 44 },
         after = { [37027] = 1 / 128, [40600] = 1 / 256, [37033] = (1 - 1 / 128 - 5 / 256) / 64 },
-        afterHard = { [37027] = 1 / 128, [37085] = 1 / 179 } },
-    { file = "vindicta", items = 8,
+        afterHard = { [37027] = 1 / 128, [37085] = 1 / 179 },
+    },
+    {
+        file = "vindicta",
+        items = 8,
         rates = { [37018] = 1 / 255, [37070] = 1 / 255, [37030] = (1 - 5 / 255) / 64 },
         hard = { [37070] = 1 / 179, [37030] = (1 - 5 / 179) / 44 },
-        after = { [37018] = 1 / 128, [37070] = 1 / 255 }, afterHard = { [37018] = 1 / 128 } },
-    { file = "furies", items = 9, rates = { [37090] = 1 / 256, [37095] = 1 / 256 }, hard = { [37024] = 1 / 179 },
-        after = { [37024] = 1 / 128 }, afterHard = { [37024] = 1 / 128 } },
-    { file = "gregorovic", items = 8, rates = { [37075] = 1 / 256, [37080] = 1 / 256 }, hard = { [37021] = 1 / 179 },
-        after = { [37021] = 1 / 128 }, afterHard = { [37021] = 1 / 128 } },
+        after = { [37018] = 1 / 128, [37070] = 1 / 255 },
+        afterHard = { [37018] = 1 / 128 },
+    },
+    {
+        file = "furies",
+        items = 9,
+        rates = { [37090] = 1 / 256, [37095] = 1 / 256 },
+        hard = { [37024] = 1 / 179 },
+        after = { [37024] = 1 / 128 },
+        afterHard = { [37024] = 1 / 128 },
+    },
+    {
+        file = "gregorovic",
+        items = 8,
+        rates = { [37075] = 1 / 256, [37080] = 1 / 256 },
+        hard = { [37021] = 1 / 179 },
+        after = { [37021] = 1 / 128 },
+        afterHard = { [37021] = 1 / 128 },
+    },
     -- Normal mode, then the 100% enrage tier: an armor piece, a weapon, the Nexus and the Shard.
-    { file = "amascut", items = 11, modes = { "n", "e100" },
+    {
+        file = "amascut",
+        items = 11,
+        modes = { "n", "e100" },
         rates = { [59344] = 3 / 4 / 5 / 600, [59350] = 1 / 4 / 2 / 600, [59358] = 1 / 750 },
-        hard = { [59336] = 3 / 4 / 5 / 70, [59354] = 1 / 4 / 2 / 70, [59358] = 1 / 280, [57128] = 1 / 280 } },
+        hard = {
+            [59336] = 3 / 4 / 5 / 70,
+            [59354] = 1 / 4 / 2 / 70,
+            [59358] = 1 / 280,
+            [57128] = 1 / 280,
+        },
+    },
     -- Vermyx, then Vermyx in hard mode.
-    { file = "sanctum", items = 9, rates = { [57156] = 1 / 250, [57124] = 1 / 250 }, hard = { [57156] = 1 / 200 } },
+    {
+        file = "sanctum",
+        items = 9,
+        rates = { [57156] = 1 / 250, [57124] = 1 / 250 },
+        hard = { [57156] = 1 / 200 },
+    },
     -- Solo, then duo: a leg and an add-on, each group split evenly.
-    { file = "araxxi", items = 15, modes = { "s", "d" },
-        rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 }, hard = { [31719] = 1 / 70 / 3, [31724] = 1 / 200 / 3 } },
+    {
+        file = "araxxi",
+        items = 15,
+        modes = { "s", "d" },
+        rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 },
+        hard = { [31719] = 1 / 70 / 3, [31724] = 1 / 200 / 3 },
+    },
     -- All seven brothers (7 rolls at 1/73), Linza (1/96 over five items) and the
     -- amulet (1/480). Dharok has 4 items, Ahrim 6.
-    { file = "barrows", items = 39, modes = { "cff" },
-        rates = { [4716] = 7 / 73 / 7 / 4, [25652] = 7 / 73 / 7 / 6, [21744] = 7 / 73 / 7 / 4, [37449] = 1 / 96 / 5, [39061] = 1 / 480 },
-        after = { [39061] = 1 / 240, [37449] = 1 / 96 / 5 } },
+    {
+        file = "barrows",
+        items = 39,
+        modes = { "cff" },
+        rates = {
+            [4716] = 7 / 73 / 7 / 4,
+            [25652] = 7 / 73 / 7 / 6,
+            [21744] = 7 / 73 / 7 / 4,
+            [37449] = 1 / 96 / 5,
+            [39061] = 1 / 480,
+        },
+        after = { [39061] = 1 / 240, [37449] = 1 / 96 / 5 },
+    },
     -- One rare roll per chest: normal, then hard mode.
-    { file = "vorkath", items = 5, rates = { [56079] = 1 / 45, [56068] = 1 / 249 },
-        hard = { [56079] = 1 / 15, [56068] = 1 / 150, [56321] = 1 / 150 } },
-    { file = "rots", items = 10, rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 } },
-    { file = "dragonkin", items = 7, modes = { "as", "a2" },
-        rates = { [43391] = 1 / 83 }, hard = { [43391] = 1 / 166 } },
+    {
+        file = "vorkath",
+        items = 5,
+        rates = { [56079] = 1 / 45, [56068] = 1 / 249 },
+        hard = { [56079] = 1 / 15, [56068] = 1 / 150, [56321] = 1 / 150 },
+    },
+    {
+        file = "rots",
+        items = 10,
+        rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 },
+    },
+    {
+        file = "dragonkin",
+        items = 7,
+        modes = { "as", "a2" },
+        rates = { [43391] = 1 / 83 },
+        hard = { [43391] = 1 / 166 },
+    },
     -- Any crossbow piece, split evenly.
-    { file = "shadow_reef", items = 7, modes = { "as", "a3" },
-        rates = { [47490] = 1 / 55 / 3, [47492] = 1 / 55 / 3 }, hard = { [47494] = 1 / 166 / 3 } },
-    { file = "corp", items = 7, rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 } },
+    {
+        file = "shadow_reef",
+        items = 7,
+        modes = { "as", "a3" },
+        rates = { [47490] = 1 / 55 / 3, [47492] = 1 / 55 / 3 },
+        hard = { [47494] = 1 / 166 / 3 },
+    },
+    {
+        file = "corp",
+        items = 7,
+        rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 },
+    },
     -- Solo, then duo: the same rates.
-    { file = "raksha", items = 6, rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
-        hard = { [51082] = 1 / 130, [51094] = 1 / 325 } },
+    {
+        file = "raksha",
+        items = 6,
+        rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
+        hard = { [51082] = 1 / 130, [51094] = 1 / 325 },
+    },
     -- Four rares on one roll, raised by the Late-Game Rebalance, and the Latent Offering.
-    { file = "elidinis", items = 7, rates = { [57519] = 1 / 480, [57544] = 1 / 480, [57528] = 1 / 71 },
-        after = { [57519] = 1 / 256, [57524] = 1 / 256, [57528] = 1 / 71 } },
+    {
+        file = "elidinis",
+        items = 7,
+        rates = { [57519] = 1 / 480, [57544] = 1 / 480, [57528] = 1 / 71 },
+        after = { [57519] = 1 / 256, [57524] = 1 / 256, [57528] = 1 / 71 },
+    },
     -- Two rolls of their own, both raised by the Late-Game Rebalance.
-    { file = "magister", items = 8, rates = { [40650] = 1 / 18, [40320] = 1 / 500 },
-        after = { [40650] = 1 / 10, [40320] = 1 / 128 } },
+    {
+        file = "magister",
+        items = 8,
+        rates = { [40650] = 1 / 18, [40320] = 1 / 500 },
+        after = { [40650] = 1 / 10, [40320] = 1 / 128 },
+    },
     -- Every unique is 1/640: a 1/320 weapon roll and a 1/128 armor roll.
-    { file = "rasial", items = 8,
-        rates = { [55480] = 1 / 640, [55482] = 1 / 640, [55488] = 1 / 640, [55496] = 1 / 640 } },
-    { file = "solak", items = 7,
-        rates = { [42785] = 1 / 200, [42770] = 1 / 400, [42774] = 1 / 400, [42767] = 1 / 500, [42782] = 1 / 500 },
-        after = { [42785] = 1 / 200, [42770] = 1 / 200, [42774] = 1 / 200, [42767] = 1 / 500 } },
+    {
+        file = "rasial",
+        items = 8,
+        rates = { [55480] = 1 / 640, [55482] = 1 / 640, [55488] = 1 / 640, [55496] = 1 / 640 },
+    },
+    {
+        file = "solak",
+        items = 7,
+        rates = {
+            [42785] = 1 / 200,
+            [42770] = 1 / 400,
+            [42774] = 1 / 400,
+            [42767] = 1 / 500,
+            [42782] = 1 / 500,
+        },
+        after = { [42785] = 1 / 200, [42770] = 1 / 200, [42774] = 1 / 200, [42767] = 1 / 500 },
+    },
     -- Full contribution: 12 rolls at 1/5,400 each, then 1/3,000 armor and 1/2,500 others.
-    { file = "croesus", items = 10, rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 },
-        after = { [52250] = 12 / 3000, [52345] = 12 / 2500, [52213] = 12 / 2500 } },
+    {
+        file = "croesus",
+        items = 10,
+        rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 },
+        after = { [52250] = 12 / 3000, [52345] = 12 / 2500, [52213] = 12 / 2500 },
+    },
     -- Three loot piles, normal then hard mode.
-    { file = "kerapac", items = 7, modes = { "n3", "h3" }, rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
-        hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 } },
+    {
+        file = "kerapac",
+        items = 7,
+        modes = { "n3", "h3" },
+        rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
+        hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 },
+    },
     -- Hard mode without checkpoints: 1/27 for any sword piece.
-    { file = "zuk", items = 7, rates = { [52530] = 1 / 100, [52492] = 1 / 100 },
-        hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 } },
+    {
+        file = "zuk",
+        items = 7,
+        rates = { [52530] = 1 / 100, [52492] = 1 / 100 },
+        hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 },
+    },
 }
 
 local function modeKeyed(boss, key)
@@ -182,7 +314,8 @@ for _, case in ipairs(CASES) do
         -- expected is { rates, hard rates }.
         local function check(day, expected)
             for modeIndex, rates in pairs(expected) do
-                local mode = case.modes and modeKeyed(boss, case.modes[modeIndex]) or boss.modes[modeIndex]
+                local mode = case.modes and modeKeyed(boss, case.modes[modeIndex])
+                    or boss.modes[modeIndex]
                 local chances = luck.ItemChances(stats.Rolls(boss, mode, {}, day))
                 for itemID, rate in pairs(rates) do
                     assert.are.near(rate, chances[itemID], 1e-12)
@@ -211,7 +344,11 @@ it("counts each tracked Araxxi kill as solo or duo by the duo flag", function()
     assert.are.equal("d", event.mode({ duo = 1 }))
     local duo = luck.ItemChances(stats.Rolls(boss, boss.modeFor("d"), {}))
     assert.are.near(1 / 70 / 3, duo[31718], 1e-12)
-    assert.are.near(1 / 120 / 3, luck.ItemChances(stats.Rolls(boss, boss.modeFor("s"), {}))[31722], 1e-12)
+    assert.are.near(
+        1 / 120 / 3,
+        luck.ItemChances(stats.Rolls(boss, boss.modeFor("s"), {}))[31722],
+        1e-12
+    )
     assert.are.equal("BSLAY_KILLS_ARAXXI", boss.modeFor("d").kc)
 end)
 
@@ -226,7 +363,11 @@ it("counts Kerapac's kills by the loot piles seen at them", function()
     local twoPiles = boss.modeFor("n2")
     assert.are.equal(2, twoPiles.piles)
     assert.are.near(2 / 256 / 3, luck.ItemChances(stats.Rolls(boss, twoPiles, {}))[51767], 1e-12)
-    assert.are.near(1 / 400 / 3, luck.ItemChances(stats.Rolls(boss, boss.modeFor("h1"), {}))[51782], 1e-12)
+    assert.are.near(
+        1 / 400 / 3,
+        luck.ItemChances(stats.Rolls(boss, boss.modeFor("h1"), {}))[51782],
+        1e-12
+    )
     assert.are.equal("BSLAY_KILLS_EGWD_JAS_BOSS_HARDMODE", boss.modeFor("h1").kc)
 end)
 
@@ -324,7 +465,8 @@ describe("Barrows", function()
         assert.are.near(1 / 96 / 5, chances[37449], 1e-12)
 
         -- Five originals and Akrisae make six: in the kill count too.
-        local fiveAndAkrisae = opened({ "Dharok", "Guthan", "Karil", "Torag", "Verac" }, true, false)
+        local fiveAndAkrisae =
+            opened({ "Dharok", "Guthan", "Karil", "Torag", "Verac" }, true, false)
         assert.are.equal("BSLAY_KILLS_BARROWS", boss.modeFor(fiveAndAkrisae).kc)
 
         local partial = boss.modeFor(opened({ "Ahrim", "Dharok", "Guthan" }, false, false))
@@ -335,7 +477,6 @@ describe("Barrows", function()
         assert.is_nil(chances[37449]) -- no Linza
         assert.are.near(1 / 480, chances[39061], 1e-12) -- the amulet, in every chest
     end)
-
 end)
 
 it("counts Amascut's claimed loot piles by mode: normal, or the enrage's tier", function()
@@ -349,7 +490,10 @@ it("counts Amascut's claimed loot piles by mode: normal, or the enrage's tier", 
     assert.are.equal("e100", claim.mode({ enrage = 100 }, 0x100107D0))
     assert.are.equal("e500", claim.mode({ enrage = 749 }, 0x200107D0))
     assert.are.equal("e2000", claim.mode({ enrage = 4000 }, 0x700107D0))
-    assert.are.same({ "BSLAY_KILLS_AMASCUT_BOSS", "BSLAY_KILLS_AMASCUT_BOSS_HARDMODE" }, claim.kills)
+    assert.are.same(
+        { "BSLAY_KILLS_AMASCUT_BOSS", "BSLAY_KILLS_AMASCUT_BOSS_HARDMODE" },
+        claim.kills
+    )
     assert.are.equal("BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", boss.modeFor("e750").kc)
     assert.are.equal("pile", boss.unit)
 end)
@@ -366,8 +510,10 @@ it("counts each Sanctum boss's claimed loot as one kill, by its difficulty", fun
     assert.are.equal("n", nakatra.mode({}, 0xC010))
     assert.are.equal("nh", nakatra.mode({}, 0xD010))
     assert.are.equal("vh", vermyx.mode({}, 0xC101))
-    assert.are.same({ "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS",
-        "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS_HARDMODE" }, nakatra.kills)
+    assert.are.same({
+        "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS",
+        "BSLAY_KILLS_RAID_REBIRTH1_SLAYER_MASTER_BOSS_HARDMODE",
+    }, nakatra.kills)
     assert.are.equal("BSLAY_KILLS_RAID_REBIRTH1_BEAST_BOSS_HARDMODE", boss.modeFor("kh").kc)
     assert.is_nil(boss.unit) -- shown as kills
 end)
@@ -388,7 +534,6 @@ describe("sanctum's Nakatra", function()
         assert.are.near(1 / 120, hard[57158], 1e-12)
         assert.are.near(1 / 75, hard[57128], 1e-12)
     end)
-
 end)
 
 it("pools the Shard of Genesis Essence between Amascut and the Sanctum", function()

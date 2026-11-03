@@ -52,14 +52,15 @@ end
 local selectedKey = nil -- the boss picked in a dropdown
 local lastKillKey = nil -- the last boss killed when the views were last drawn
 
-
 -- Bosses with tracked or all-time kills, by name, each { boss, tallies }.
 local function bossesWithKills()
     local list = {}
     for _, boss in ipairs(bosses) do
         local tallies = tracker.Tallies(boss)
-        if tallies and (tracker.Total(tallies.kills) > 0
-            or (gamevars.AllTimeKills(boss) or 0) > 0) then
+        if
+            tallies
+            and (tracker.Total(tallies.kills) > 0 or (gamevars.AllTimeKills(boss) or 0) > 0)
+        then
             table.insert(list, { boss = boss, tallies = tallies })
         end
     end
@@ -94,8 +95,11 @@ local function withStats(entry)
     local allTime = entry.allTime or {}
     entry.readings = allTime.values or {}
     local inputs = table.concat({
-        entry.boss.key, tracker.Changes(entry.boss),
-        asText(allTime.kills), asText(allTime.items), asText(entry.readings),
+        entry.boss.key,
+        tracker.Changes(entry.boss),
+        asText(allTime.kills),
+        asText(allTime.items),
+        asText(entry.readings),
     }, "|")
     if cached.inputs ~= inputs then
         cached.inputs, cached.stats = inputs, stats.ForBoss(entry)

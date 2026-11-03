@@ -2,12 +2,14 @@ local state = require("src/ui/state")
 
 describe("state", function()
     it("sorts rows unluckiest first, then by name, with untracked luck as 1", function()
-        local rows = state.Rows({ items = {
-            [1] = { luck = 0.9 },
-            [2] = { luck = 0.2 },
-            [3] = {},
-            [4] = { luck = 0.9, group = { name = "A group" } },
-        } })
+        local rows = state.Rows({
+            items = {
+                [1] = { luck = 0.9 },
+                [2] = { luck = 0.2 },
+                [3] = {},
+                [4] = { luck = 0.9, group = { name = "A group" } },
+            },
+        })
         local names = {}
         for i, row in ipairs(rows) do
             names[i] = row.name
@@ -18,7 +20,9 @@ describe("state", function()
     it("notes a boss's assumptions, for the values read, and its tip", function()
         local notes = state.Notes({
             boss = {
-                assumptions = function(readings) return { "Solo kills", "Stones: " .. readings.stones } end,
+                assumptions = function(readings)
+                    return { "Solo kills", "Stones: " .. readings.stones }
+                end,
                 tip = "A tip",
             },
             readings = { stones = 3 },

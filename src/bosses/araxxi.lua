@@ -18,7 +18,10 @@ local ADD_ONS = { name = "Noxious add-ons" }
 local function rolls(team)
     return function(r)
         return {
-            { chance = r[team .. "Legs"], items = common.Even({ LEG_TOP, LEG_MIDDLE, LEG_BOTTOM }) },
+            {
+                chance = r[team .. "Legs"],
+                items = common.Even({ LEG_TOP, LEG_MIDDLE, LEG_BOTTOM }),
+            },
             { chance = r[team .. "AddOns"], items = common.Even({ FANG, EYE, WEB }) },
         }
     end
@@ -39,10 +42,18 @@ return {
     modes = {
         { key = "n", kc = VARS.kc, byEvent = true },
     },
-    killEvents = { { var = VARS.kc, reads = { duo = VARS.duo }, mode = function(values)
-        return values.duo == 1 and "d" or "s"
-    end } },
-    modeFor = function(key) return TRACKED[key] end,
+    killEvents = {
+        {
+            var = VARS.kc,
+            reads = { duo = VARS.duo },
+            mode = function(values)
+                return values.duo == 1 and "d" or "s"
+            end,
+        },
+    },
+    modeFor = function(key)
+        return TRACKED[key]
+    end,
 
     items = {
         [LEG_TOP] = { log = VARS.log .. "LEG_TOP", kind = "unique", group = LEGS },

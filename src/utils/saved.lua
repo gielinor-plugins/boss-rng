@@ -43,7 +43,12 @@ function saved.ForCharacter(prefix, version, fresh, codec)
     end
 
     function store.Save()
-        if not PersistentDB:SetStructuredData(prefix .. name, codec and codec.Encode(record) or record) then
+        if
+            not PersistentDB:SetStructuredData(
+                prefix .. name,
+                codec and codec.Encode(record) or record
+            )
+        then
             print("[Boss RNG] Could not save data for " .. name)
         end
     end

@@ -38,18 +38,54 @@ end
 
 local ORIGINALS = {
     brother("Ahrim", "AHRIM", { -- hood, top, skirt, staff, wand, book
-        [4708] = "HEAD", [4712] = "BODY", [4714] = "LEGS", [4710] = "STAFF", [25652] = "WAND", [25672] = "OFFHAND" }),
-    brother("Dharok", "DHAROK", { [4716] = "HEAD", [4720] = "BODY", [4722] = "LEGS", [4718] = "AXE" }),
-    brother("Guthan", "GUTHAN", { [4724] = "HEAD", [4728] = "BODY", [4730] = "LEGS", [4726] = "SPEAR" }),
+        [4708] = "HEAD",
+        [4712] = "BODY",
+        [4714] = "LEGS",
+        [4710] = "STAFF",
+        [25652] = "WAND",
+        [25672] = "OFFHAND",
+    }),
+    brother(
+        "Dharok",
+        "DHAROK",
+        { [4716] = "HEAD", [4720] = "BODY", [4722] = "LEGS", [4718] = "AXE" }
+    ),
+    brother(
+        "Guthan",
+        "GUTHAN",
+        { [4724] = "HEAD", [4728] = "BODY", [4730] = "LEGS", [4726] = "SPEAR" }
+    ),
     brother("Karil", "KARIL", { -- coif, top, skirt, crossbow, pistol crossbows
-        [4732] = "HEAD", [4736] = "BODY", [4738] = "LEGS", [4734] = "CROSSBOW", [25918] = "PISTOL",
-        [25895] = "PISTOL_OFFHAND" }),
-    brother("Torag", "TORAG", { [4745] = "HEAD", [4749] = "BODY", [4751] = "LEGS", [4747] = "HAMMER" }),
-    brother("Verac", "VERAC", { [4753] = "HEAD", [4757] = "BODY", [4759] = "LEGS", [4755] = "FLAIL" }),
+        [4732] = "HEAD",
+        [4736] = "BODY",
+        [4738] = "LEGS",
+        [4734] = "CROSSBOW",
+        [25918] = "PISTOL",
+        [25895] = "PISTOL_OFFHAND",
+    }),
+    brother(
+        "Torag",
+        "TORAG",
+        { [4745] = "HEAD", [4749] = "BODY", [4751] = "LEGS", [4747] = "HAMMER" }
+    ),
+    brother(
+        "Verac",
+        "VERAC",
+        { [4753] = "HEAD", [4757] = "BODY", [4759] = "LEGS", [4755] = "FLAIL" }
+    ),
 }
-local AKRISAE = brother("Akrisae", "AKRISAE", { [21736] = "HEAD", [21752] = "BODY", [21760] = "LEGS", [21744] = "MACE" })
+local AKRISAE = brother(
+    "Akrisae",
+    "AKRISAE",
+    { [21736] = "HEAD", [21752] = "BODY", [21760] = "LEGS", [21744] = "MACE" }
+)
 local LINZA = brother("Linza", "SISTER", { -- helm, cuirass, greaves, hammer, shield
-    [37433] = "HEAD", [37437] = "BODY", [37441] = "LEGS", [37445] = "HAMMER", [37449] = "SHIELD" })
+    [37433] = "HEAD",
+    [37437] = "BODY",
+    [37441] = "LEGS",
+    [37445] = "HAMMER",
+    [37449] = "SHIELD",
+})
 
 -- The brothers sharing the equipment rolls; each one's bit in a chest's key is 1 << (i - 1).
 local BROTHERS = { table.unpack(ORIGINALS) }

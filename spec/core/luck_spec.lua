@@ -32,7 +32,10 @@ describe("luck.ItemChances", function()
     end)
 
     it("leaves out items at a chance of 0", function()
-        local chances = luck.ItemChances({ { chance = 0, items = { x = 0, y = 0 } }, { chance = 0.1, items = { z = 1, w = 0 } } })
+        local chances = luck.ItemChances({
+            { chance = 0, items = { x = 0, y = 0 } },
+            { chance = 0.1, items = { z = 1, w = 0 } },
+        })
         assert.are.same({ z = 0.1 }, chances)
     end)
 end)

@@ -4,7 +4,11 @@ local NORMAL, HARD = { key = "n", kc = "KC_NORMAL" }, { key = "h", kc = "KC_HARD
 local BOSS = {
     key = "testboss",
     modes = { NORMAL, HARD },
-    items = { [101] = { kind = "unique" }, [102] = { kind = "unique", pooledBy = {} }, [103] = { kind = "pet" } },
+    items = {
+        [101] = { kind = "unique" },
+        [102] = { kind = "unique", pooledBy = {} },
+        [103] = { kind = "pet" },
+    },
 }
 local DAY, NEXT_DAY = 20756, 20757
 local DRY_KEYS = { "any", "101", "102" } -- the boss's streak and each unique's
@@ -29,7 +33,10 @@ describe("tracker", function()
         tracker.AddKills(BOSS, NORMAL, 1, NEXT_DAY)
         tracker.AddKills(BOSS, HARD, 2, DAY)
         local tallies = tracker.Tallies(BOSS)
-        assert.are.same({ n = { ["20756"] = 1, ["20757"] = 1 }, h = { ["20756"] = 2 } }, tallies.kills)
+        assert.are.same(
+            { n = { ["20756"] = 1, ["20757"] = 1 }, h = { ["20756"] = 2 } },
+            tallies.kills
+        )
         assert.are.equal(4, tracker.Total(tallies.kills))
         -- Saved as text per mode, days in order.
         local saved = mock.Saved("char:Tester")
@@ -74,14 +81,18 @@ describe("tracker", function()
         assert.are.equal("testboss", tracker.LastBossKey())
     end)
 
-    it("counts a unique added later from the first tracked kill, like its expected drops", function()
-        local before = { key = "testboss", modes = BOSS.modes, items = { [101] = { kind = "unique" } } }
-        tracker.AddKills(before, NORMAL, 3, DAY)
-        tracker.AddKills(BOSS, NORMAL, 2, DAY) -- 102 is new here
-        local tallies = tracker.Tallies(BOSS)
-        assert.are.equal(5, tracker.Total(tracker.Dry(tallies, "102")))
-        assert.are.same({}, tallies.dryFrom) -- nothing saved for streaks from the first kill
-    end)
+    it(
+        "counts a unique added later from the first tracked kill, like its expected drops",
+        function()
+            local before =
+                { key = "testboss", modes = BOSS.modes, items = { [101] = { kind = "unique" } } }
+            tracker.AddKills(before, NORMAL, 3, DAY)
+            tracker.AddKills(BOSS, NORMAL, 2, DAY) -- 102 is new here
+            local tallies = tracker.Tallies(BOSS)
+            assert.are.equal(5, tracker.Total(tracker.Dry(tallies, "102")))
+            assert.are.same({}, tallies.dryFrom) -- nothing saved for streaks from the first kill
+        end
+    )
 
     -- The dry streaks counted kill by kill, next to the tracker's, through kills,
     -- drops and unreadable days (0).
@@ -135,21 +146,34 @@ describe("tracker", function()
         assert.are.same({ kills = {}, dryFrom = {}, items = {} }, tracker.Tallies(BOSS))
     end)
 
-    it("tells when a boss's tallies may have changed: its kills, drops or reset, or another character", function()
-        local other = { key = "other", modes = { NORMAL }, items = {} }
-        local function changesAfter(action)
-            local before = tracker.Changes(BOSS)
-            action()
-            return tracker.Changes(BOSS) ~= before
+    it(
+        "tells when a boss's tallies may have changed: its kills, drops or reset, or another character",
+        function()
+            local other = { key = "other", modes = { NORMAL }, items = {} }
+            local function changesAfter(action)
+                local before = tracker.Changes(BOSS)
+                action()
+                return tracker.Changes(BOSS) ~= before
+            end
+            assert.is_false(changesAfter(function()
+                tracker.AddKills(other, NORMAL, 1, DAY)
+            end))
+            assert.is_true(changesAfter(function()
+                tracker.AddKills(BOSS, NORMAL, 1, DAY)
+            end))
+            assert.is_true(changesAfter(function()
+                tracker.AddDrops(BOSS, 101, 1)
+            end))
+            assert.is_true(changesAfter(function()
+                tracker.Reset(BOSS)
+            end))
+            assert.is_true(changesAfter(tracker.ResetAll))
+            assert.is_true(changesAfter(function()
+                mock.characterName = "Other"
+            end))
+            assert.is_false(changesAfter(function() end))
         end
-        assert.is_false(changesAfter(function() tracker.AddKills(other, NORMAL, 1, DAY) end))
-        assert.is_true(changesAfter(function() tracker.AddKills(BOSS, NORMAL, 1, DAY) end))
-        assert.is_true(changesAfter(function() tracker.AddDrops(BOSS, 101, 1) end))
-        assert.is_true(changesAfter(function() tracker.Reset(BOSS) end))
-        assert.is_true(changesAfter(tracker.ResetAll))
-        assert.is_true(changesAfter(function() mock.characterName = "Other" end))
-        assert.is_false(changesAfter(function() end))
-    end)
+    )
 
     it("saves each boss's latest kills, re-encoding only the one that changed", function()
         local other = { key = "other", modes = { NORMAL }, items = {} }
@@ -181,7 +205,9 @@ describe("tracker", function()
     it("resets every boss and tells listeners", function()
         local calls = 0
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
-        tracker.OnChange(function() calls = calls + 1 end)
+        tracker.OnChange(function()
+            calls = calls + 1
+        end)
         tracker.ResetAll()
         assert.are.equal(1, calls)
         mock.Reset(true)
@@ -216,8 +242,12 @@ describe("tracker", function()
 
     it("keeps saving and telling other listeners when one fails", function()
         local calls = 0
-        tracker.OnChange(function() error("broken listener") end)
-        tracker.OnChange(function() calls = calls + 1 end)
+        tracker.OnChange(function()
+            error("broken listener")
+        end)
+        tracker.OnChange(function()
+            calls = calls + 1
+        end)
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         assert.are.equal(1, calls)
         assert.are.equal("20756:1", mock.Saved("char:Tester").bosses.testboss.kills.n)
@@ -225,7 +255,9 @@ describe("tracker", function()
 
     it("tells listeners about each change", function()
         local calls = 0
-        tracker.OnChange(function() calls = calls + 1 end)
+        tracker.OnChange(function()
+            calls = calls + 1
+        end)
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         tracker.AddDrops(BOSS, 101, 1)
         assert.are.equal(2, calls)

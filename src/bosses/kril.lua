@@ -17,7 +17,11 @@ local SPEAR, STAFF, HILT = 11716, 11736, 11708
 
 local ARMOR = { HOOD, GARB, GOWN, GLOVES, BOOTS, WARD }
 local function rolls(r)
-    return godwars.Rolls(common.Each(ARMOR, r.armor, { [SPEAR] = r.spear, [STAFF] = r.staff }), HILT, r)
+    return godwars.Rolls(
+        common.Each(ARMOR, r.armor, { [SPEAR] = r.spear, [STAFF] = r.staff }),
+        HILT,
+        r
+    )
 end
 
 return {
@@ -27,17 +31,21 @@ return {
 
     modes = common.Modes(VARS, rolls),
 
-    items = godwars.Items({
-        [HOOD] = { log = VARS.log .. "HEAD", kind = "unique" },
-        [GARB] = { log = VARS.log .. "BODY", kind = "unique" },
-        [GOWN] = { log = VARS.log .. "LEGS", kind = "unique" },
-        [GLOVES] = { log = VARS.log .. "HANDS", kind = "unique" },
-        [BOOTS] = { log = VARS.log .. "FEET", kind = "unique" },
-        [WARD] = { log = VARS.log .. "SHIELD", kind = "unique" },
-        [SPEAR] = { log = VARS.log .. "SPEAR", kind = "unique" },
-        [STAFF] = { log = VARS.staff, kind = "unique" },
-        [HILT] = { log = VARS.log .. "HILT", kind = "unique" },
-        [25041] = { kind = "lore" }, -- Razulei's Tale
-        [33805] = { kind = "pet" }, -- K'ril Tinyroth
-    }, VARS.warpriest, { HELM = 28785, CAPE = 28788, BODY = 28779, LEGS = 28782, GLOVES = 28773, BOOTS = 28776 }),
+    items = godwars.Items(
+        {
+            [HOOD] = { log = VARS.log .. "HEAD", kind = "unique" },
+            [GARB] = { log = VARS.log .. "BODY", kind = "unique" },
+            [GOWN] = { log = VARS.log .. "LEGS", kind = "unique" },
+            [GLOVES] = { log = VARS.log .. "HANDS", kind = "unique" },
+            [BOOTS] = { log = VARS.log .. "FEET", kind = "unique" },
+            [WARD] = { log = VARS.log .. "SHIELD", kind = "unique" },
+            [SPEAR] = { log = VARS.log .. "SPEAR", kind = "unique" },
+            [STAFF] = { log = VARS.staff, kind = "unique" },
+            [HILT] = { log = VARS.log .. "HILT", kind = "unique" },
+            [25041] = { kind = "lore" }, -- Razulei's Tale
+            [33805] = { kind = "pet" }, -- K'ril Tinyroth
+        },
+        VARS.warpriest,
+        { HELM = 28785, CAPE = 28788, BODY = 28779, LEGS = 28782, GLOVES = 28773, BOOTS = 28776 }
+    ),
 }

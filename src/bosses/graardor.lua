@@ -25,15 +25,19 @@ return {
 
     modes = common.Modes(VARS, rolls),
 
-    items = godwars.Items({
-        [HELMET] = { log = VARS.log .. "HEAD", kind = "unique" },
-        [CHESTPLATE] = { log = VARS.log .. "BODY", kind = "unique" },
-        [TASSETS] = { log = VARS.log .. "LEGS", kind = "unique" },
-        [GLOVES] = { log = VARS.log .. "HANDS", kind = "unique" },
-        [BOOTS] = { log = VARS.log .. "FEET", kind = "unique" },
-        [WARSHIELD] = { log = VARS.log .. "SHIELD", kind = "unique" },
-        [HILT] = { log = VARS.log .. "HILT", kind = "unique" },
-        [25042] = { kind = "lore" }, -- The Glory of General Graardor
-        [33806] = { kind = "pet" }, -- General Awwdor
-    }, VARS.warpriest, { HELM = 30318, CAPE = 30321, BODY = 30312, LEGS = 30315, GLOVES = 30306, BOOTS = 30309 }),
+    items = godwars.Items(
+        {
+            [HELMET] = { log = VARS.log .. "HEAD", kind = "unique" },
+            [CHESTPLATE] = { log = VARS.log .. "BODY", kind = "unique" },
+            [TASSETS] = { log = VARS.log .. "LEGS", kind = "unique" },
+            [GLOVES] = { log = VARS.log .. "HANDS", kind = "unique" },
+            [BOOTS] = { log = VARS.log .. "FEET", kind = "unique" },
+            [WARSHIELD] = { log = VARS.log .. "SHIELD", kind = "unique" },
+            [HILT] = { log = VARS.log .. "HILT", kind = "unique" },
+            [25042] = { kind = "lore" }, -- The Glory of General Graardor
+            [33806] = { kind = "pet" }, -- General Awwdor
+        },
+        VARS.warpriest,
+        { HELM = 30318, CAPE = 30321, BODY = 30312, LEGS = 30315, GLOVES = 30306, BOOTS = 30309 }
+    ),
 }

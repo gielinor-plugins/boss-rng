@@ -24,7 +24,11 @@ local LIGHT, GUARD, NEXUS = 59350, 59354, 59358
 local ARMOR, WEAPONS = { MASK, TOP, BOTTOM, GLOVES, BOOTS }, { LIGHT, GUARD }
 
 local function gear(r)
-    return common.Each(ARMOR, r.armorShare / #ARMOR, common.Each(WEAPONS, (1 - r.armorShare) / #WEAPONS))
+    return common.Each(
+        ARMOR,
+        r.armorShare / #ARMOR,
+        common.Each(WEAPONS, (1 - r.armorShare) / #WEAPONS)
+    )
 end
 
 -- Rolls by rate names for gear, the Nexus and the Shard (none in normal mode).
@@ -46,7 +50,11 @@ local TIERS = { 100, 500, 750, 1000, 2000 } -- enrage %, the last for 2,000% and
 -- Normal, and each enrage tier ("e1000"). Mode keys are saved: never change them.
 local MODES = { n = { key = "n", kc = VARS.kc, byEvent = true, rolls = rolls("gear", "nexus") } }
 for _, e in ipairs(TIERS) do
-    MODES["e" .. e] = { key = "e" .. e, kc = VARS.kcEnrage, rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
+    MODES["e" .. e] = {
+        key = "e" .. e,
+        kc = VARS.kcEnrage,
+        rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e),
+    }
 end
 
 -- The highest tier at or below enrage (4,000% is 2,000%+), else the lowest.
@@ -77,11 +85,18 @@ return {
         MODES.n,
         { key = "e", kc = VARS.kcEnrage, byEvent = true },
     },
-    claims = { {
-        var = VARS.loot, mask = PILES, kills = { VARS.kc, VARS.kcEnrage },
-        reads = { enrage = VARS.enrage }, mode = claimedMode,
-    } },
-    modeFor = function(key) return MODES[key] end,
+    claims = {
+        {
+            var = VARS.loot,
+            mask = PILES,
+            kills = { VARS.kc, VARS.kcEnrage },
+            reads = { enrage = VARS.enrage },
+            mode = claimedMode,
+        },
+    },
+    modeFor = function(key)
+        return MODES[key]
+    end,
 
     items = {
         [MASK] = { log = VARS.log .. "MAGIC_DEVOURER_HEAD_T95", kind = "unique" },

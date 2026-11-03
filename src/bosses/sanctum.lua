@@ -37,8 +37,11 @@ local MODES = {
     { key = "k", kc = VARS.kc .. "BEAST_BOSS", rolls = BOOKS },
     { key = "kh", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = HARD_BOOKS },
     { key = "n", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls("books", "weapons") },
-    { key = "nh", kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE",
-        rolls = rolls("hardBooks", "hardWeapons", "hardShard") },
+    {
+        key = "nh",
+        kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE",
+        rolls = rolls("hardBooks", "hardWeapons", "hardShard"),
+    },
 }
 local byKey = {}
 for _, mode in ipairs(MODES) do
@@ -51,8 +54,13 @@ end
 local function claim(i, loot, difficulty)
     local normal, hard = MODES[i], MODES[i + 1]
     return {
-        var = VARS.loot, mask = loot, kills = { normal.kc, hard.kc }, reads = {},
-        mode = function(_, old) return (old & difficulty) == 0 and normal.key or hard.key end,
+        var = VARS.loot,
+        mask = loot,
+        kills = { normal.kc, hard.kc },
+        reads = {},
+        mode = function(_, old)
+            return (old & difficulty) == 0 and normal.key or hard.key
+        end,
     }
 end
 
@@ -63,11 +71,16 @@ return {
 
     modes = MODES,
     claims = { claim(1, 0x1, 0x300), claim(3, 0x4, 0xC00), claim(5, 0x10, 0x3000) },
-    modeFor = function(key) return byKey[key] end,
+    modeFor = function(key)
+        return byKey[key]
+    end,
 
     items = {
         [CODEX] = { log = VARS.log .. "COMBATV2_PRAYER_CODEX_DIVINE_RAGE", kind = "unique" },
-        [SCRIPTURE] = { log = VARS.log .. "RAID_REBIRTH1_AMASCUT_BOOK_UNLOCK_TOKEN", kind = "unique" },
+        [SCRIPTURE] = {
+            log = VARS.log .. "RAID_REBIRTH1_AMASCUT_BOOK_UNLOCK_TOKEN",
+            kind = "unique",
+        },
         [ROAR] = { log = VARS.log .. "MAGIC_DEVOURER_WAND_T95", kind = "unique" },
         [ODE] = { log = VARS.log .. "MAGIC_DEVOURER_ORB_T95", kind = "unique" },
         [common.SHARD] = common.SHARD_ITEM, -- also dropped by Amascut

@@ -4,8 +4,8 @@
 local mock = {}
 
 local subscribers = {} -- [event name] = { [ref] = handler }
-local vars = {}        -- [var name] = VarType-like table
-local saved = {}       -- PersistentDB entries
+local vars = {} -- [var name] = VarType-like table
+local saved = {} -- PersistentDB entries
 
 -- Copies a table, like the real API, which serializes saved data.
 local function copy(value)
@@ -32,7 +32,12 @@ function mock.Reset(keepSaved)
     config = { Inv = { INV = { id = 93, configName = "INV" } } }
     Inventory = {
         Find = function()
-            return { isValid = true, GetTotal = function(_, itemID) return mock.backpack[itemID] or 0 end }
+            return {
+                isValid = true,
+                GetTotal = function(_, itemID)
+                    return mock.backpack[itemID] or 0
+                end,
+            }
         end,
     }
 
@@ -54,11 +59,17 @@ function mock.Reset(keepSaved)
     var = { VarPlayer = vars }
     GameState = { LOGINSCREEN = 10, GAME = 30 }
     Player = {
-        IsAvailable = function() return mock.inGame end,
-        GetEntity = function() return { displayName = mock.characterName } end,
+        IsAvailable = function()
+            return mock.inGame
+        end,
+        GetEntity = function()
+            return { displayName = mock.characterName }
+        end,
     }
     PersistentDB = {
-        GetStructuredData = function(_, key) return copy(saved[key]) end,
+        GetStructuredData = function(_, key)
+            return copy(saved[key])
+        end,
         SetStructuredData = function(_, key, value)
             saved[key] = copy(value)
             return true

@@ -65,7 +65,12 @@ local function watch(name, group, report, mask, most)
     mask = mask or found.varBitMask
     watched[baseID] = watched[baseID] or {}
     table.insert(watched[baseID], {
-        mask = mask, shift = bits.LowestBit(mask), group = group, report = report, count = count, most = most or MAX_CHANGE,
+        mask = mask,
+        shift = bits.LowestBit(mask),
+        group = group,
+        report = report,
+        count = count,
+        most = most or MAX_CHANGE,
     })
 end
 
@@ -116,7 +121,10 @@ local function onGameStateChanged(event)
     announced = false
     killedThisSession = {}
     containers.Forget()
-    eachCount(function(slice) slice.highest = nil end) -- maybe another character
+    -- Maybe another character: forget the highest counts seen.
+    eachCount(function(slice)
+        slice.highest = nil
+    end)
 end
 
 local function onInventory(event)
@@ -263,7 +271,9 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
     for _, boss in ipairs(bosses) do
         for _, mode in ipairs(boss.modes) do
             if not mode.byEvent then
-                watch(mode.kc, "kills", function(count) killed(boss, mode, count) end)
+                watch(mode.kc, "kills", function(count)
+                    killed(boss, mode, count)
+                end)
             end
         end
         for _, event in ipairs(boss.killEvents or {}) do
@@ -274,7 +284,12 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
                 local base = found and found.baseVar
                 if base then
                     lasts[base.id] = lasts[base.id] or {}
-                    table.insert(lasts[base.id], { name = name, keep = function(now) kept[key] = now end })
+                    table.insert(lasts[base.id], {
+                        name = name,
+                        keep = function(now)
+                            kept[key] = now
+                        end,
+                    })
                 else
                     print("[Boss RNG] Unknown varbit " .. name)
                 end
@@ -282,7 +297,9 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
             local rose = {} -- each of event.rises that rose this tick
             table.insert(risen, rose)
             for key, name in pairs(event.rises or {}) do
-                watch(name, "rises", function() rose[key] = true end)
+                watch(name, "rises", function()
+                    rose[key] = true
+                end)
             end
             watch(event.var, "kills", function()
                 local mode = eventMode(boss, event, nil, kept, rose)
@@ -313,7 +330,9 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
         for itemID, container in pairs(boss.containers or {}) do
             for _, mode in ipairs(boss.modes) do
                 if mode.key == container.mode then
-                    containers.Add(itemID, container.window, function(count) killed(boss, mode, count) end)
+                    containers.Add(itemID, container.window, function(count)
+                        killed(boss, mode, count)
+                    end)
                 end
             end
         end

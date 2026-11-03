@@ -17,8 +17,11 @@ return {
     name = "Gregorovic",
     assumptions = { common.SOLO_KILLS },
 
-    modes = common.Modes(VARS, godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),
-        godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)),
+    modes = common.Modes(
+        VARS,
+        godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),
+        godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)
+    ),
 
     items = godwars2.Items({
         [CREST] = { log = VARS.log .. "CREST", kind = "unique" },

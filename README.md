@@ -87,6 +87,8 @@ tools/        sync.sh (copy to the beta client), package.sh (build the mod.io zi
 Only `main.lua`, `plugin.json`, `src/` and `resources/` (if added) are shipped.
 
 - **Tests:** run `busted` from the project root.
+- **Formatting:** run [StyLua](https://github.com/JohnnyMorganz/StyLua) (`stylua .`)
+  from the project root before committing.
 - **In game:** join the plugin beta world (see the
   [official tutorial](https://developer.runescape.com/rs/tutorial/1helloworld.html))
   and install the dependency named in `plugin.json` from the Plugin Hub, since

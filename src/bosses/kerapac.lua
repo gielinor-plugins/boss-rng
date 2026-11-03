@@ -38,15 +38,20 @@ local TRACKED = {}
 -- rolling pile(r). Keys are saved: never change them.
 local function addPileModes(prefix, kc, pile)
     for count = 1, MAX_PILES do
-        TRACKED[prefix .. count] = { key = prefix .. count, kc = kc, piles = count, rolls = function(r)
-            local rolls = {}
-            for _ = 1, count do
-                for _, roll in ipairs(pile(r)) do
-                    table.insert(rolls, roll)
+        TRACKED[prefix .. count] = {
+            key = prefix .. count,
+            kc = kc,
+            piles = count,
+            rolls = function(r)
+                local rolls = {}
+                for _ = 1, count do
+                    for _, roll in ipairs(pile(r)) do
+                        table.insert(rolls, roll)
+                    end
                 end
-            end
-            return rolls
-        end }
+                return rolls
+            end,
+        }
     end
 end
 
@@ -56,9 +61,14 @@ addPileModes("h", VARS.kcHard, hardPile)
 -- A kill's mode by the piles seen at it. None seen means the player was away, most
 -- likely not the top damager, so it counts as 1.
 local function killEvent(kc, prefix)
-    return { var = kc, reads = {}, piles = ANIMA, mode = function(values)
-        return prefix .. math.max(1, math.min(values.piles, MAX_PILES))
-    end }
+    return {
+        var = kc,
+        reads = {},
+        piles = ANIMA,
+        mode = function(values)
+            return prefix .. math.max(1, math.min(values.piles, MAX_PILES))
+        end,
+    }
 end
 
 return {
@@ -72,7 +82,9 @@ return {
         { key = "h", kc = VARS.kcHard, byEvent = true },
     },
     killEvents = { killEvent(VARS.kc, "n"), killEvent(VARS.kcHard, "h") },
-    modeFor = function(key) return TRACKED[key] end,
+    modeFor = function(key)
+        return TRACKED[key]
+    end,
 
     items = {
         [SYMBOL] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_TOP", kind = "unique", group = STAFF },

@@ -10,7 +10,9 @@ function layerView.New(layout)
     -- Destroying may fail if the game already cleared the layer.
     local function destroy()
         if page.view then
-            pcall(function() page.view:Destroy() end)
+            pcall(function()
+                page.view:Destroy()
+            end)
         end
         page.view = nil
     end
@@ -27,7 +29,11 @@ function layerView.New(layout)
     function page.Fresh()
         destroy()
         page.view = prettyui.SimpleView.new(page.layer, {
-            width = 0, height = 0, widthAnchor = 1.0, heightAnchor = 1.0, layout = layout,
+            width = 0,
+            height = 0,
+            widthAnchor = 1.0,
+            heightAnchor = 1.0,
+            layout = layout,
         })
         return page.view
     end

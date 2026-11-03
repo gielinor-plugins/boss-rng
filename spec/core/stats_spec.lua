@@ -7,7 +7,11 @@ local DAY = 20756 -- 30 Oct 2026
 -- Normal mode rolls item 1 at 1/100 and item 2 at 1/50; hard mode item 1 at 1/20.
 local BOSS = {
     modes = {
-        { key = "n", kc = "KC_NORMAL", rolls = { { chance = 3 / 100, items = { [1] = 1, [2] = 2 } } } },
+        {
+            key = "n",
+            kc = "KC_NORMAL",
+            rolls = { { chance = 3 / 100, items = { [1] = 1, [2] = 2 } } },
+        },
         { key = "h", kc = "KC_HARD", rolls = { { chance = 1 / 20, items = { [1] = 1 } } } },
     },
     items = { [1] = { kind = "unique" }, [2] = { kind = "unique" }, [3] = { kind = "pet" } },
@@ -96,8 +100,14 @@ describe("stats.ForBoss", function()
     end)
 
     it("counts the dry streaks the tracker kept", function()
-        local result = forBoss(BOSS, tallies({ n = 100 }, { ["1"] = 1, ["2"] = 2 },
-            { any = { n = 10 }, ["1"] = { n = 60 }, ["2"] = { n = 10 } }))
+        local result = forBoss(
+            BOSS,
+            tallies(
+                { n = 100 },
+                { ["1"] = 1, ["2"] = 2 },
+                { any = { n = 10 }, ["1"] = { n = 60 }, ["2"] = { n = 10 } }
+            )
+        )
         assert.are.equal(10, result.dryKills)
         assert.are.equal(60, result.items[1].dryKills)
         assert.are.near(luck.DryPercentile(3 / 100, 10), result.dryShare, 1e-12)
@@ -131,8 +141,11 @@ describe("stats.ForBoss", function()
 
     describe("with all-time totals", function()
         it("shows them as facts, without using them for luck", function()
-            local result = forBoss(BOSS, tallies({ n = 40 }),
-                totals({ KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 2, ["2"] = 1 }))
+            local result = forBoss(
+                BOSS,
+                tallies({ n = 40 }),
+                totals({ KC_NORMAL = 100, KC_HARD = 20 }, { ["1"] = 2, ["2"] = 1 })
+            )
             assert.are.same({ kills = 120, received = 3, stacks = {} }, result.allTime)
             assert.are.equal(40, result.kills)
             assert.are.equal(0, result.received)
@@ -140,24 +153,43 @@ describe("stats.ForBoss", function()
             assert.are.equal(2, result.items[1].allTime)
         end)
 
-        it("marks dry streaks that may be longer: nothing tracked, and kills before tracking", function()
-            local result = forBoss(BOSS, tallies({ n = 10 }, { ["1"] = 1 }),
-                totals({ KC_NORMAL = 100, KC_HARD = 0 }, { ["1"] = 3, ["2"] = 1 }))
-            assert.is_false(result.dryAtLeast)
-            assert.is_false(result.items[1].dryAtLeast)
-            assert.is_true(result.items[2].dryAtLeast)
-        end)
+        it(
+            "marks dry streaks that may be longer: nothing tracked, and kills before tracking",
+            function()
+                local result = forBoss(
+                    BOSS,
+                    tallies({ n = 10 }, { ["1"] = 1 }),
+                    totals({ KC_NORMAL = 100, KC_HARD = 0 }, { ["1"] = 3, ["2"] = 1 })
+                )
+                assert.is_false(result.dryAtLeast)
+                assert.is_false(result.items[1].dryAtLeast)
+                assert.is_true(result.items[2].dryAtLeast)
+            end
+        )
 
         it("shows a stacked unique's log count apart, since it counts items, not drops", function()
-            local boss = { modes = BOSS.modes, items = {
-                [1] = { kind = "unique", stack = { most = 9, word = "spike" } }, [2] = { kind = "unique" } } }
-            local result = forBoss(boss, tallies({ n = 10 }), totals({ KC_NORMAL = 10, KC_HARD = 0 }, { ["1"] = 184, ["2"] = 3 }))
-            assert.are.same({ kills = 10, received = 3, stacks = { { word = "spike", count = 184 } } }, result.allTime)
+            local boss = {
+                modes = BOSS.modes,
+                items = {
+                    [1] = { kind = "unique", stack = { most = 9, word = "spike" } },
+                    [2] = { kind = "unique" },
+                },
+            }
+            local result = forBoss(
+                boss,
+                tallies({ n = 10 }),
+                totals({ KC_NORMAL = 10, KC_HARD = 0 }, { ["1"] = 184, ["2"] = 3 })
+            )
+            assert.are.same(
+                { kills = 10, received = 3, stacks = { { word = "spike", count = 184 } } },
+                result.allTime
+            )
             assert.is_nil(result.items[1].allTime)
         end)
 
         it("knows a streak is exact when every kill was tracked", function()
-            local result = forBoss(BOSS, tallies({ n = 10 }), totals({ KC_NORMAL = 10, KC_HARD = 0 }, {}))
+            local result =
+                forBoss(BOSS, tallies({ n = 10 }), totals({ KC_NORMAL = 10, KC_HARD = 0 }, {}))
             assert.is_false(result.dryAtLeast)
             assert.is_false(result.items[2].dryAtLeast)
         end)
@@ -168,20 +200,45 @@ describe("stats.ForBoss", function()
     end)
 
     it("uses rolls that depend on values read from the game", function()
-        local boss = { items = { [1] = { kind = "unique" } }, modes = { { key = "n", kc = "KC",
-            rolls = function(_, readings) return { { chance = 1 / readings.rate, items = { [1] = 1 } } } end } } }
+        local boss = {
+            items = { [1] = { kind = "unique" } },
+            modes = {
+                {
+                    key = "n",
+                    kc = "KC",
+                    rolls = function(_, readings)
+                        return { { chance = 1 / readings.rate, items = { [1] = 1 } } }
+                    end,
+                },
+            },
+        }
         assert.are.near(2, forBoss(boss, tallies({ n = 100 }), nil, { rate = 50 }).expected, 1e-9)
     end)
 
     it("shows a group of uniques as one row", function()
         local group = { name = "Pieces" }
         local boss = {
-            items = { [1] = { kind = "unique", group = group }, [2] = { kind = "unique", group = group } },
-            modes = { { key = "n", kc = "KC", rolls = { { chance = 1 / 10, items = { [1] = 1, [2] = 1 } } } } },
+            items = {
+                [1] = { kind = "unique", group = group },
+                [2] = { kind = "unique", group = group },
+            },
+            modes = {
+                {
+                    key = "n",
+                    kc = "KC",
+                    rolls = { { chance = 1 / 10, items = { [1] = 1, [2] = 1 } } },
+                },
+            },
         }
-        local result = forBoss(boss, tallies({ n = 100 }, { ["1"] = 2, ["2"] = 1 },
-            { any = { n = 10 }, ["1"] = { n = 40 }, ["2"] = { n = 10 } }),
-            totals({ KC = 100 }, { ["1"] = 2, ["2"] = 1 }))
+        local result = forBoss(
+            boss,
+            tallies(
+                { n = 100 },
+                { ["1"] = 2, ["2"] = 1 },
+                { any = { n = 10 }, ["1"] = { n = 40 }, ["2"] = { n = 10 } }
+            ),
+            totals({ KC = 100 }, { ["1"] = 2, ["2"] = 1 })
+        )
         assert.is_nil(result.items[2])
         local row = result.items[1]
         assert.are.equal(group, row.group)
@@ -196,10 +253,19 @@ describe("stats with rates that changed", function()
     local CHANGE = DAY + 10
     -- Item 1 at 1/10 before CHANGE, 1/5 from it.
     local CHANGED = {
-        rates = rates.History({ { values = { item = 1 / 10 } }, { since = CHANGE, values = { item = 1 / 5 } } }),
-        modes = { { key = "n", kc = "KC", rolls = function(r)
-            return { { chance = r.item, items = { [1] = 1 } } }
-        end } },
+        rates = rates.History({
+            { values = { item = 1 / 10 } },
+            { since = CHANGE, values = { item = 1 / 5 } },
+        }),
+        modes = {
+            {
+                key = "n",
+                kc = "KC",
+                rolls = function(r)
+                    return { { chance = r.item, items = { [1] = 1 } } }
+                end,
+            },
+        },
         items = { [1] = { kind = "unique" } },
     }
 
@@ -220,10 +286,19 @@ describe("stats with rates that changed", function()
 
     it("doesn't count kills from days an item wasn't on the table", function()
         local added = {
-            rates = rates.History({ { values = { new = 0 } }, { since = CHANGE, values = { new = 1 / 5 } } }),
-            modes = { { key = "n", kc = "KC", rolls = function(r)
-                return { { chance = r.new, items = { [1] = 1 } } }
-            end } },
+            rates = rates.History({
+                { values = { new = 0 } },
+                { since = CHANGE, values = { new = 1 / 5 } },
+            }),
+            modes = {
+                {
+                    key = "n",
+                    kc = "KC",
+                    rolls = function(r)
+                        return { { chance = r.new, items = { [1] = 1 } } }
+                    end,
+                },
+            },
             items = { [1] = { kind = "unique" } },
         }
         local result = forBoss(added, spanning())
@@ -246,7 +321,11 @@ local EVENTED = {
     modeFor = function(key)
         local full = key == "Full"
         local chance = full and 1 / 10 or 1 / 20
-        return { key = key, kc = full and "KC" or nil, rolls = { { chance = chance, items = { [1] = 1 } } } }
+        return {
+            key = key,
+            kc = full and "KC" or nil,
+            rolls = { { chance = chance, items = { [1] = 1 } } },
+        }
     end,
     extraKills = "partial",
     items = { [1] = { kind = "unique" } },

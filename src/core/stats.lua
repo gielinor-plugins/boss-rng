@@ -140,8 +140,11 @@ local function grouped(boss, items, shareOf)
             row.expected = row.expected + item.expected
             row.received = row.received + item.received
             row.allTime = item.allTime and row.allTime and row.allTime + item.allTime
-            if row.dryKills == nil or item.dryKills < row.dryKills
-                or (item.dryKills == row.dryKills and not item.dryAtLeast) then
+            if
+                row.dryKills == nil
+                or item.dryKills < row.dryKills
+                or (item.dryKills == row.dryKills and not item.dryAtLeast)
+            then
                 row.dryKills, row.dryAtLeast, streak = item.dryKills, item.dryAtLeast, itemID
             end
             items[itemID] = nil
@@ -172,7 +175,9 @@ local function allTimeTotals(boss, allTime)
             totals.received = totals.received + count
         end
     end
-    table.sort(totals.stacks, function(a, b) return a.word < b.word end)
+    table.sort(totals.stacks, function(a, b)
+        return a.word < b.word
+    end)
     return totals
 end
 
@@ -197,7 +202,8 @@ function stats.ForBoss(entry)
     local rates = ratesTable(boss, entry.readings or {})
     local modes = modesOf(boss, tallies)
 
-    local result = { kills = 0, extraKills = 0, extraLabel = boss.extraKills, unit = boss.unit, items = {} }
+    local result =
+        { kills = 0, extraKills = 0, extraLabel = boss.extraKills, unit = boss.unit, items = {} }
     local expected = {} -- by item id
     local countedExpected = 0 -- over kills in the kill counts
     eachKill(modes, tallies.kills, function(mode, day, kills)

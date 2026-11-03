@@ -14,13 +14,21 @@ local byVar, list = {}, {}
 -- Returns a function to call with each kill's count.
 function claims.Add(base, mask, report)
     local claim = {
-        base = base, mask = mask, shift = bits.LowestBit(mask), report = report,
-        seen = 0, trusted = false, kills = 0, rises = 0,
+        base = base,
+        mask = mask,
+        shift = bits.LowestBit(mask),
+        report = report,
+        seen = 0,
+        trusted = false,
+        kills = 0,
+        rises = 0,
     }
     byVar[base.id] = byVar[base.id] or {}
     table.insert(byVar[base.id], claim)
     table.insert(list, claim)
-    return function(count) claim.kills = claim.kills + count end
+    return function(count)
+        claim.kills = claim.kills + count
+    end
 end
 
 -- Passes a counted claim to queue(report, held).
@@ -31,7 +39,9 @@ function claims.OnVar(id, old, new, queue)
             claim.seen, claim.rises = claim.seen + to - from, claim.rises + 1
         elseif from > 0 and to == 0 then
             if claim.trusted and claim.seen == from then
-                queue(function(count) claim.report(old, count) end, from)
+                queue(function(count)
+                    claim.report(old, count)
+                end, from)
             end
             claim.seen, claim.trusted = 0, true
         end

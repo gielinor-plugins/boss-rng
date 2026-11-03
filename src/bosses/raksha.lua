@@ -30,8 +30,14 @@ return {
     items = {
         [BOOTS] = { log = VARS.log .. "DINO_SLAYER_RANGED_BOOTS", kind = "unique" },
         [SPIKE] = { log = VARS.log .. "DINO_BOSS_BOOTS_ATTACHMENT", kind = "unique" },
-        [RICOCHET] = { log = VARS.log .. "COMBATV2_ABILITY_CODEX_RANGED_GREATER_RICOCHET", kind = "unique" },
-        [CHAIN] = { log = VARS.log .. "COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CHAIN", kind = "unique" },
+        [RICOCHET] = {
+            log = VARS.log .. "COMBATV2_ABILITY_CODEX_RANGED_GREATER_RICOCHET",
+            kind = "unique",
+        },
+        [CHAIN] = {
+            log = VARS.log .. "COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CHAIN",
+            kind = "unique",
+        },
         [DIVERT] = { log = VARS.log .. "COMBATV2_ABILITY_CODEX_DEFENCE_DIVERT", kind = "unique" },
         [51101] = { kind = "pet" }, -- Raklette
     },

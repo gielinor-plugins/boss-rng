@@ -8,7 +8,8 @@ local GWD_HILT = (1 - 1 / 64) / 512
 
 -- A God Wars 2 boss's table item, crest and essence rates by mode, with own over them.
 local function godWars2(own)
-    local values = { normal = 1 / 256, normalEssence = 1 / 64, hard = 1 / 179, hardEssence = 1 / 44 }
+    local values =
+        { normal = 1 / 256, normalEssence = 1 / 64, hard = 1 / 179, hardEssence = 1 / 44 }
     for name, value in pairs(own or {}) do
         values[name] = value
     end
@@ -21,19 +22,34 @@ return {
     rates = {
         amascut = { -- each roll's chance: normal mode, then each enrage tier
             armorShare = 3 / 4, -- of each gear roll, split over five pieces (weapons get the rest)
-            gear = 1 / 600, nexus = 1 / 750,
-            gear100 = 1 / 70, nexus100 = 1 / 280, shard100 = 1 / 280,
-            gear500 = 1 / 60, nexus500 = 1 / 240, shard500 = 1 / 240,
-            gear750 = 1 / 50, nexus750 = 1 / 200, shard750 = 1 / 200,
-            gear1000 = 1 / 35, nexus1000 = 1 / 140, shard1000 = 1 / 140,
-            gear2000 = 1 / 25, nexus2000 = 1 / 100, shard2000 = 1 / 100,
+            gear = 1 / 600,
+            nexus = 1 / 750,
+            gear100 = 1 / 70,
+            nexus100 = 1 / 280,
+            shard100 = 1 / 280,
+            gear500 = 1 / 60,
+            nexus500 = 1 / 240,
+            shard500 = 1 / 240,
+            gear750 = 1 / 50,
+            nexus750 = 1 / 200,
+            shard750 = 1 / 200,
+            gear1000 = 1 / 35,
+            nexus1000 = 1 / 140,
+            shard1000 = 1 / 140,
+            gear2000 = 1 / 25,
+            nexus2000 = 1 / 100,
+            shard2000 = 1 / 100,
         },
         araxxi = { soloLegs = 1 / 40, soloAddOns = 1 / 120, duoLegs = 1 / 70, duoAddOns = 1 / 200 },
         barrows = { -- per chest
-            linza = 1 / 96, amulet = 1 / 480,
+            linza = 1 / 96,
+            amulet = 1 / 480,
             -- Each equipment roll: 1 in max(pieceBase - piecePerBrother x brothers, pieceBest),
             -- one roll per brother plus one, up to maxRolls.
-            pieceBase = 450, piecePerBrother = 58, pieceBest = 73, maxRolls = 7,
+            pieceBase = 450,
+            piecePerBrother = 58,
+            pieceBest = 73,
+            maxRolls = 7,
         },
         corp = { sigil = 1 / 256, elixir = 3 / 512 },
         croesus = { armor = 1 / 5400, other = 1 / 5400 }, -- each item, per loot roll
@@ -51,13 +67,22 @@ return {
         raksha = { boots = 1 / 130, other = 1 / 325 },
         rasial = { weapon = 1 / 320, armor = 1 / 128 },
         rots = { table = 1 / 80 },
-        sanctum = { books = 1 / 125, weapons = 1 / 75, hardBooks = 1 / 100, hardWeapons = 1 / 60, hardShard = 1 / 75 },
+        sanctum = {
+            books = 1 / 125,
+            weapons = 1 / 75,
+            hardBooks = 1 / 100,
+            hardWeapons = 1 / 60,
+            hardShard = 1 / 75,
+        },
         shadow_reef = { solo = 1 / 55, duo = 1 / 111, trio = 1 / 166 }, -- any crossbow piece
         solak = { grimoire = 1 / 200, crossbow = 1 / 400, stave = 1 / 500, mushroom = 1 / 500 },
         vindicta = godWars2({ normal = 1 / 255 }),
         vorkath = { -- per chest
-            spike = 1 / 45, codex = 1 / 249,
-            hardSpike = 1 / 15, hardCodex = 1 / 150, hardScale = 1 / 150,
+            spike = 1 / 45,
+            codex = 1 / 249,
+            hardSpike = 1 / 15,
+            hardCodex = 1 / 150,
+            hardScale = 1 / 150,
         },
         zilyana = { other = 1 / 320, crossbow = 1 / 640, hilt = GWD_HILT },
         zuk = { normal = 1 / 100, hard = 1 / 50, sword = 1 / 30, swordNoCheckpoints = 1 / 27 },
