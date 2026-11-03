@@ -31,7 +31,8 @@ Each boss's tallies:
   if the clock couldn't be read.
 - **Mode keys:** short codes set in each boss file: `n` normal, `h` hard mode, or
   the boss's own, such as `e1000` (Amascut's enrage tier), `r12` (Croesus's unique
-  rolls) or `c3f` (Barrows: `c` and the hex bits of the brothers killed).
+  rolls), `hc` (TzKal-Zuk hard mode with checkpoints) or `c3f` (Barrows: `c` and
+  the hex bits of the brothers killed).
 - **Streak keys:** `any` (since any unique) and each unique's item id. A drop resets
   its item's streak and `any`.
 

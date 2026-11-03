@@ -153,7 +153,7 @@ local CASES = {
     -- Three loot piles, normal then hard mode.
     { file = "kerapac", items = 7, modes = { "n3", "h3" }, rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
         hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 } },
-    -- Hard mode before the stones are read: 1/27 for any sword piece.
+    -- Hard mode without checkpoints: 1/27 for any sword piece.
     { file = "zuk", items = 7, rates = { [52530] = 1 / 100, [52492] = 1 / 100 },
         hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 } },
 }
@@ -232,25 +232,26 @@ end)
 
 describe("TzKal-Zuk's checkpoints", function()
     local boss = require("src/bosses/zuk")
-    local function pieceChance(stones, normalKills, hardKills)
-        local readings = { stones = stones, normalKills = normalKills, hardKills = hardKills }
-        return luck.ItemChances(stats.Rolls(boss, boss.modes[2], readings))[52505] * 3
+    local event = boss.killEvents[1]
+
+    local function pieceChance(key)
+        return luck.ItemChances(stats.Rolls(boss, boss.modeFor(key), {}))[52505] * 3
     end
 
-    it("takes the share of runs without checkpoints from the Igneous stones", function()
-        assert.are.near(1 / 27, pieceChance(107, 8, 99), 1e-12)
-        assert.are.near(1 / 30, pieceChance(0, 8, 99), 1e-12)
-        assert.are.near(0.5 / 27 + 0.5 / 30, pieceChance(50, 0, 100), 1e-12)
+    it("counts a hard mode kill by whether an Igneous stone came in its tick", function()
+        assert.are.equal("BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE", event.var)
+        assert.are.equal("h", event.mode({ stone = true, stones = 109 }))
+        assert.are.equal("hc", event.mode({ stone = false, stones = 109 }))
+        assert.are.equal("h", event.mode({ stone = false, stones = 250 })) -- the log is full
+        assert.are.near(1 / 27, pieceChance("h"), 1e-12)
+        assert.are.near(1 / 30, pieceChance("hc"), 1e-12)
+        assert.are.equal("BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE", boss.modeFor("hc").kc)
     end)
 
-    it("only assumes how checkpoints split between modes when the stones can't tell", function()
-        local function notes(stones, normalKills, hardKills)
-            return #assumptions(boss, { stones = stones, normalKills = normalKills, hardKills = hardKills })
-        end
-        assert.are.equal(0, notes(107, 8, 99)) -- every run without checkpoints
-        assert.are.equal(0, notes(0, 8, 99)) -- every run with them
-        assert.are.equal(0, notes(50, 0, 100)) -- hard mode only
-        assert.are.equal(1, notes(60, 8, 99))
+    it("assumes no checkpoints only once the stone log is full", function()
+        assert.are.equal(0, #assumptions(boss, {}))
+        assert.are.equal(0, #assumptions(boss, { stones = 249 }))
+        assert.are.equal(1, #assumptions(boss, { stones = 250 }))
     end)
 end)
 

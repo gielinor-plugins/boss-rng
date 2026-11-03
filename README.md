@@ -21,7 +21,8 @@ Only information the game already shows you:
 - **What sets a kill's rates**, read as it happens: Amascut's enrage and loot
   piles, Kerapac's loot piles (the ones you own as they land), Croesus
   contribution, elite dungeon team size, Araxxi's duo, the Barrows brothers
-  killed, and Vorkath chests opened.
+  killed, Vorkath chests opened, and whether a TzKal-Zuk run gave an Igneous
+  stone (no checkpoints).
 - **The date**, from the game clock, so each kill uses the drop rates at the time.
 
 It never reads hidden values such as bad luck mitigation, and never acts in the

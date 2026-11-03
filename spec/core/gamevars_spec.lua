@@ -135,6 +135,25 @@ describe("gamevars", function()
         assert.are.same({ "Score 7" }, reports)
     end)
 
+    it("tells a kill event whether a varbit rose in its tick", function()
+        gamevars.Stop()
+        local evented = {
+            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            items = {},
+            killEvents = { { var = "KC_NORMAL", reads = {}, rises = { stone = "LOG_SHARED" }, mode = function(values)
+                return values.stone and "Stone" or "None"
+            end } },
+            modeFor = function(key) return { key = key } end,
+        }
+        gamevars.Start({ evented }, function(_, mode) table.insert(reports, mode.key) end, function() end)
+        advance(1)
+        send(KC_VAR, 1, 2)
+        change(LOG_VAR, 0, 0x010000) -- in the kill's tick, after it
+        change(LOG_VAR, 0x010000, 0x020000) -- alone, as from another mode's kill
+        change(KC_VAR, 2, 3)
+        assert.are.same({ "Stone", "None" }, reports)
+    end)
+
     it("gives a kill event the piles the player owns that gained a watched item in its tick", function()
         gamevars.Stop()
         local evented = {

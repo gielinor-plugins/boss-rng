@@ -1,6 +1,6 @@
 # TzKal-Zuk
 
-Source: [RuneScape Wiki](https://runescape.wiki/w/TzKal-Zuk) (CC BY-NC-SA 3.0), checked 28 October 2026.
+Source: [RuneScape Wiki](https://runescape.wiki/w/TzKal-Zuk) (CC BY-NC-SA 3.0), checked 2 November 2026.
 
 ## Drop rates
 
@@ -15,10 +15,12 @@ Pieces drop in order (a random one, then the other two), so they're one row.
 ## How kills are counted
 
 - A solo fight.
-- Every run without checkpoints, in either mode, gives an Igneous stone, so your
-  stones' share of your kills sets the hard mode piece rate.
-- Stones don't say the mode. When that matters (some runs used checkpoints),
-  checkpoints are assumed used as often in both modes (the Info tab says so).
+- A run without checkpoints, in either mode, gives an Igneous stone in the kill's
+  tick. Each hard mode kill is saved as `h` (no checkpoints) if the stone's log
+  count rose in its tick, or `hc` (checkpoints) if not. Normal mode is `n`: its
+  rates don't depend on checkpoints.
+- The boss log counts at most 250 stones. After that a kill can't show one, so
+  it counts as `h`: those players have mastered the fight. The Info tab says so.
 
 ## Vars read
 
@@ -26,8 +28,18 @@ Pieces drop in order (a random one, then the other two), so they're one row.
 |---|---|
 | `BSLAY_KILLS_EGWD_FUL_BOSS` | Normal mode kill count. |
 | `BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE` | Hard mode kill count. |
-| `ITEMLOG_ITEM_EGWD_FUL_BOSS_INFERNAL_STONE` | Igneous stones: runs without checkpoints. |
+| `ITEMLOG_ITEM_EGWD_FUL_BOSS_INFERNAL_STONE` | Igneous stones: a rise in a hard mode kill's tick means no checkpoints. |
 | `ITEMLOG_ITEM_EGWD_FUL_<ITEM>` | Boss log count each: `BOSS_MELEE_WEAPON_TOP`, `_MIDDLE`, `_BOTTOM` (Ek-ZekKil pieces), `BOOK_UNLOCK_TOKEN` (scripture). The codex's is `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_MAGMA_TEMPEST`. |
+
+## Tests
+
+In game on 2 November 2026 by the developer, logging each change to the kill
+counts, the boss log counts and the encounter progress, and the reward chest
+updating, with the game tick.
+
+| Test | Seen |
+|---|---|
+| Hard mode, no checkpoints, looted after the kill | The stone's log count (108 to 109) and the hard mode kill count (100 to 101) rose in the same tick. The chest updated through the fight and again after; looting changed no count. |
 
 ## Not counted
 

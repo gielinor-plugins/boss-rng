@@ -22,10 +22,11 @@
 --   pooledBy     set below: a unique listed by more than one boss has one log count, so a drop
 --                counts for the boss killed last (see tracker.AddDrops)
 --   reads        { [key] = var }: each value is passed in readings under key (nil until read)
---   killEvents   a list of { var, mask, reads, lasts, piles, mode }: when var (or its mask bits)
+--   killEvents   a list of { var, mask, reads, lasts, rises, piles, mode }: when var (or its mask bits)
 --                rises, mode(values) gives the kill's mode key, or nil to leave it uncounted. lasts =
 --                { [key] = varbit } gives its last value above 0 since the previous kill (for values
---                the game resets at the kill, like Croesus's contribution). piles = { item ids }
+--                the game resets at the kill, like Croesus's contribution). rises = { [key] = varbit }
+--                gives true if it rose in the kill's tick (Zuk's Igneous stones). piles = { item ids }
 --                gives values.piles: the player's loot piles that gained one in the kill's tick
 --                (see src/core/piles.lua)
 --   modeFor      function(key): an event's mode; kc nil means outside the kill count

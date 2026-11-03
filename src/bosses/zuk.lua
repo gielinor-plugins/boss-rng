@@ -1,6 +1,7 @@
--- TzKal-Zuk. A solo fight. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28.
--- Hard mode sword pieces are likelier without checkpoints. Every run without them, in
--- either mode, gives an Igneous stone, so stones count those runs, though not by mode.
+-- TzKal-Zuk. A solo fight. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-11-02.
+-- Hard mode sword pieces are likelier in a run without checkpoints. Such a run, in
+-- either mode, gives an Igneous stone in the kill's tick, so each hard mode kill is
+-- counted by whether the stone's log count rose with it (tested: docs/bosses/zuk.md).
 
 local common = require("src/bosses/common")
 
@@ -15,50 +16,49 @@ local VARS = {
 local BLADE, CORE, HILT = 52505, 52507, 52509
 local CODEX, SCRIPTURE = 52530, 52492
 local SWORD = { name = "Sword pieces" }
-
--- Share of hard mode kills without checkpoints: stones over all kills (1 until read).
-local function noCheckpointShare(readings)
-    local kills = (readings.normalKills or 0) + (readings.hardKills or 0)
-    if readings.stones == nil or kills == 0 then
-        return 1
-    end
-    return math.min(readings.stones / kills, 1)
-end
-
--- True if the stones can't tell: some kills used checkpoints and some stones could be
--- from either mode.
-local function unclear(readings)
-    if readings.stones == nil then
-        return false
-    end
-    local fewest = math.max(0, readings.stones - readings.normalKills)
-    local most = math.min(readings.stones, readings.hardKills)
-    return fewest < most and readings.stones < readings.normalKills + readings.hardKills
-end
+local STONE_CAP = 250 -- the boss log counts no more Igneous stones
 
 local function books(chance)
     return { { chance = chance, items = { [CODEX] = 1 } }, { chance = chance, items = { [SCRIPTURE] = 1 } } }
 end
 
-local function hardRolls(r, readings)
-    local share = noCheckpointShare(readings)
-    local rolls = books(r.hard)
-    table.insert(rolls, 1, {
-        chance = share * r.swordNoCheckpoints + (1 - share) * r.sword,
-        items = common.Even({ BLADE, CORE, HILT }),
-    })
-    return rolls
+-- Hard mode's rolls, with a sword piece at the rate named sword.
+local function hardRolls(sword)
+    return function(r)
+        local rolls = books(r.hard)
+        table.insert(rolls, 1, { chance = r[sword], items = common.Even({ BLADE, CORE, HILT }) })
+        return rolls
+    end
+end
+
+-- Hard mode without and with checkpoints. Keys are saved: never change them.
+local HARD = {
+    h = { key = "h", kc = VARS.kcHard, byEvent = true, rolls = hardRolls("swordNoCheckpoints") },
+    hc = { key = "hc", kc = VARS.kcHard, rolls = hardRolls("sword") },
+}
+
+-- A hard mode kill without checkpoints gave a stone in its tick, unless the log is full.
+local function hardKill(values)
+    return (values.stone or values.stones >= STONE_CAP) and "h" or "hc"
 end
 
 return {
     key = "zuk", -- saved data key: never change it
     name = "TzKal-Zuk",
-    reads = { stones = VARS.stones, normalKills = VARS.kc, hardKills = VARS.kcHard },
+    reads = { stones = VARS.stones },
     assumptions = function(readings)
-        return unclear(readings) and { "Checkpoints used as often in both modes" } or {}
+        local full = (readings.stones or 0) >= STONE_CAP
+        return full and { "Runs after 250 Igneous stones count as checkpoint-free" } or {}
     end,
 
-    modes = common.Modes(VARS, function(r) return books(r.normal) end, hardRolls),
+    modes = {
+        { key = "n", kc = VARS.kc, rolls = function(r) return books(r.normal) end },
+        HARD.h,
+    },
+    killEvents = {
+        { var = VARS.kcHard, reads = { stones = VARS.stones }, rises = { stone = VARS.stones }, mode = hardKill },
+    },
+    modeFor = function(key) return HARD[key] end,
 
     items = {
         [BLADE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_TOP", kind = "unique", group = SWORD },

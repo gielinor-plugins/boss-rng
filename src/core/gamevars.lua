@@ -25,7 +25,7 @@ local SETTLE_TICKS = 5 * 50
 local MAX_CHANGE = 3
 
 local watched = {} -- [base var id] = slices to check when that var changes
-local pending = { kills = {}, drops = {} } -- changes waiting for the next tick
+local pending = { rises = {}, kills = {}, drops = {} } -- changes waiting for the next tick
 local tick = 0
 local readyAtTick = nil -- nil while not in the game
 local onReady = nil -- called once vars can be trusted after entering the game
@@ -35,6 +35,8 @@ local killedThisSession = {} -- [boss] = true once a kill is reported since ente
 -- [base var id] = { name, keep(value) }: values the game resets at the kill (see
 -- lasts in src/bosses.lua), kept at their last value above 0.
 local lasts = {}
+
+local risen = {} -- each kill event's rises (see src/bosses.lua) seen this tick
 
 local function queueKill(report, change)
     table.insert(pending.kills, { report = report, change = change })
@@ -137,13 +139,19 @@ end
 
 -- A tick's kill and drop can arrive in either order (at Kree'arra the drop came
 -- first), so kills are reported first: a drop counts after the kill it landed with.
+-- Rises come before both, so a kill event sees what rose in its tick.
 local function flush()
     containers.EndTick(queueKill)
-    for _, group in ipairs({ "kills", "drops" }) do
+    for _, group in ipairs({ "rises", "kills", "drops" }) do
         for _, item in ipairs(pending[group]) do
             safe.Call("recording " .. group, item.report, item.change)
         end
         pending[group] = {}
+    end
+    for _, rose in ipairs(risen) do
+        for key in pairs(rose) do
+            rose[key] = nil
+        end
     end
 end
 
@@ -220,7 +228,7 @@ end
 
 -- The mode a kill event or claim says the kill was (see src/bosses.lua), given a
 -- claim var's old value, or nil if a value can't be read or it gives none.
-local function eventMode(boss, event, old, kept)
+local function eventMode(boss, event, old, kept, rose)
     local values = {}
     for key, name in pairs(event.reads) do
         values[key] = value(name)
@@ -230,6 +238,9 @@ local function eventMode(boss, event, old, kept)
     end
     for key in pairs(event.lasts or {}) do
         values[key] = kept[key] -- nil if none was seen
+    end
+    for key in pairs(event.rises or {}) do
+        values[key] = rose[key] == true
     end
     if event.piles then
         values.piles = piles.Count()
@@ -268,8 +279,13 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
                     print("[Boss RNG] Unknown varbit " .. name)
                 end
             end
+            local rose = {} -- each of event.rises that rose this tick
+            table.insert(risen, rose)
+            for key, name in pairs(event.rises or {}) do
+                watch(name, "rises", function() rose[key] = true end)
+            end
             watch(event.var, "kills", function()
-                local mode = eventMode(boss, event, nil, kept)
+                local mode = eventMode(boss, event, nil, kept, rose)
                 for key in pairs(kept) do
                     kept[key] = nil
                 end
@@ -333,11 +349,11 @@ function gamevars.Stop()
     Event.InventoryUpdated.Unsubscribe(REF)
     Event.ObjStackEntityAdded.Unsubscribe(REF)
     Event.ObjStackEntityChanged.Unsubscribe(REF)
-    watched, lasts = {}, {}
+    watched, lasts, risen = {}, {}, {}
     claims.Clear()
     containers.Clear()
     piles.Clear()
-    pending = { kills = {}, drops = {} }
+    pending = { rises = {}, kills = {}, drops = {} }
     readyAtTick = nil
     onReady, announced, killedThisSession = nil, false, {}
 end
