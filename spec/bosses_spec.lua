@@ -288,6 +288,12 @@ local CASES = {
         rates = { [52530] = 1 / 100, [52492] = 1 / 100 },
         hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 },
     },
+    -- Hard mode only, a streak's first kill at 0% enrage: any unique 1,525 in a million.
+    {
+        file = "archglacor",
+        items = 13,
+        rates = { [52020] = 1525 / 1e6 * 0.24, [52115] = 1525 / 1e6 * 0.38, [52019] = 1 / 100 },
+    },
 }
 
 local function modeKeyed(boss, key)
@@ -393,6 +399,56 @@ describe("TzKal-Zuk's checkpoints", function()
         assert.are.equal(0, #assumptions(boss, {}))
         assert.are.equal(0, #assumptions(boss, { stones = 249 }))
         assert.are.equal(1, #assumptions(boss, { stones = 250 }))
+    end)
+end)
+
+describe("the pontifex shadow ring", function()
+    local zuk = require("src/bosses/zuk")
+
+    -- Each Elder God Wars Dungeon boss's mode, and items the ring doesn't raise.
+    local BOSSES = {
+        { file = "zuk", mode = "h" },
+        { file = "kerapac", mode = "h3" },
+        { file = "croesus", mode = "r12" },
+        { file = "archglacor", mode = "h", unraised = { [52019] = true } }, -- dark nilas
+    }
+
+    it("raises every Elder God Wars Dungeon unique 2% once overcharged", function()
+        for _, case in ipairs(BOSSES) do
+            local boss = require("src/bosses/" .. case.file)
+            local mode = boss.modeFor(case.mode)
+            local plain = luck.ItemChances(stats.Rolls(boss, mode, { ring = 0 }))
+            local raised = luck.ItemChances(stats.Rolls(boss, mode, { ring = 1 }))
+            for itemID, chance in pairs(plain) do
+                local expected = (case.unraised or {})[itemID] and chance or chance / 0.98
+                assert.are.near(expected, raised[itemID], 1e-12)
+            end
+        end
+        assert.are.near(
+            1 / 49,
+            luck.ItemChances(stats.Rolls(zuk, zuk.modeFor("h"), { ring = 1 }))[52492],
+            1e-12
+        )
+    end)
+end)
+
+describe("Arch-Glacor's streaks", function()
+    local boss = require("src/bosses/archglacor")
+    local hard = boss.modeFor("h")
+
+    it("notes that a claim's dark nilas count as one drop", function()
+        assert.are.same({ "A claim's dark nilas count as one drop" }, assumptions(boss, {}))
+    end)
+
+    it("rates each kill by the fight's enrage and its place in the streak", function()
+        local event = boss.killEvents[1]
+        assert.are.equal("BSLAY_KILLS_EGWD_WEN_BOSS_HARDMODE", event.var)
+        assert.are.same({ "enrage", "streak" }, event.sums)
+        assert.are.equal(hard, boss.modeFor(event.mode({})))
+        local means = { enrage = 4000, streak = 200 } -- the most: any unique 66,500 in a million
+        local chances = luck.ItemChances(stats.Rolls(boss, hard, { ring = 1 }, nil, means))
+        assert.are.near(66500 / 1e6 * 0.38 / 0.98, chances[52021], 1e-12) -- the Leng artefact
+        assert.are.near(66500 / 1e6 * 0.24 / 0.98, chances[52020], 1e-12) -- the Frozen core
     end)
 end)
 

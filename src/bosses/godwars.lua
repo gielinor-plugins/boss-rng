@@ -3,6 +3,7 @@
 -- hilt roll, so a kill gives at most one. Hard mode has the same rates.
 
 local common = require("src/bosses/common")
+local tables = require("src/utils/tables")
 
 local godwars = {}
 
@@ -22,12 +23,7 @@ local SHARDS = {
 -- Its own items, the shards, and its god's Warpriest set ({ [piece] = item id }, logs
 -- log .. piece), shared since other monsters of that god drop it too.
 function godwars.Items(own, log, warpriest)
-    local items = {}
-    for _, source in ipairs({ own, SHARDS }) do
-        for itemID, item in pairs(source) do
-            items[itemID] = item
-        end
-    end
+    local items = tables.Merge(own, SHARDS)
     for piece, itemID in pairs(warpriest) do
         items[itemID] = { log = log .. piece, kind = "shared" }
     end

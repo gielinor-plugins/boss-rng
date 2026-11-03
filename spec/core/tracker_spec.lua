@@ -12,6 +12,7 @@ local BOSS = {
 }
 local DAY, NEXT_DAY = 20756, 20757
 local DRY_KEYS = { "any", "101", "102" } -- the boss's streak and each unique's
+local EMPTY = require("src/core/tallies").Empty()
 
 describe("tracker", function()
     local tracker
@@ -42,6 +43,16 @@ describe("tracker", function()
         local saved = mock.Saved("char:Tester")
         assert.are.equal(6, saved.version)
         assert.are.same({ n = "20756:1,20757:1", h = "20756:2" }, saved.bosses.testboss.kills)
+    end)
+
+    it("adds up a kill's sums per mode and day, and averages them", function()
+        tracker.AddKills(BOSS, HARD, 1, DAY, { enrage = 0, streak = 1 })
+        tracker.AddKills(BOSS, HARD, 1, DAY, { enrage = 10, streak = 2 })
+        reload() -- through saving
+        local tallies = tracker.Tallies(BOSS)
+        assert.are.same({ enrage = 5, streak = 1.5 }, tracker.Means(tallies, "h", DAY))
+        assert.is_nil(tracker.Means(tallies, "n", DAY))
+        assert.are.same({ h = "20756:10" }, mock.Saved("char:Tester").bosses.testboss.sums.enrage)
     end)
 
     it("counts a dry streak for the boss and for each unique", function()
@@ -143,7 +154,7 @@ describe("tracker", function()
     it("starts again from another version", function()
         mock.SetSaved("char:Tester", { version = 3, bosses = { testboss = { kills = { n = 4 } } } })
         reload()
-        assert.are.same({ kills = {}, dryFrom = {}, items = {} }, tracker.Tallies(BOSS))
+        assert.are.same(EMPTY, tracker.Tallies(BOSS))
     end)
 
     it(
@@ -213,7 +224,7 @@ describe("tracker", function()
         mock.Reset(true)
         mock.inGame = true
         reload()
-        assert.are.same({ kills = {}, dryFrom = {}, items = {} }, tracker.Tallies(BOSS))
+        assert.are.same(EMPTY, tracker.Tallies(BOSS))
         assert.is_nil(tracker.LastBossKey())
     end)
 
@@ -228,7 +239,7 @@ describe("tracker", function()
     it("keeps characters separate", function()
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         mock.characterName = "Other"
-        assert.are.same({ kills = {}, dryFrom = {}, items = {} }, tracker.Tallies(BOSS))
+        assert.are.same(EMPTY, tracker.Tallies(BOSS))
         tracker.AddKills(BOSS, NORMAL, 5, DAY)
         mock.characterName = "Tester"
         assert.are.equal(1, tracker.Total(tracker.Tallies(BOSS).kills))

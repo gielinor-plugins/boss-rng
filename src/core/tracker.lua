@@ -86,12 +86,16 @@ tracker.Total = tallies.Total
 -- A dry streak's kills; key is ANY or an item id as text.
 tracker.Dry = tallies.Dry
 
--- Adds kills. Dry streaks are read as the kills since their start, so they need no change.
-function tracker.AddKills(boss, mode, count, day)
+-- The averages of a mode's sums over its kills on a day, or nil.
+tracker.Means = tallies.Means
+
+-- Adds kills, and their sums (or nil). Dry streaks are read as the kills since their
+-- start, so they need no change.
+function tracker.AddKills(boss, mode, count, day, sums)
     if not load() then
         return
     end
-    tallies.AddKills(talliesFor(boss).kills, mode.key, day, count)
+    tallies.AddKills(talliesFor(boss), mode.key, day, count, sums)
     record.lastBoss = boss.key
     save()
 end

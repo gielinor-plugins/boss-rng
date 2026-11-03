@@ -1,8 +1,10 @@
 -- Croesus. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. Unique rolls rise
 -- with contribution. Each kill counts at the player's last contribution before it (the
--- game resets it after), so its rolls are exact.
+-- game resets it after), so its rolls are exact. The pontifex shadow ring raises every
+-- unique (src/bosses/egwd.lua).
 
 local common = require("src/bosses/common")
+local egwd = require("src/bosses/egwd")
 
 local VARS = {
     kc = "BSLAY_KILLS_EGWD_BIK_BOSS",
@@ -44,7 +46,8 @@ end
 -- Modes by unique rolls ("r12"). Keys are saved: never change them.
 local MODES = {}
 for n = 0, 12 do
-    MODES["r" .. n] = { key = "r" .. n, kc = VARS.kc, byEvent = true, rolls = rolls(n) }
+    MODES["r" .. n] =
+        { key = "r" .. n, kc = VARS.kc, byEvent = true, rolls = egwd.Boosted(rolls(n)) }
 end
 
 -- A kill's mode from the player's contribution, or nil if none was seen.
@@ -64,6 +67,7 @@ end
 return {
     key = "croesus", -- saved data key: never change it
     name = "Croesus",
+    reads = egwd.Reads(),
     assumptions = {},
 
     modes = { MODES.r12 }, -- counted only through its kill event

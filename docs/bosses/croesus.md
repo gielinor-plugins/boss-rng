@@ -32,11 +32,16 @@ croesus = {
 }
 ```
 
+- The overcharged pontifex shadow ring raises every unique 2%
+  (`src/bosses/egwd.lua`). If it isn't overcharged, the plugin can't see it, so it's
+  assumed not worn.
+
 ## Vars read
 
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_EGWD_BIK_BOSS` | Kill count. |
+| `EGWD_PONTIFEX_RING_PASSIVE_UNLOCKED` | 1 once the pontifex shadow ring is overcharged. |
 | `EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION` | Your contribution, rising through the fight (11 bits of `EGWD_BIK_BOSS_TEMP_1`). |
 | `ITEMLOG_ITEM_EGWD_BIK_<ITEM>` | Boss log count each, e.g. `BOSS_MAGIC_HELM`, `BOSS_OFFHAND_MINING` (Sporehammer), `BOSS_SEED_STORAGE_UNIQUE` (Spore sack), `BOOK_UNLOCK_TOKEN` (scripture). |
 

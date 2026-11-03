@@ -2,9 +2,11 @@
 -- three loot piles, split by damage (solo all three, duo two and one, trio one each), and
 -- each rolls for a unique; staff pieces drop in sequence, so they're one group. Each kill
 -- counts the player's piles, seen as the ground stacks they own that gain Resonant anima
--- of Jas at the kill (tested: docs/bosses/kerapac.md).
+-- of Jas at the kill (tested: docs/bosses/kerapac.md). The pontifex shadow ring raises
+-- every unique (src/bosses/egwd.lua).
 
 local common = require("src/bosses/common")
+local egwd = require("src/bosses/egwd")
 
 local VARS = {
     kc = "BSLAY_KILLS_EGWD_JAS_BOSS",
@@ -42,7 +44,7 @@ local function addPileModes(prefix, kc, pile)
             key = prefix .. count,
             kc = kc,
             piles = count,
-            rolls = function(r)
+            rolls = egwd.Boosted(function(r)
                 local rolls = {}
                 for _ = 1, count do
                     for _, roll in ipairs(pile(r)) do
@@ -50,7 +52,7 @@ local function addPileModes(prefix, kc, pile)
                     end
                 end
                 return rolls
-            end,
+            end),
         }
     end
 end
@@ -74,6 +76,7 @@ end
 return {
     key = "kerapac", -- saved data key: never change it
     name = "Kerapac",
+    reads = egwd.Reads(),
     assumptions = { "Kills you were away for count as 1 loot pile" },
 
     -- Counted only through its kill events, by piles.

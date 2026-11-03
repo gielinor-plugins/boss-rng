@@ -249,6 +249,32 @@ describe("stats.ForBoss", function()
     end)
 end)
 
+describe("stats with sums", function()
+    -- Item 1 at a chance of the day's average "level" in hundredths.
+    local LEVELLED = {
+        modes = {
+            {
+                key = "n",
+                kc = "KC",
+                rolls = function(_, _, means)
+                    return { { chance = means.level / 100, items = { [1] = 1 } } }
+                end,
+            },
+        },
+        items = { [1] = { kind = "unique" } },
+    }
+
+    it("rates each day's kills at the averages of their sums", function()
+        local t = {
+            kills = { n = { [tostring(DAY)] = 2, [tostring(DAY + 1)] = 4 } },
+            sums = { level = { n = { [tostring(DAY)] = 2, [tostring(DAY + 1)] = 20 } } },
+            dryFrom = {},
+            items = {},
+        }
+        assert.are.near(2 * 1 / 100 + 4 * 5 / 100, forBoss(LEVELLED, t).expected, 1e-12)
+    end)
+end)
+
 describe("stats with rates that changed", function()
     local CHANGE = DAY + 10
     -- Item 1 at 1/10 before CHANGE, 1/5 from it.

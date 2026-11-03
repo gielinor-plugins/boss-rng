@@ -19,6 +19,9 @@ Pieces drop in order (a random one, then the other two), so they're one row.
   tick. Each hard mode kill is saved as `h` (no checkpoints) if the stone's log
   count rose in its tick, or `hc` (checkpoints) if not. Normal mode is `n`: its
   rates don't depend on checkpoints.
+- The overcharged pontifex shadow ring raises every unique 2%
+  (`src/bosses/egwd.lua`). If it isn't overcharged, the plugin can't see it, so it's
+  assumed not worn.
 - The boss log counts at most 250 stones. After that a kill can't show one, so
   it counts as `h`: those players have mastered the fight. The Info tab says so.
 
@@ -29,6 +32,7 @@ Pieces drop in order (a random one, then the other two), so they're one row.
 | `BSLAY_KILLS_EGWD_FUL_BOSS` | Normal mode kill count. |
 | `BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE` | Hard mode kill count. |
 | `ITEMLOG_ITEM_EGWD_FUL_BOSS_INFERNAL_STONE` | Igneous stones: a rise in a hard mode kill's tick means no checkpoints. |
+| `EGWD_PONTIFEX_RING_PASSIVE_UNLOCKED` | 1 once the pontifex shadow ring is overcharged. |
 | `ITEMLOG_ITEM_EGWD_FUL_<ITEM>` | Boss log count each: `BOSS_MELEE_WEAPON_TOP`, `_MIDDLE`, `_BOTTOM` (Ek-ZekKil pieces), `BOOK_UNLOCK_TOKEN` (scripture). The codex's is `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_MAGMA_TEMPEST`. |
 
 ## Tests

@@ -153,6 +153,16 @@ describe("format", function()
             })
         )
         assert.are.equal(
+            "All-time: 233 kills · 7 dark nilas · 5 other uniques",
+            format.AllTime({
+                allTime = {
+                    kills = 233,
+                    received = 5,
+                    stacks = { { word = "dark nilas", plural = "dark nilas", count = 7 } },
+                },
+            })
+        )
+        assert.are.equal(
             "All-time: 924 kills · 9 uniques",
             format.AllTime({ allTime = { kills = 924, received = 9 } })
         )

@@ -233,6 +233,59 @@ describe("gamevars", function()
         end
     )
 
+    it("passes a kill event's sums with its kill", function()
+        gamevars.Stop()
+        local evented = {
+            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            items = {},
+            killEvents = {
+                {
+                    var = "KC_NORMAL",
+                    reads = { level = "LOG_SHARED" },
+                    sums = { "level" },
+                    mode = function()
+                        return "n"
+                    end,
+                },
+            },
+            modeFor = function(key)
+                return { key = key }
+            end,
+        }
+        local sums = {}
+        gamevars.Start({ evented }, function(_, _, _, _, s)
+            table.insert(sums, s)
+        end, function() end)
+        mock.SetValue("LOG_SHARED", 7)
+        change(KC_VAR, 1, 2)
+        assert.are.same({ { level = 7 } }, sums)
+    end)
+
+    it("counts drops of loot claimed later only just after the claim", function()
+        gamevars.Stop()
+        local claimed = {
+            modes = { { key = "n", kc = "KC_NORMAL" } },
+            items = { [101] = { log = "LOG_WEAPON", kind = "unique" } },
+            claimedBy = { var = "LOG_SHARED", most = 200 }, -- the streak: 0 once claimed
+        }
+        gamevars.Start({ claimed }, function() end, function(_, itemID, count)
+            table.insert(reports, "drop " .. itemID .. " +" .. count)
+        end)
+        advance(1)
+        change(KC_VAR, 1, 2) -- a kill
+        change(LOG_VAR, 0x010000, 0x010001) -- not claimed: a drop from elsewhere
+        assert.are.same({}, reports)
+        mock.SetValue("LOG_SHARED", 2)
+        send(LOG_VAR, 0x010001, 0x020001) -- the streak goes on
+        mock.SetValue("LOG_SHARED", 0)
+        send(LOG_VAR, 0x020001, 0x000001) -- claimed
+        change(LOG_VAR, 0x000001, 0x000005) -- with four from a long streak
+        assert.are.same({ "drop 101 +4" }, reports)
+        advance(10 * 50)
+        change(LOG_VAR, 0x000005, 0x000006) -- long after
+        assert.are.same({ "drop 101 +4" }, reports)
+    end)
+
     it("can watch bits of a var the game doesn't name as a varbit", function()
         gamevars.Stop()
         local evented = {

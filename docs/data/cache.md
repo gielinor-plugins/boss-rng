@@ -39,7 +39,8 @@ change) and for all when another character loads or every boss is reset.
 ## Also
 
 - `rates.For` builds each boss's rate history once.
-- Each `stats.ForBoss` call keeps rolls and chances per rate version.
+- Each `stats.ForBoss` call keeps rolls and chances per rate version, or per day
+  for a mode with sums that day (Arch-Glacor).
 
 ## Cost
 

@@ -24,6 +24,7 @@ Each boss's tallies:
 | Field | Saved as |
 |---|---|
 | `kills` | `{ [mode key] = "day:n,day:n" }`, days in order |
+| `sums` | `{ [name] = { [mode key] = "day:total,day:total" } }`, only for bosses whose kills carry values (see below) |
 | `dryFrom` | `{ [streak key] = start }` |
 | `items` | `{ [item id] = drops }` |
 
@@ -33,6 +34,10 @@ Each boss's tallies:
   the boss's own, such as `e1000` (Amascut's enrage tier), `r12` (Croesus's unique
   rolls), `hc` (TzKal-Zuk hard mode with checkpoints) or `c3f` (Barrows: `c` and
   the hex bits of the brothers killed).
+- **Sums:** values read at each kill that set its rate, added up by mode and day
+  (`sums` in `src/bosses.lua`). Arch-Glacor saves `enrage` and `streak`; a day's
+  kills use their averages. Saving the values, not the rate, lets rate changes
+  re-rate them.
 - **Streak keys:** `any` (since any unique) and each unique's item id. A drop resets
   its item's streak and `any`.
 

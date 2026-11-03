@@ -3,16 +3,17 @@
 -- which items share a roll, split evenly unless a rate here says otherwise, and
 -- give sources and dates in their header. Rates are per kill unless named otherwise.
 
+local tables = require("src/utils/tables")
+
 -- A God Wars general's hilt: 1/512, rolled only when its 1/64 unique table misses.
 local GWD_HILT = (1 - 1 / 64) / 512
 
 -- A God Wars 2 boss's table item, crest and essence rates by mode, with own over them.
 local function godWars2(own)
-    local values =
-        { normal = 1 / 256, normalEssence = 1 / 64, hard = 1 / 179, hardEssence = 1 / 44 }
-    for name, value in pairs(own or {}) do
-        values[name] = value
-    end
+    local values = tables.Merge(
+        { normal = 1 / 256, normalEssence = 1 / 64, hard = 1 / 179, hardEssence = 1 / 44 },
+        own
+    )
     values.normalCrest, values.hardCrest = values.normal, values.hard
     return values
 end
@@ -39,6 +40,14 @@ return {
             gear2000 = 1 / 25,
             nexus2000 = 1 / 100,
             shard2000 = 1 / 100,
+        },
+        -- Hard mode, any unique a kill: base, plus per enrage % and per kill in the streak.
+        -- Dark nilas on their own roll, whatever the enrage and streak.
+        archglacor = {
+            base = 1500 / 1e6,
+            perEnrage = 15 / 1e6,
+            perStreak = 25 / 1e6,
+            nilas = 1 / 100,
         },
         araxxi = { soloLegs = 1 / 40, soloAddOns = 1 / 120, duoLegs = 1 / 70, duoAddOns = 1 / 200 },
         barrows = { -- per chest

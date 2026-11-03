@@ -10,8 +10,8 @@ function format.Number(n)
 end
 
 -- "1 kill" or "5 kills".
-local function count(n, word)
-    return format.Number(n) .. " " .. word .. (n == 1 and "" or "s")
+local function count(n, word, plural)
+    return format.Number(n) .. " " .. (n == 1 and word or plural or word .. "s")
 end
 
 -- "kill", or the boss's own unit ("chest").
@@ -152,7 +152,7 @@ function format.AllTime(result)
     local parts = { "All-time: " .. count(result.allTime.kills, "kill") }
     local stacks = result.allTime.stacks or {}
     for _, stack in ipairs(stacks) do
-        table.insert(parts, count(stack.count, stack.word))
+        table.insert(parts, count(stack.count, stack.word, stack.plural))
     end
     table.insert(parts, count(result.allTime.received, #stacks > 0 and "other unique" or "unique"))
     return table.concat(parts, " · ")

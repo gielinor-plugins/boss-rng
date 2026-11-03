@@ -4,6 +4,7 @@
 -- are shared by all four bosses, so they aren't counted but still take table chance.
 
 local common = require("src/bosses/common")
+local tables = require("src/utils/tables")
 
 local godwars2 = {}
 
@@ -27,13 +28,7 @@ godwars2.SHARED = {
 }
 
 function godwars2.Items(own)
-    local items = {}
-    for _, source in ipairs({ own, godwars2.SHARED }) do
-        for itemID, item in pairs(source) do
-            items[itemID] = item
-        end
-    end
-    return items
+    return tables.Merge(own, godwars2.SHARED)
 end
 
 return godwars2

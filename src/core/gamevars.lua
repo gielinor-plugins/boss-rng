@@ -24,6 +24,10 @@ local SETTLE_TICKS = 5 * 50
 -- Bigger jumps (like a login sync) and any decrease are ignored.
 local MAX_CHANGE = 3
 
+-- Uniques waiting for a claim (claimedBy in src/bosses.lua) reach the boss log with it;
+-- allow this long after the claim.
+local CLAIM_TICKS = 10 * 50
+
 local watched = {} -- [base var id] = slices to check when that var changes
 local pending = { rises = {}, kills = {}, drops = {} } -- changes waiting for the next tick
 local tick = 0
@@ -31,10 +35,10 @@ local readyAtTick = nil -- nil while not in the game
 local onReady = nil -- called once vars can be trusted after entering the game
 local announced = false -- whether onReady was called since entering the game
 local killedThisSession = {} -- [boss] = true once a kill is reported since entering the game
+local claimedAt = {} -- [boss] = tick its loot was last claimed (claimedBy in src/bosses.lua)
 
--- [base var id] = { name, keep(value) }: values the game resets at the kill (see
--- lasts in src/bosses.lua), kept at their last value above 0.
-local lasts = {}
+-- [base var id] = { name, update(value) }: varbits read after each change of their base var.
+local followed = {}
 
 local risen = {} -- each kill event's rises (see src/bosses.lua) seen this tick
 
@@ -49,6 +53,18 @@ end
 
 local function isReady()
     return readyAtTick ~= nil and tick >= readyAtTick
+end
+
+-- Calls update(value) with a varbit's value after each change of its base var.
+local function follow(name, update)
+    local found = var.VarPlayer[name]
+    local base = found and found.baseVar
+    if base == nil then
+        print("[Boss RNG] Unknown varbit " .. name)
+        return
+    end
+    followed[base.id] = followed[base.id] or {}
+    table.insert(followed[base.id], { name = name, update = update })
 end
 
 -- Watches a varbit by name, or mask bits of a var; report(change) gets each rise of
@@ -105,10 +121,10 @@ local function onVarTransmit(event)
             table.insert(pending[slice.group], { report = slice.report, change = change })
         end
     end
-    for _, last in ipairs(lasts[event.var.id] or {}) do
-        local now = value(last.name)
-        if now and now > 0 then
-            last.keep(now)
+    for _, entry in ipairs(followed[event.var.id] or {}) do
+        local now = value(entry.name)
+        if now then
+            entry.update(now)
         end
     end
     if isReady() then
@@ -254,19 +270,42 @@ local function eventMode(boss, event, old, kept, rose)
         values.piles = piles.Count()
     end
     local key = event.mode(values, old)
-    return key and boss.modeFor(key)
+    return key and boss.modeFor(key), values
+end
+
+-- The values a kill event adds up by day (sums in src/bosses.lua), or nil.
+local function sumsOf(event, values)
+    if event.sums == nil then
+        return nil
+    end
+    local sums = {}
+    for _, key in ipairs(event.sums) do
+        sums[key] = values[key]
+    end
+    return sums
+end
+
+-- Whether a boss's unique can drop now: after a kill since entering the game or, for
+-- loot that waits for a claim, just after the claim.
+local function canDrop(boss)
+    if boss.claimedBy then
+        return claimedAt[boss] ~= nil and tick - claimedAt[boss] <= CLAIM_TICKS
+    end
+    return killedThisSession[boss]
 end
 
 -- Reports changes for every boss in bosses on the logic tick after they happen:
---   onKills(boss, mode, count, day)  a KC rise, kill event, opened container or claim
---   onDrops(boss, itemID, count)     a unique's log count rose (a stack's rise is one)
+--   onKills(boss, mode, count, day, sums)  a KC rise, kill event, opened container or
+--                                          claim; sums: a kill event's (or nil)
+--   onDrops(boss, itemID, count)           a unique's log count rose (a stack's rise is one)
 -- and calls ready() each time vars can be trusted. The game can resend log counts long
--- after login as jumps from 0, so only bosses killed this session can have drops.
+-- after login as jumps from 0, so only bosses killed this session, or just claimed,
+-- can have drops.
 function gamevars.Start(bosses, onKills, onDrops, ready)
     onReady = ready
-    local function killed(boss, mode, count)
+    local function killed(boss, mode, count, sums)
         killedThisSession[boss] = true
-        onKills(boss, mode, count, today())
+        onKills(boss, mode, count, today(), sums)
     end
     for _, boss in ipairs(bosses) do
         for _, mode in ipairs(boss.modes) do
@@ -280,19 +319,11 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
             piles.Watch(event.piles or {})
             local kept = {} -- each of event.lasts' last value above 0 since the last kill
             for key, name in pairs(event.lasts or {}) do
-                local found = var.VarPlayer[name]
-                local base = found and found.baseVar
-                if base then
-                    lasts[base.id] = lasts[base.id] or {}
-                    table.insert(lasts[base.id], {
-                        name = name,
-                        keep = function(now)
-                            kept[key] = now
-                        end,
-                    })
-                else
-                    print("[Boss RNG] Unknown varbit " .. name)
-                end
+                follow(name, function(now)
+                    if now > 0 then
+                        kept[key] = now
+                    end
+                end)
             end
             local rose = {} -- each of event.rises that rose this tick
             table.insert(risen, rose)
@@ -302,12 +333,12 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
                 end)
             end
             watch(event.var, "kills", function()
-                local mode = eventMode(boss, event, nil, kept, rose)
+                local mode, values = eventMode(boss, event, nil, kept, rose)
                 for key in pairs(kept) do
                     kept[key] = nil
                 end
                 if mode then
-                    killed(boss, mode, 1)
+                    killed(boss, mode, 1, sumsOf(event, values))
                 end
             end, event.mask)
         end
@@ -336,14 +367,23 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
                 end
             end
         end
+        if boss.claimedBy then
+            local held = 0
+            follow(boss.claimedBy.var, function(now)
+                if isReady() and held > 0 and now == 0 then
+                    claimedAt[boss] = tick
+                end
+                held = now
+            end)
+        end
         for itemID, item in pairs(boss.items) do
             if item.kind == "unique" then -- only items that count toward luck
                 local stack = item.stack and item.stack.most
                 watch(item.log, "drops", function(count)
-                    if killedThisSession[boss] then
+                    if canDrop(boss) then
                         onDrops(boss, itemID, stack and 1 or count)
                     end
-                end, nil, stack)
+                end, nil, stack or (boss.claimedBy and boss.claimedBy.most))
             end
         end
     end
@@ -368,7 +408,7 @@ function gamevars.Stop()
     Event.InventoryUpdated.Unsubscribe(REF)
     Event.ObjStackEntityAdded.Unsubscribe(REF)
     Event.ObjStackEntityChanged.Unsubscribe(REF)
-    watched, lasts, risen = {}, {}, {}
+    watched, followed, risen, claimedAt = {}, {}, {}, {}
     claims.Clear()
     containers.Clear()
     piles.Clear()

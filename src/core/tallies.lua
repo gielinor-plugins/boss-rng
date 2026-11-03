@@ -1,6 +1,8 @@
--- A boss's tallies, { kills, dryFrom, items }, and how they're saved; tracker keeps
+-- A boss's tallies, { kills, sums, dryFrom, items }, and how they're saved; tracker keeps
 -- them up to date. Keys are text, the only kind Jagex's saved data examples use.
 --   kills    { [mode key] = { [day] = kills } } (day 0 when it couldn't be read)
+--   sums     { [name] = { [mode key] = { [day] = total } } }: values a kill event adds
+--            up over each day's kills (sums in src/bosses.lua), for their averages
 --   dryFrom  { [streak key] = start } for each dry streak (the boss's, and each
 --            unique's), read as the kills since its start (tallies.Dry):
 --              (no entry)        from the first tracked kill
@@ -12,14 +14,38 @@
 local tallies = {}
 
 function tallies.Empty()
-    return { kills = {}, dryFrom = {}, items = {} }
+    return { kills = {}, sums = {}, dryFrom = {}, items = {} }
 end
 
-function tallies.AddKills(byMode, modeKey, day, n)
+local function add(byMode, modeKey, day, n)
     local byDay = byMode[modeKey] or {}
     local key = tostring(day)
     byDay[key] = (byDay[key] or 0) + n
     byMode[modeKey] = byDay
+end
+
+-- Adds n kills of a mode on day, and their sums (or nil).
+function tallies.AddKills(t, modeKey, day, n, sums)
+    add(t.kills, modeKey, day, n)
+    for name, total in pairs(sums or {}) do
+        t.sums[name] = t.sums[name] or {}
+        add(t.sums[name], modeKey, day, total)
+    end
+end
+
+-- The averages of a mode's sums over its kills on day, or nil without any.
+function tallies.Means(t, modeKey, day)
+    local key = tostring(day)
+    local kills = (t.kills[modeKey] or {})[key]
+    local means = nil
+    for name, byMode in pairs(t.sums or {}) do
+        local total = (byMode[modeKey] or {})[key]
+        if total and kills then
+            means = means or {}
+            means[name] = total / kills
+        end
+    end
+    return means
 end
 
 function tallies.Total(byMode)
@@ -123,13 +149,28 @@ local function eachMode(byMode, code)
     return result
 end
 
+-- Each sum's modes coded with code.
+local function eachSum(sums, code)
+    local result = {}
+    for name, byMode in pairs(sums) do
+        result[name] = eachMode(byMode, code)
+    end
+    return result
+end
+
 function tallies.Encode(t)
-    return { kills = eachMode(t.kills, encodeDays), dryFrom = t.dryFrom, items = t.items }
+    return {
+        kills = eachMode(t.kills, encodeDays),
+        sums = next(t.sums) and eachSum(t.sums, encodeDays) or nil,
+        dryFrom = t.dryFrom,
+        items = t.items,
+    }
 end
 
 function tallies.Decode(saved)
     return {
         kills = eachMode(saved.kills or {}, decodeDays),
+        sums = eachSum(saved.sums or {}, decodeDays),
         dryFrom = saved.dryFrom or {},
         items = saved.items or {},
     }

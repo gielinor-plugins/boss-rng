@@ -19,33 +19,37 @@ local function valuesOn(boss, day)
     return history and history:On(day) or NO_RATES
 end
 
--- A mode's rolls on a day (nil or 0: today); mode.rolls may be a function of (values, readings).
-function stats.Rolls(boss, mode, readings, day)
+-- A mode's rolls on a day (nil or 0: today); mode.rolls may be a function of (values,
+-- readings, means), means being the day's averages of its kills' sums (or nil).
+function stats.Rolls(boss, mode, readings, day, means)
     local rolls = mode.rolls or {}
     if type(rolls) == "function" then
-        return rolls(valuesOn(boss, day), readings)
+        return rolls(valuesOn(boss, day), readings, means)
     end
     return rolls
 end
 
--- Rolls(mode, day) and Chances(mode, day) for readings, worked out once per rate version.
-local function ratesTable(boss, readings)
+-- Rolls(mode, day) and Chances(mode, day) for readings and t's sums, worked out once per
+-- rate version, or per day for a mode with sums that day.
+local function ratesTable(boss, readings, t)
     local rolls, chances = {}, {}
     local lookup = {}
-    local function cache(store, mode, day)
-        local version = valuesOn(boss, day)
+    local function cached(store, mode, day, make)
+        local means = tracker.Means(t, mode.key, day)
+        local key = means and day or valuesOn(boss, day)
         store[mode] = store[mode] or {}
-        return store[mode], version
+        store[mode][key] = store[mode][key] or make(means)
+        return store[mode][key]
     end
     function lookup.Rolls(mode, day)
-        local byVersion, version = cache(rolls, mode, day)
-        byVersion[version] = byVersion[version] or stats.Rolls(boss, mode, readings, day)
-        return byVersion[version]
+        return cached(rolls, mode, day, function(means)
+            return stats.Rolls(boss, mode, readings, day, means)
+        end)
     end
     function lookup.Chances(mode, day)
-        local byVersion, version = cache(chances, mode, day)
-        byVersion[version] = byVersion[version] or luck.ItemChances(lookup.Rolls(mode, day))
-        return byVersion[version]
+        return cached(chances, mode, day, function()
+            return luck.ItemChances(lookup.Rolls(mode, day))
+        end)
     end
     return lookup
 end
@@ -170,7 +174,7 @@ local function allTimeTotals(boss, allTime)
         local item = boss.items[tonumber(key)]
         local stack = item and item.stack
         if stack then
-            table.insert(totals.stacks, { word = stack.word, count = count })
+            table.insert(totals.stacks, { word = stack.word, plural = stack.plural, count = count })
         else
             totals.received = totals.received + count
         end
@@ -199,7 +203,7 @@ function stats.ForBoss(entry)
     if tallies == nil then
         return nil
     end
-    local rates = ratesTable(boss, entry.readings or {})
+    local rates = ratesTable(boss, entry.readings or {}, tallies)
     local modes = modesOf(boss, tallies)
 
     local result =

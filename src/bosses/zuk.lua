@@ -2,8 +2,10 @@
 -- Hard mode sword pieces are likelier in a run without checkpoints. Such a run, in
 -- either mode, gives an Igneous stone in the kill's tick, so each hard mode kill is
 -- counted by whether the stone's log count rose with it (tested: docs/bosses/zuk.md).
+-- The pontifex shadow ring raises every unique (src/bosses/egwd.lua).
 
 local common = require("src/bosses/common")
+local egwd = require("src/bosses/egwd")
 
 local VARS = {
     kc = "BSLAY_KILLS_EGWD_FUL_BOSS",
@@ -27,11 +29,11 @@ end
 
 -- Hard mode's rolls, with a sword piece at the rate named sword.
 local function hardRolls(sword)
-    return function(r)
+    return egwd.Boosted(function(r)
         local rolls = books(r.hard)
         table.insert(rolls, 1, { chance = r[sword], items = common.Even({ BLADE, CORE, HILT }) })
         return rolls
-    end
+    end)
 end
 
 -- Hard mode without and with checkpoints. Keys are saved: never change them.
@@ -48,7 +50,7 @@ end
 return {
     key = "zuk", -- saved data key: never change it
     name = "TzKal-Zuk",
-    reads = { stones = VARS.stones },
+    reads = egwd.Reads({ stones = VARS.stones }),
     assumptions = function(readings)
         local full = (readings.stones or 0) >= STONE_CAP
         return full and { "Runs after 250 Igneous stones count as checkpoint-free" } or {}
@@ -58,9 +60,9 @@ return {
         {
             key = "n",
             kc = VARS.kc,
-            rolls = function(r)
+            rolls = egwd.Boosted(function(r)
                 return books(r.normal)
-            end,
+            end),
         },
         HARD.h,
     },
