@@ -143,7 +143,7 @@ function format.AllTime(result)
     if result.allTime == nil then
         return ""
     end
-    local parts = { "Collection log: " .. count(result.allTime.kills, "kill") }
+    local parts = { "All-time: " .. count(result.allTime.kills, "kill") }
     local stacks = result.allTime.stacks or {}
     for _, stack in ipairs(stacks) do
         table.insert(parts, count(stack.count, stack.word))

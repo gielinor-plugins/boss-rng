@@ -95,9 +95,9 @@ describe("format", function()
     end)
 
     it("words the game's all-time totals, once read", function()
-        assert.are.equal("Collection log: 408 kills · 184 spikes · 3 other uniques", format.AllTime({
+        assert.are.equal("All-time: 408 kills · 184 spikes · 3 other uniques", format.AllTime({
             allTime = { kills = 408, received = 3, stacks = { { word = "spike", count = 184 } } } }))
-        assert.are.equal("Collection log: 924 kills · 9 uniques",
+        assert.are.equal("All-time: 924 kills · 9 uniques",
             format.AllTime({ allTime = { kills = 924, received = 9 } }))
         assert.are.equal("", format.AllTime({}))
     end)
