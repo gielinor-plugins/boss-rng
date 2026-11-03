@@ -52,28 +52,25 @@ return {
     },
 
     items = {
-        [TORVA_HELM] = { log = VARS.log .. "HEAD_MELEE", kind = "unique" },
-        [TORVA_BODY] = { log = VARS.log .. "BODY_MELEE", kind = "unique" },
-        [TORVA_LEGS] = { log = VARS.log .. "LEGS_MELEE", kind = "unique" },
-        [TORVA_GLOVES] = { log = VARS.log .. "HANDS_MELEE", kind = "unique" },
-        [TORVA_BOOTS] = { log = VARS.log .. "FEET_MELEE", kind = "unique" },
-        [PERNIX_COWL] = { log = VARS.log .. "HEAD_RANGED", kind = "unique" },
-        [PERNIX_BODY] = { log = VARS.log .. "BODY_RANGED", kind = "unique" },
-        [PERNIX_CHAPS] = { log = VARS.log .. "LEGS_RANGED", kind = "unique" },
-        [PERNIX_GLOVES] = { log = VARS.log .. "HANDS_RANGED", kind = "unique" },
-        [PERNIX_BOOTS] = { log = VARS.log .. "FEET_RANGED", kind = "unique" },
-        [VIRTUS_MASK] = { log = VARS.log .. "HEAD_MAGIC", kind = "unique" },
-        [VIRTUS_TOP] = { log = VARS.log .. "BODY_MAGIC", kind = "unique" },
-        [VIRTUS_LEGS] = { log = VARS.log .. "LEGS_MAGIC", kind = "unique" },
-        [VIRTUS_GLOVES] = { log = VARS.log .. "HANDS_MAGIC", kind = "unique" },
-        [VIRTUS_BOOTS] = { log = VARS.log .. "FEET_MAGIC", kind = "unique" },
-        [VIRTUS_BOOK] = { log = VARS.log .. "BOOK", kind = "unique" },
-        [VIRTUS_WAND] = { log = VARS.log .. "WAND", kind = "unique" },
-        [ZARYTE_BOW] = { log = VARS.log .. "BOW", kind = "unique" },
+        [TORVA_HELM] = { log = VARS.log .. "HEAD_MELEE" },
+        [TORVA_BODY] = { log = VARS.log .. "BODY_MELEE" },
+        [TORVA_LEGS] = { log = VARS.log .. "LEGS_MELEE" },
+        [TORVA_GLOVES] = { log = VARS.log .. "HANDS_MELEE" },
+        [TORVA_BOOTS] = { log = VARS.log .. "FEET_MELEE" },
+        [PERNIX_COWL] = { log = VARS.log .. "HEAD_RANGED" },
+        [PERNIX_BODY] = { log = VARS.log .. "BODY_RANGED" },
+        [PERNIX_CHAPS] = { log = VARS.log .. "LEGS_RANGED" },
+        [PERNIX_GLOVES] = { log = VARS.log .. "HANDS_RANGED" },
+        [PERNIX_BOOTS] = { log = VARS.log .. "FEET_RANGED" },
+        [VIRTUS_MASK] = { log = VARS.log .. "HEAD_MAGIC" },
+        [VIRTUS_TOP] = { log = VARS.log .. "BODY_MAGIC" },
+        [VIRTUS_LEGS] = { log = VARS.log .. "LEGS_MAGIC" },
+        [VIRTUS_GLOVES] = { log = VARS.log .. "HANDS_MAGIC" },
+        [VIRTUS_BOOTS] = { log = VARS.log .. "FEET_MAGIC" },
+        [VIRTUS_BOOK] = { log = VARS.log .. "BOOK" },
+        [VIRTUS_WAND] = { log = VARS.log .. "WAND" },
+        [ZARYTE_BOW] = { log = VARS.log .. "BOW" },
 
         -- Only drops with a tier 70+ defender, so it isn't counted.
-        [36159] = { kind = "excluded" }, -- Ancient emblem
-        [25044] = { kind = "lore" }, -- Nex's Followers
-        [33808] = { kind = "pet" }, -- Nexterminator
     },
 }

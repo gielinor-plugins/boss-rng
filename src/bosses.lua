@@ -9,13 +9,8 @@
 --                and the day's averages of its kills' sums (see killEvents; nil without), so each
 --                kill uses its day's rates. byEvent: kills are counted by killEvents, containers or claims, so
 --                kc isn't watched; it has no rolls unless kills are counted for it directly
---   items        { [item id] = { log, kind, group, stack } }, every item on the boss log page.
---                log: its log count varbit. kind:
---                  unique    counted in luck
---                  shared    log count includes other monsters' drops, so not counted
---                  lore      not counted (no log count varbit found)
---                  pet       not counted (no log count varbit found)
---                  excluded  on the page but not counted, e.g. no published drop rate
+--   items        { [item id] = { log, group, stack } }: the uniques counted in luck. log: its
+--                log count varbit. Boss log items not counted are listed in the boss's doc.
 --                group = { name }: uniques shown as one row, with the lowest item's icon; for a
 --                split that varies (Araxxi's path), the group's total chance is still exact.
 --                stack = { most, word, plural }: a log rise of up to most is one drop, and the log
@@ -83,16 +78,14 @@ end
 local listedBy = {} -- [log var] = the bosses listing that unique
 for _, boss in ipairs(bosses) do
     for _, item in pairs(boss.items) do
-        if item.kind == "unique" then
-            listedBy[item.log] = listedBy[item.log] or {}
-            table.insert(listedBy[item.log], boss)
-        end
+        listedBy[item.log] = listedBy[item.log] or {}
+        table.insert(listedBy[item.log], boss)
     end
 end
 for _, boss in ipairs(bosses) do
     for _, item in pairs(boss.items) do
-        local sharers = item.kind == "unique" and listedBy[item.log]
-        if sharers and #sharers > 1 then
+        local sharers = listedBy[item.log]
+        if #sharers > 1 then
             item.pooledBy = sharers
         end
     end

@@ -37,3 +37,18 @@ most one. Hard mode has the same rates.
 - **Warpriest set:** also drops from the bodyguards and the god's other monsters.
 - **Zilyana's Notes** (lore) and **Commander Miniana** (pet): lore and pets are
   never counted.
+
+| Boss log item | Id |
+|---|---|
+| Saradomin's hum (log count `ITEMLOG_ITEM_GWD_SARA_AMULET_NECROMANCY`) | 61117 |
+| Godsword shard 1 | 11710 |
+| Godsword shard 2 | 11712 |
+| Godsword shard 3 | 11714 |
+| Warpriest of Saradomin helm | 28767 |
+| Warpriest of Saradomin cape | 28770 |
+| Warpriest of Saradomin body | 28761 |
+| Warpriest of Saradomin legs | 28764 |
+| Warpriest of Saradomin gloves | 28755 |
+| Warpriest of Saradomin boots | 28758 |
+| Zilyana's Notes | 25040 |
+| Commander Miniana | 33807 |

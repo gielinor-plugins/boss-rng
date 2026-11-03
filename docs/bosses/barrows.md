@@ -106,3 +106,7 @@ The wiki says all six original brothers are needed for a kill count; in game:
 
 - **Corruption sigil:** needs a dragon defender or better, which isn't tracked.
 - **Barrows chest** (boss trophy, 1 in 500): not on the collection log.
+
+| Boss log item | Id |
+|---|---|
+| Corruption sigil | 36156 |

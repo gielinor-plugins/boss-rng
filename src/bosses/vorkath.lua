@@ -54,10 +54,8 @@ return {
     },
 
     items = {
-        [SPIKE] = { log = VARS.spike, kind = "unique", stack = { most = 9, word = "spike" } }, -- 4 to 9 a drop
-        [SCALE] = { log = VARS.scale, kind = "unique" },
-        [CODEX] = { log = VARS.codex, kind = "unique" },
-        [56143] = { kind = "excluded" }, -- Zemouregal's nexus: given at 100 kills
-        [56145] = { kind = "pet" }, -- Vorki
+        [SPIKE] = { log = VARS.spike, stack = { most = 9, word = "spike" } }, -- 4 to 9 a drop
+        [SCALE] = { log = VARS.scale },
+        [CODEX] = { log = VARS.codex },
     },
 }

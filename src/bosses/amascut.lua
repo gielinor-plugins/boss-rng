@@ -99,16 +99,14 @@ return {
     end,
 
     items = {
-        [MASK] = { log = VARS.log .. "MAGIC_DEVOURER_HEAD_T95", kind = "unique" },
-        [TOP] = { log = VARS.log .. "MAGIC_DEVOURER_BODY_T95", kind = "unique" },
-        [BOTTOM] = { log = VARS.log .. "MAGIC_DEVOURER_LEGS_T95", kind = "unique" },
-        [GLOVES] = { log = VARS.log .. "MAGIC_DEVOURER_HANDS_T95", kind = "unique" },
-        [BOOTS] = { log = VARS.log .. "MAGIC_DEVOURER_FEET_T95", kind = "unique" },
-        [LIGHT] = { log = VARS.log .. "MELEE_DEVOURER_HALBERD_T95", kind = "unique" }, -- Tumeken's Light
-        [GUARD] = { log = VARS.log .. "NECRO_DEVOURER_ARMGUARD_T95", kind = "unique" }, -- Devourer's Guard
-        [NEXUS] = { log = VARS.log .. "NECRO_DEVOURER_NEXUS_T80", kind = "unique" },
+        [MASK] = { log = VARS.log .. "MAGIC_DEVOURER_HEAD_T95" },
+        [TOP] = { log = VARS.log .. "MAGIC_DEVOURER_BODY_T95" },
+        [BOTTOM] = { log = VARS.log .. "MAGIC_DEVOURER_LEGS_T95" },
+        [GLOVES] = { log = VARS.log .. "MAGIC_DEVOURER_HANDS_T95" },
+        [BOOTS] = { log = VARS.log .. "MAGIC_DEVOURER_FEET_T95" },
+        [LIGHT] = { log = VARS.log .. "MELEE_DEVOURER_HALBERD_T95" }, -- Tumeken's Light
+        [GUARD] = { log = VARS.log .. "NECRO_DEVOURER_ARMGUARD_T95" }, -- Devourer's Guard
+        [NEXUS] = { log = VARS.log .. "NECRO_DEVOURER_NEXUS_T80" },
         [common.SHARD] = common.SHARD_ITEM, -- also dropped by Nakatra
-        [59321] = { kind = "lore" }, -- Memoirs of the Devourer
-        [59363] = { kind = "pet" }, -- Amaskitty
     },
 }

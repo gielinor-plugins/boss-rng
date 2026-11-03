@@ -61,3 +61,7 @@ with its game tick:
 
 - **Croesus' head** (boss trophy, 1 in 500): not on the collection log.
 - **Little Sus** (pet): pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Little Sus | 52459 |

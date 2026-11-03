@@ -9,7 +9,6 @@ common.SOLO_KILLS = "Solo kills"
 common.SHARD = 57128
 common.SHARD_ITEM = {
     log = "ITEMLOG_ITEM_COMBATV2_INNATE_MASTERY_UNLOCK_T95_WEAPON_STAT_UPGRADE_T1",
-    kind = "unique",
 }
 
 -- Adds n copies of a roll to rolls: one per roll a kill makes on the same table.

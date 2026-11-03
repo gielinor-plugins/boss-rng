@@ -30,13 +30,11 @@ return {
     },
 
     items = {
-        [GRIMOIRE] = { log = VARS.log .. "PRAYER_BOOK", kind = "unique" },
-        [CROSSBOW] = { log = VARS.log .. "CROSSBOW", kind = "unique" },
-        [OFFHAND] = { log = VARS.log .. "OFFHAND_CROSSBOW", kind = "unique" },
-        [STAVE] = { log = VARS.log .. "MERETHIELS_STAFF", kind = "unique" },
+        [GRIMOIRE] = { log = VARS.log .. "PRAYER_BOOK" },
+        [CROSSBOW] = { log = VARS.log .. "CROSSBOW" },
+        [OFFHAND] = { log = VARS.log .. "OFFHAND_CROSSBOW" },
+        [STAVE] = { log = VARS.log .. "MERETHIELS_STAFF" },
         -- Unlocks the Blightbound lasher pet, but it's an item with its own rate.
-        [MUSHROOM] = { log = VARS.log .. "BLIGHTBOUND_PET", kind = "unique" },
-        [43357] = { log = VARS.log .. "GRIMOIRE_PAGES2", kind = "excluded" }, -- Torn grimoire page: a common drop
-        [42844] = { kind = "pet" }, -- Solly
+        [MUSHROOM] = { log = VARS.log .. "BLIGHTBOUND_PET" },
     },
 }

@@ -5,9 +5,8 @@ local BOSS = {
     key = "testboss",
     modes = { NORMAL, HARD },
     items = {
-        [101] = { kind = "unique" },
-        [102] = { kind = "unique", pooledBy = {} },
-        [103] = { kind = "pet" },
+        [101] = {},
+        [102] = { pooledBy = {} },
     },
 }
 local DAY, NEXT_DAY = 20756, 20757
@@ -61,7 +60,6 @@ describe("tracker", function()
         for _, key in ipairs(DRY_KEYS) do
             assert.are.same({ n = { ["20756"] = 1 } }, tracker.Dry(tallies, key))
         end
-        assert.is_nil(tallies.dryFrom["103"]) -- pets aren't counted
     end)
 
     it("ends the boss's dry streak and the item's at a drop", function()
@@ -95,8 +93,7 @@ describe("tracker", function()
     it(
         "counts a unique added later from the first tracked kill, like its expected drops",
         function()
-            local before =
-                { key = "testboss", modes = BOSS.modes, items = { [101] = { kind = "unique" } } }
+            local before = { key = "testboss", modes = BOSS.modes, items = { [101] = {} } }
             tracker.AddKills(before, NORMAL, 3, DAY)
             tracker.AddKills(BOSS, NORMAL, 2, DAY) -- 102 is new here
             local tallies = tracker.Tallies(BOSS)

@@ -24,7 +24,6 @@ end
 local FULL_CHEST = 6 -- the fewest brothers (Linza not counted) for the kill count
 
 local AMULET = 39061 -- Amulet of the forsaken
-local SIGIL = 36156 -- Corruption sigil
 
 -- A brother: name, name in game vars, items { [item id] = log var }.
 local function brother(name, varName, pieces)
@@ -161,12 +160,11 @@ end
 
 local function logItems()
     local items = {
-        [AMULET] = { log = VARS.log .. "AMULET", kind = "unique" },
-        [SIGIL] = { kind = "excluded" }, -- only with a dragon defender or better
+        [AMULET] = { log = VARS.log .. "AMULET" },
     }
     for _, b in ipairs({ AKRISAE, LINZA, table.unpack(ORIGINALS) }) do
         for itemID, log in pairs(b.items) do
-            items[itemID] = { log = log, kind = "unique" }
+            items[itemID] = { log = log }
         end
     end
     return items

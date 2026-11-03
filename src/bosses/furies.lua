@@ -23,12 +23,10 @@ return {
         godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)
     ),
 
-    items = godwars2.Items({
-        [CREST] = { log = VARS.log .. "CREST", kind = "unique" },
-        [NYMORA] = { log = VARS.log .. "WEAPON", kind = "unique" },
-        [AVARYSS] = { log = VARS.log .. "WEAPON_OFFHAND", kind = "unique" },
-        [ESSENCE] = { log = VARS.log .. "ESSENCE", kind = "unique" }, -- Zamorakian essence
-        [37184] = { kind = "pet" }, -- Nylessa
-        [37185] = { kind = "pet" }, -- Ava
-    }),
+    items = {
+        [CREST] = { log = VARS.log .. "CREST" },
+        [NYMORA] = { log = VARS.log .. "WEAPON" },
+        [AVARYSS] = { log = VARS.log .. "WEAPON_OFFHAND" },
+        [ESSENCE] = { log = VARS.log .. "ESSENCE" }, -- Zamorakian essence
+    },
 }

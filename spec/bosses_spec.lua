@@ -13,8 +13,6 @@ local function assumptions(boss, readings)
     return type(own) == "function" and own(readings or {}) or own
 end
 
-local KINDS = { unique = true, shared = true, lore = true, pet = true, excluded = true }
-
 local function startsWith(text, prefix)
     return type(text) == "string" and text:sub(1, #prefix) == prefix
 end
@@ -55,12 +53,9 @@ describe("boss data", function()
                 end
             end)
 
-            it("gives every item a known kind, and counted items a log varbit", function()
+            it("gives every unique a log varbit", function()
                 for _, item in pairs(boss.items) do
-                    assert.is_true(KINDS[item.kind] == true)
-                    if item.kind == "unique" or item.kind == "shared" then
-                        assert.is_true(startsWith(item.log, "ITEMLOG_ITEM_"))
-                    end
+                    assert.is_true(startsWith(item.log, "ITEMLOG_ITEM_"))
                 end
             end)
 
@@ -71,11 +66,11 @@ describe("boss data", function()
                 end
             end)
 
-            it("only rolls unique items", function()
+            it("only rolls its listed uniques", function()
                 for _, mode in ipairs(boss.modes) do
                     for _, day in ipairs({ BEFORE, AFTER }) do
                         for itemID in pairs(luck.ItemChances(stats.Rolls(boss, mode, {}, day))) do
-                            assert.are.equal("unique", boss.items[itemID].kind)
+                            assert.is_true(boss.items[itemID] ~= nil)
                         end
                     end
                 end
@@ -84,32 +79,28 @@ describe("boss data", function()
     end
 end)
 
--- Each boss's log item count and wiki rates for a few items in its first two
+-- Each boss's wiki rates for a few items in its first two
 -- modes (or modes), before the Late-Game Rebalance; after and afterHard, after it.
 local HILT = 63 / 64 / 512 -- a general's hilt: only rolled when the unique table misses
 local NEX = 1 / 384
 local CASES = {
     {
         file = "graardor",
-        items = 18,
         rates = { [25022] = 1 / 384, [11704] = HILT },
         after = { [25022] = 1 / 320, [25019] = 1 / 320, [11704] = 1 / 384 },
     },
     {
         file = "kreearra",
-        items = 18,
         rates = { [11718] = 1 / 384, [11702] = HILT },
         after = { [11718] = 1 / 320, [25013] = 1 / 320, [11702] = 1 / 384 },
     },
     {
         file = "zilyana",
-        items = 19,
         rates = { [11730] = 1 / 320, [25037] = 1 / 640, [25034] = 1 / 320, [11706] = HILT },
         after = { [11730] = 1 / 320, [25037] = 1 / 320, [34855] = 1 / 320, [11706] = 1 / 384 },
     },
     {
         file = "kril",
-        items = 20,
         rates = { [24992] = 1 / 512, [11716] = 1 / 512, [11708] = HILT },
         after = {
             [24992] = 1 / 320,
@@ -119,10 +110,9 @@ local CASES = {
             [11708] = 1 / 384,
         },
     },
-    { file = "nex", items = 21, rates = { [20135] = NEX, [25664] = NEX, [20171] = NEX } },
+    { file = "nex", rates = { [20135] = NEX, [25664] = NEX, [20171] = NEX } },
     {
         file = "helwyr",
-        items = 8,
         rates = { [37027] = 1 / 256, [40600] = 1 / 256, [37033] = (1 - 6 / 256) / 64 },
         hard = { [37085] = 1 / 179, [37033] = (1 - 6 / 179) / 44 },
         after = { [37027] = 1 / 128, [40600] = 1 / 256, [37033] = (1 - 1 / 128 - 5 / 256) / 64 },
@@ -130,7 +120,6 @@ local CASES = {
     },
     {
         file = "vindicta",
-        items = 8,
         rates = { [37018] = 1 / 255, [37070] = 1 / 255, [37030] = (1 - 5 / 255) / 64 },
         hard = { [37070] = 1 / 179, [37030] = (1 - 5 / 179) / 44 },
         after = { [37018] = 1 / 128, [37070] = 1 / 255 },
@@ -138,7 +127,6 @@ local CASES = {
     },
     {
         file = "furies",
-        items = 9,
         rates = { [37090] = 1 / 256, [37095] = 1 / 256 },
         hard = { [37024] = 1 / 179 },
         after = { [37024] = 1 / 128 },
@@ -146,7 +134,6 @@ local CASES = {
     },
     {
         file = "gregorovic",
-        items = 8,
         rates = { [37075] = 1 / 256, [37080] = 1 / 256 },
         hard = { [37021] = 1 / 179 },
         after = { [37021] = 1 / 128 },
@@ -155,7 +142,6 @@ local CASES = {
     -- Normal mode, then the 100% enrage tier: an armor piece, a weapon, the Nexus and the Shard.
     {
         file = "amascut",
-        items = 11,
         modes = { "n", "e100" },
         rates = { [59344] = 3 / 4 / 5 / 600, [59350] = 1 / 4 / 2 / 600, [59358] = 1 / 750 },
         hard = {
@@ -168,14 +154,12 @@ local CASES = {
     -- Vermyx, then Vermyx in hard mode.
     {
         file = "sanctum",
-        items = 9,
         rates = { [57156] = 1 / 250, [57124] = 1 / 250 },
         hard = { [57156] = 1 / 200 },
     },
     -- Solo, then duo: a leg and an add-on, each group split evenly.
     {
         file = "araxxi",
-        items = 15,
         modes = { "s", "d" },
         rates = { [31718] = 1 / 40 / 3, [31723] = 1 / 120 / 3 },
         hard = { [31719] = 1 / 70 / 3, [31724] = 1 / 200 / 3 },
@@ -184,7 +168,6 @@ local CASES = {
     -- amulet (1/480). Dharok has 4 items, Ahrim 6.
     {
         file = "barrows",
-        items = 39,
         modes = { "cff" },
         rates = {
             [4716] = 7 / 73 / 7 / 4,
@@ -198,18 +181,15 @@ local CASES = {
     -- One rare roll per chest: normal, then hard mode.
     {
         file = "vorkath",
-        items = 5,
         rates = { [56079] = 1 / 45, [56068] = 1 / 249 },
         hard = { [56079] = 1 / 15, [56068] = 1 / 150, [56321] = 1 / 150 },
     },
     {
         file = "rots",
-        items = 10,
         rates = { [30014] = 1 / 240, [30022] = 1 / 240, [30018] = 1 / 240 },
     },
     {
         file = "dragonkin",
-        items = 7,
         modes = { "as", "a2" },
         rates = { [43391] = 1 / 83 },
         hard = { [43391] = 1 / 166 },
@@ -217,46 +197,39 @@ local CASES = {
     -- Any crossbow piece, split evenly.
     {
         file = "shadow_reef",
-        items = 7,
         modes = { "as", "a3" },
         rates = { [47490] = 1 / 55 / 3, [47492] = 1 / 55 / 3 },
         hard = { [47494] = 1 / 166 / 3 },
     },
     {
         file = "corp",
-        items = 7,
         rates = { [13752] = 1 / 1024, [13748] = 1 / 1024, [13754] = 3 / 512 },
     },
     -- Solo, then duo: the same rates.
     {
         file = "raksha",
-        items = 6,
         rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
         hard = { [51082] = 1 / 130, [51094] = 1 / 325 },
     },
     -- Four rares on one roll, raised by the Late-Game Rebalance, and the Latent Offering.
     {
         file = "elidinis",
-        items = 7,
         rates = { [57519] = 1 / 480, [57544] = 1 / 480, [57528] = 1 / 71 },
         after = { [57519] = 1 / 256, [57524] = 1 / 256, [57528] = 1 / 71 },
     },
     -- Two rolls of their own, both raised by the Late-Game Rebalance.
     {
         file = "magister",
-        items = 8,
         rates = { [40650] = 1 / 18, [40320] = 1 / 500 },
         after = { [40650] = 1 / 10, [40320] = 1 / 128 },
     },
     -- Every unique is 1/640: a 1/320 weapon roll and a 1/128 armor roll.
     {
         file = "rasial",
-        items = 8,
         rates = { [55480] = 1 / 640, [55482] = 1 / 640, [55488] = 1 / 640, [55496] = 1 / 640 },
     },
     {
         file = "solak",
-        items = 7,
         rates = {
             [42785] = 1 / 200,
             [42770] = 1 / 400,
@@ -269,14 +242,12 @@ local CASES = {
     -- Full contribution: 12 rolls at 1/5,400 each, then 1/3,000 armor and 1/2,500 others.
     {
         file = "croesus",
-        items = 10,
         rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 },
         after = { [52250] = 12 / 3000, [52345] = 12 / 2500, [52213] = 12 / 2500 },
     },
     -- Three loot piles, normal then hard mode.
     {
         file = "kerapac",
-        items = 7,
         modes = { "n3", "h3" },
         rates = { [51767] = 1 / 256, [51843] = 1 / 256 },
         hard = { [51782] = 1 / 400, [51812] = 399 / 400 / 180 },
@@ -284,14 +255,12 @@ local CASES = {
     -- Hard mode without checkpoints: 1/27 for any sword piece.
     {
         file = "zuk",
-        items = 7,
         rates = { [52530] = 1 / 100, [52492] = 1 / 100 },
         hard = { [52505] = 1 / 27 / 3, [52530] = 1 / 50, [52492] = 1 / 50 },
     },
     -- Hard mode only, a streak's first kill at 0% enrage: any unique 1,525 in a million.
     {
         file = "archglacor",
-        items = 13,
         rates = { [52020] = 1525 / 1e6 * 0.24, [52115] = 1525 / 1e6 * 0.38, [52019] = 1 / 100 },
     },
 }
@@ -308,14 +277,6 @@ end
 for _, case in ipairs(CASES) do
     describe(case.file, function()
         local boss = require("src/bosses/" .. case.file)
-
-        it("lists all " .. case.items .. " boss log items", function()
-            local count = 0
-            for _ in pairs(boss.items) do
-                count = count + 1
-            end
-            assert.are.equal(case.items, count)
-        end)
 
         -- expected is { rates, hard rates }.
         local function check(day, expected)

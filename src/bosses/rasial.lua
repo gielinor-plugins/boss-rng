@@ -30,13 +30,12 @@ return {
     },
 
     items = {
-        [GUARD] = { log = VARS.log .. "ARMGUARD_T95", kind = "unique" },
-        [LANTERN] = { log = VARS.log .. "LANTERN_T95", kind = "unique" },
-        [CROWN] = { log = VARS.log .. "HEAD_T95", kind = "unique" },
-        [TOP] = { log = VARS.log .. "BODY_T95", kind = "unique" },
-        [BOTTOM] = { log = VARS.log .. "LEGS_T95", kind = "unique" },
-        [HANDS] = { log = VARS.log .. "HANDS_T95", kind = "unique" },
-        [FEET] = { log = VARS.log .. "FEET_T95", kind = "unique" },
-        [55672] = { kind = "pet" }, -- Miso
+        [GUARD] = { log = VARS.log .. "ARMGUARD_T95" },
+        [LANTERN] = { log = VARS.log .. "LANTERN_T95" },
+        [CROWN] = { log = VARS.log .. "HEAD_T95" },
+        [TOP] = { log = VARS.log .. "BODY_T95" },
+        [BOTTOM] = { log = VARS.log .. "LEGS_T95" },
+        [HANDS] = { log = VARS.log .. "HANDS_T95" },
+        [FEET] = { log = VARS.log .. "FEET_T95" },
     },
 }

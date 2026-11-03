@@ -26,3 +26,7 @@ Each kill makes two rolls at the same time, so a kill can rarely give two:
 
 - **Miso** (pet): pets aren't counted.
 - **Rasial's crown** (boss trophy, 1 in 500): not on the collection log.
+
+| Boss log item | Id |
+|---|---|
+| Miso | 55672 |

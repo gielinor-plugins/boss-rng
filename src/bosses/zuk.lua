@@ -79,12 +79,10 @@ return {
     end,
 
     items = {
-        [BLADE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_TOP", kind = "unique", group = SWORD },
-        [CORE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_MIDDLE", kind = "unique", group = SWORD },
-        [HILT] = { log = VARS.log .. "BOSS_MELEE_WEAPON_BOTTOM", kind = "unique", group = SWORD },
-        [CODEX] = { log = VARS.codex, kind = "unique" },
-        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
-        [52500] = { log = VARS.stones, kind = "excluded" }, -- Igneous stone: a run reward
-        [52546] = { kind = "pet" }, -- Little Zuk
+        [BLADE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_TOP", group = SWORD },
+        [CORE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_MIDDLE", group = SWORD },
+        [HILT] = { log = VARS.log .. "BOSS_MELEE_WEAPON_BOTTOM", group = SWORD },
+        [CODEX] = { log = VARS.codex },
+        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN" },
     },
 }

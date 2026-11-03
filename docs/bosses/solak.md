@@ -30,3 +30,8 @@ makes three rolls:
 - **Solak's core** (boss trophy, 1 in 500): not on the collection log.
 - **Torn grimoire pages:** a common drop.
 - **Solly** (pet): pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Torn grimoire page | 43357 |
+| Solly | 42844 |

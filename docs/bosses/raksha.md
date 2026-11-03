@@ -36,3 +36,7 @@ their own drop at the same rates.
 - **Laceration boots and Blast diffusion boots:** no longer dropped or on the
   collection log.
 - **Raksha's head** (boss trophy, 1 in 500): not on the collection log.
+
+| Boss log item | Id |
+|---|---|
+| Raklette | 51101 |

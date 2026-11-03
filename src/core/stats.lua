@@ -221,7 +221,7 @@ function stats.ForBoss(entry)
         end
         for itemID, chance in pairs(rates.Chances(mode, day)) do
             expected[itemID] = (expected[itemID] or 0) + kills * chance
-            if mode.kc and boss.items[itemID].kind == "unique" then
+            if mode.kc then
                 countedExpected = countedExpected + kills * chance
             end
         end
@@ -238,22 +238,20 @@ function stats.ForBoss(entry)
         return dryShare(modes, rates, tracker.Dry(tallies, tostring(itemID)), ids)
     end
     for itemID, item in pairs(boss.items) do
-        if item.kind == "unique" then
-            local key = tostring(itemID)
-            local row = {
-                expected = expected[itemID] or 0,
-                received = tallies.items[key] or 0,
-                dryKills = killsThatCanDrop(modes, rates, tracker.Dry(tallies, key), itemID),
-                dryAtLeast = tallies.items[key] == nil and mayHaveEarlier,
-                allTime = allTime and not item.stack and allTime.items[key] or nil,
-            }
-            row.luck = luckOf(row.expected, row.received)
-            row.dryShare = shareOf(itemID, { [itemID] = true })
-            result.items[itemID] = row
-            result.expected = result.expected + row.expected
-            result.received = result.received + row.received
-            counted[itemID] = true
-        end
+        local key = tostring(itemID)
+        local row = {
+            expected = expected[itemID] or 0,
+            received = tallies.items[key] or 0,
+            dryKills = killsThatCanDrop(modes, rates, tracker.Dry(tallies, key), itemID),
+            dryAtLeast = tallies.items[key] == nil and mayHaveEarlier,
+            allTime = allTime and not item.stack and allTime.items[key] or nil,
+        }
+        row.luck = luckOf(row.expected, row.received)
+        row.dryShare = shareOf(itemID, { [itemID] = true })
+        result.items[itemID] = row
+        result.expected = result.expected + row.expected
+        result.received = result.received + row.received
+        counted[itemID] = true
     end
 
     result.luck = luckOf(result.expected, result.received)

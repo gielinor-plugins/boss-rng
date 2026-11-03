@@ -40,3 +40,10 @@ limb, mechanism and stock are one row.
 - **The Last Offering** and **Kranon's Ancient Journal** (lore) and **Ambi**
   (pet): lore and pets aren't counted.
 - **Head of the Ambassador** (boss trophy, 1 in 50): not on the collection log.
+
+| Boss log item | Id |
+|---|---|
+| Black stone heart | 47506 |
+| The Last Offering | 47468 |
+| Kranon's Ancient Journal | 47469 |
+| Ambi | 47537 |

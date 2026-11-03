@@ -32,3 +32,15 @@ each is one row, independent of both.
 - **Araxxor's head** (boss trophy, 1 in 500): not on the collection log.
 - **Araxyte pheromone:** a common drop.
 - **Spider pets** (Bill, Lana, Pete, Dave, Steve, Gavin, Barry, Mallory): pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Araxyte pheromone | 35870 |
+| Bill | 31753 |
+| Lana | 31752 |
+| Pete | 31750 |
+| Dave | 31748 |
+| Steve | 31749 |
+| Gavin | 31751 |
+| Barry | 33809 |
+| Mallory | 33810 |

@@ -26,13 +26,7 @@ return {
     },
 
     items = {
-        [PHYLACTERY] = { log = VARS.log .. "PHYLACTERY", kind = "unique" },
-        [GLOVES] = { log = VARS.log .. "HANDS", kind = "unique" },
-        [40670] = { kind = "pet" }, -- The Minister
-        [40663] = { kind = "lore" }, -- The Magister's Journal #1 to #5
-        [40664] = { kind = "lore" },
-        [40665] = { kind = "lore" },
-        [40666] = { kind = "lore" },
-        [40667] = { kind = "lore" },
+        [PHYLACTERY] = { log = VARS.log .. "PHYLACTERY" },
+        [GLOVES] = { log = VARS.log .. "HANDS" },
     },
 }

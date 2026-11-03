@@ -50,3 +50,8 @@ updating, with the game tick.
 - **TzKal-Zuk's helmet** (boss trophy, 1 in 25): not on the collection log.
 - **Igneous stone:** a reward for a run without checkpoints, not a drop.
 - **Little Zuk** (pet): pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Igneous stone | 52500 |
+| Little Zuk | 52546 |

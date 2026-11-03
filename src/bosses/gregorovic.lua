@@ -23,11 +23,10 @@ return {
         godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)
     ),
 
-    items = godwars2.Items({
-        [CREST] = { log = VARS.log .. "CREST", kind = "unique" },
-        [GLAIVE] = { log = VARS.log .. "WEAPON", kind = "unique" },
-        [OFFHAND_GLAIVE] = { log = VARS.log .. "WEAPON_OFFHAND", kind = "unique" },
-        [ESSENCE] = { log = VARS.log .. "ESSENCE", kind = "unique" }, -- Sliskean essence
-        [37183] = { kind = "pet" }, -- Greg
-    }),
+    items = {
+        [CREST] = { log = VARS.log .. "CREST" },
+        [GLAIVE] = { log = VARS.log .. "WEAPON" },
+        [OFFHAND_GLAIVE] = { log = VARS.log .. "WEAPON_OFFHAND" },
+        [ESSENCE] = { log = VARS.log .. "ESSENCE" }, -- Sliskean essence
+    },
 }

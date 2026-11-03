@@ -56,22 +56,12 @@ return {
     claimedBy = { var = VARS.streak, most = CLAIM_MOST },
 
     items = {
-        [CORE] = { log = VARS.log .. "BOSS_INGREDIENT_HARDMODE", kind = "unique" },
-        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
-        [ARTEFACT] = { log = VARS.log .. "BOSS_GLOVES_UPGRADE", kind = "unique" },
-        [52018] = { kind = "excluded" }, -- Glacor remnants: a common drop
+        [CORE] = { log = VARS.log .. "BOSS_INGREDIENT_HARDMODE" },
+        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN" },
+        [ARTEFACT] = { log = VARS.log .. "BOSS_GLOVES_UPGRADE" },
         [NILAS] = {
             log = VARS.log .. "BOSS_INGREDIENT_RARE_NEW",
-            kind = "unique",
             stack = { most = CLAIM_MOST, word = "dark nilas", plural = "dark nilas" }, -- a claim's
         },
-        [52041] = { kind = "excluded" }, -- Dark ice shard: made, not dropped
-        [52045] = { kind = "excluded" }, -- Dark ice sliver: made
-        [52053] = { kind = "excluded" }, -- Dark Shard of Leng: made
-        [52057] = { kind = "excluded" }, -- Dark Sliver of Leng: made
-        [52022] = { kind = "excluded" }, -- Glacor's Adornment: made
-        [52023] = { kind = "excluded" }, -- Arch-Glacor's Adornment: made
-        [52024] = { kind = "excluded" }, -- Ur-Glacor's Adornment: made
-        [52119] = { kind = "pet" }, -- Gladys
     },
 }

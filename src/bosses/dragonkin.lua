@@ -33,12 +33,8 @@ return {
     modeFor = dungeon.ModeFor,
 
     items = {
-        [FLURRY] = { log = VARS.log .. "FLURRY", kind = "unique" },
-        [FURY] = { log = VARS.log .. "FURY", kind = "unique" },
-        [BARGE] = { log = VARS.log .. "BARGE", kind = "unique" },
-        [43373] = { kind = "lore" }, -- Redacted Dragonkin Research
-        [43374] = { kind = "lore" }, -- Diary of an Overzealous Gnome
-        [43165] = { kind = "excluded" }, -- Draconic energy: a common drop
-        [47548] = { kind = "pet" }, -- Bisdi
+        [FLURRY] = { log = VARS.log .. "FLURRY" },
+        [FURY] = { log = VARS.log .. "FURY" },
+        [BARGE] = { log = VARS.log .. "BARGE" },
     },
 }

@@ -46,3 +46,13 @@ Conclusions:
 - **Rise of the Six chest** (boss trophy, 1 in 500): not on the collection log.
 - **Malevolent energy:** every chest gives it, so it's not a rare drop.
 - **The brothers' bobbleheads:** cosmetic unlocks.
+
+| Boss log item | Id |
+|---|---|
+| Malevolent energy | 30027 |
+| Ahrim bobblehead | 38935 |
+| Dharok bobblehead | 30032 |
+| Guthan bobblehead | 38937 |
+| Karil bobblehead | 38938 |
+| Torag bobblehead | 38939 |
+| Verac bobblehead | 38940 |

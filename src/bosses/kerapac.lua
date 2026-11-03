@@ -90,12 +90,11 @@ return {
     end,
 
     items = {
-        [SYMBOL] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_TOP", kind = "unique", group = STAFF },
-        [GEM] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_MIDDLE", kind = "unique", group = STAFF },
-        [SHAFT] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_BOTTOM", kind = "unique", group = STAFF },
-        [WRAPS] = { log = VARS.log .. "BOSS_MAGIC_GLOVES", kind = "unique" },
-        [CODEX] = { log = VARS.codex, kind = "unique" },
-        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
-        [51861] = { kind = "pet" }, -- Kerry
+        [SYMBOL] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_TOP", group = STAFF },
+        [GEM] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_MIDDLE", group = STAFF },
+        [SHAFT] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_BOTTOM", group = STAFF },
+        [WRAPS] = { log = VARS.log .. "BOSS_MAGIC_GLOVES" },
+        [CODEX] = { log = VARS.codex },
+        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN" },
     },
 }

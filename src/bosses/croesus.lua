@@ -84,15 +84,14 @@ return {
     end,
 
     items = {
-        [HELM] = { log = VARS.log .. "BOSS_MAGIC_HELM", kind = "unique" },
-        [TOP] = { log = VARS.log .. "BOSS_MAGIC_BODY", kind = "unique" },
-        [BOTTOMS] = { log = VARS.log .. "BOSS_MAGIC_LEGS", kind = "unique" },
-        [GLOVES] = { log = VARS.log .. "BOSS_MAGIC_GLOVES", kind = "unique" },
-        [BOOTS] = { log = VARS.log .. "BOSS_MAGIC_BOOTS", kind = "unique" },
-        [SPOREHAMMER] = { log = VARS.log .. "BOSS_OFFHAND_MINING", kind = "unique" },
-        [FOULTORCH] = { log = VARS.log .. "BOSS_OFFHAND_WOODCUTTING", kind = "unique" },
-        [SPORE_SACK] = { log = VARS.log .. "BOSS_SEED_STORAGE_UNIQUE", kind = "unique" },
-        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN", kind = "unique" },
-        [52459] = { kind = "pet" }, -- Little Sus
+        [HELM] = { log = VARS.log .. "BOSS_MAGIC_HELM" },
+        [TOP] = { log = VARS.log .. "BOSS_MAGIC_BODY" },
+        [BOTTOMS] = { log = VARS.log .. "BOSS_MAGIC_LEGS" },
+        [GLOVES] = { log = VARS.log .. "BOSS_MAGIC_GLOVES" },
+        [BOOTS] = { log = VARS.log .. "BOSS_MAGIC_BOOTS" },
+        [SPOREHAMMER] = { log = VARS.log .. "BOSS_OFFHAND_MINING" },
+        [FOULTORCH] = { log = VARS.log .. "BOSS_OFFHAND_WOODCUTTING" },
+        [SPORE_SACK] = { log = VARS.log .. "BOSS_SEED_STORAGE_UNIQUE" },
+        [SCRIPTURE] = { log = VARS.log .. "BOOK_UNLOCK_TOKEN" },
     },
 }

@@ -28,3 +28,12 @@ On top of its main drop, each kill rolls for two uniques on their own:
 
 - **The Minister** (pet) and **The Magister's Journal #1 to #5** (lore): lore and pets aren't counted.
 - **Soul obelisk** (boss trophy, 1 in 500): not on the collection log.
+
+| Boss log item | Id |
+|---|---|
+| The Minister | 40670 |
+| The Magister's Journal #1 | 40663 |
+| The Magister's Journal #2 | 40664 |
+| The Magister's Journal #3 | 40665 |
+| The Magister's Journal #4 | 40666 |
+| The Magister's Journal #5 | 40667 |

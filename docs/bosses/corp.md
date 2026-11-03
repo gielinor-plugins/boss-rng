@@ -35,3 +35,8 @@ Holy elixir: 3 in 512 (about 1 in 171).
 - **Corporeal Beast's head** (boss trophy, 1 in 500): not on the collection log.
 - **Spirit shield:** a common drop from other monsters too.
 - **Corporeal puppy** (pet): pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Spirit shield | 13734 |
+| Corporeal puppy | 33812 |

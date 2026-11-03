@@ -27,16 +27,8 @@ return {
     },
 
     items = {
-        [MALEVOLENT] = { log = VARS.log .. "SHIELD_MAGIC", kind = "unique" },
-        [MERCILESS] = { log = VARS.log .. "SHIELD_MELEE", kind = "unique" },
-        [VENGEFUL] = { log = VARS.log .. "SHIELD_RANGED", kind = "unique" },
-        [30027] = { log = VARS.log .. "ENERGY", kind = "excluded" }, -- Malevolent energy: guaranteed
-        -- The brothers' bobbleheads: cosmetic unlocks.
-        [38935] = { kind = "excluded" }, -- Ahrim
-        [30032] = { kind = "excluded" }, -- Dharok
-        [38937] = { kind = "excluded" }, -- Guthan
-        [38938] = { kind = "excluded" }, -- Karil
-        [38939] = { kind = "excluded" }, -- Torag
-        [38940] = { kind = "excluded" }, -- Verac
+        [MALEVOLENT] = { log = VARS.log .. "SHIELD_MAGIC" },
+        [MERCILESS] = { log = VARS.log .. "SHIELD_MELEE" },
+        [VENGEFUL] = { log = VARS.log .. "SHIELD_RANGED" },
     },
 }

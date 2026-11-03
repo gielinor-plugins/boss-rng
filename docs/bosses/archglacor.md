@@ -130,8 +130,8 @@ Run 3's saved tallies and window, against values worked out by hand:
 A world reset ended the earlier streak unclaimed: its 4 kills count as dry, and the
 next kill saved streak 1 at 3,000%.
 
-The boss log page (`COLLECTION_BOSS_EGWD_WEN_BOSS`, row 4493) lists the 13 items
-in `items`, with the same ids.
+The boss log page (`COLLECTION_BOSS_EGWD_WEN_BOSS`, row 4493) lists 13 items, with
+the same ids as the boss file and "Boss log ids" below.
 
 ### Not yet checked
 
@@ -144,3 +144,15 @@ in `items`, with the same ids.
 - **Dark ice shard and sliver, the Dark Shard and Sliver of Leng, and the three
   Adornments:** made, not dropped.
 - **Gladys** (pet): pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Glacor remnants | 52018 |
+| Dark ice shard | 52041 |
+| Dark ice sliver | 52045 |
+| Dark Shard of Leng | 52053 |
+| Dark Sliver of Leng | 52057 |
+| Glacor's Adornment | 52022 |
+| Arch-Glacor's Adornment | 52023 |
+| Ur-Glacor's Adornment | 52024 |
+| Gladys | 52119 |

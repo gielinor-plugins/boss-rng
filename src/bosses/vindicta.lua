@@ -24,11 +24,9 @@ return {
         godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)
     ),
 
-    items = godwars2.Items({
-        [CREST] = { log = VARS.log .. "CREST", kind = "unique" },
-        [LANCE] = { log = VARS.log .. "WEAPON", kind = "unique" },
-        [ESSENCE] = { log = VARS.log .. "ESSENCE", kind = "unique" }, -- Zarosian essence
-        [37180] = { kind = "pet" }, -- Vindiddy
-        [37181] = { kind = "pet" }, -- Rawrvek
-    }),
+    items = {
+        [CREST] = { log = VARS.log .. "CREST" },
+        [LANCE] = { log = VARS.log .. "WEAPON" },
+        [ESSENCE] = { log = VARS.log .. "ESSENCE" }, -- Zarosian essence
+    },
 }

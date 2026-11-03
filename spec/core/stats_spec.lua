@@ -14,7 +14,7 @@ local BOSS = {
         },
         { key = "h", kc = "KC_HARD", rolls = { { chance = 1 / 20, items = { [1] = 1 } } } },
     },
-    items = { [1] = { kind = "unique" }, [2] = { kind = "unique" }, [3] = { kind = "pet" } },
+    items = { [1] = {}, [2] = {} },
 }
 
 -- { [mode name] = kills } as kills on one day.
@@ -73,7 +73,6 @@ describe("stats.ForBoss", function()
         assert.are.near(1 + 1, result.items[1].expected, 1e-9) -- 100/100 + 20/20
         assert.are.near(2, result.items[2].expected, 1e-9) -- 100/50
         assert.are.near(4, result.expected, 1e-9)
-        assert.is_nil(result.items[3]) -- pets aren't counted
     end)
 
     it("compares tracked drops with expected", function()
@@ -171,8 +170,8 @@ describe("stats.ForBoss", function()
             local boss = {
                 modes = BOSS.modes,
                 items = {
-                    [1] = { kind = "unique", stack = { most = 9, word = "spike" } },
-                    [2] = { kind = "unique" },
+                    [1] = { stack = { most = 9, word = "spike" } },
+                    [2] = {},
                 },
             }
             local result = forBoss(
@@ -201,7 +200,7 @@ describe("stats.ForBoss", function()
 
     it("uses rolls that depend on values read from the game", function()
         local boss = {
-            items = { [1] = { kind = "unique" } },
+            items = { [1] = {} },
             modes = {
                 {
                     key = "n",
@@ -219,8 +218,8 @@ describe("stats.ForBoss", function()
         local group = { name = "Pieces" }
         local boss = {
             items = {
-                [1] = { kind = "unique", group = group },
-                [2] = { kind = "unique", group = group },
+                [1] = { group = group },
+                [2] = { group = group },
             },
             modes = {
                 {
@@ -261,7 +260,7 @@ describe("stats with sums", function()
                 end,
             },
         },
-        items = { [1] = { kind = "unique" } },
+        items = { [1] = {} },
     }
 
     it("rates each day's kills at the averages of their sums", function()
@@ -292,7 +291,7 @@ describe("stats with rates that changed", function()
                 end,
             },
         },
-        items = { [1] = { kind = "unique" } },
+        items = { [1] = {} },
     }
 
     -- Tallies with 20 kills before CHANGE and 10 from it, all dry.
@@ -325,7 +324,7 @@ describe("stats with rates that changed", function()
                     end,
                 },
             },
-            items = { [1] = { kind = "unique" } },
+            items = { [1] = {} },
         }
         local result = forBoss(added, spanning())
         assert.are.near(10 / 5, result.expected, 1e-9) -- only the 10 kills from CHANGE
@@ -354,7 +353,7 @@ local EVENTED = {
         }
     end,
     extraKills = "partial",
-    items = { [1] = { kind = "unique" } },
+    items = { [1] = {} },
 }
 
 describe("stats with kills counted at each kill", function()

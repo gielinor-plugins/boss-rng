@@ -30,13 +30,11 @@ return {
     },
 
     items = {
-        [SPECTRAL] = { log = VARS.log .. "SIGIL_SPECTRAL", kind = "unique" },
-        [ARCANE] = { log = VARS.log .. "SIGIL_ARCANE", kind = "unique" },
-        [ELYSIAN] = { log = VARS.log .. "SIGIL_ELYSIAN", kind = "unique" },
-        [DIVINE] = { log = VARS.log .. "SIGIL_DIVINE", kind = "unique" },
+        [SPECTRAL] = { log = VARS.log .. "SIGIL_SPECTRAL" },
+        [ARCANE] = { log = VARS.log .. "SIGIL_ARCANE" },
+        [ELYSIAN] = { log = VARS.log .. "SIGIL_ELYSIAN" },
+        [DIVINE] = { log = VARS.log .. "SIGIL_DIVINE" },
         -- Other monsters drop it too, but players don't hunt it there.
-        [ELIXIR] = { log = VARS.log .. "HOLY_ELIXIR", kind = "unique" },
-        [13734] = { kind = "excluded" }, -- Spirit shield: common from other monsters
-        [33812] = { kind = "pet" }, -- Corporeal puppy
+        [ELIXIR] = { log = VARS.log .. "HOLY_ELIXIR" },
     },
 }

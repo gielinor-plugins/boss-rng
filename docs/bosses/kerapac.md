@@ -72,3 +72,7 @@ Conclusions:
 - **Kerapac's time-torn Staff of Armadyl** (boss trophy, 1 in 500): not on the
   collection log.
 - **Kerry** (pet): pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Kerry | 51861 |

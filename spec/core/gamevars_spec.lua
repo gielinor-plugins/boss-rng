@@ -1,17 +1,15 @@
 local mock = require("spec/mock_api")
 
--- A test boss: two KC varbits sharing one base var, and two unique items plus a
--- shared item sharing another, like Rasial's separate armor and weapon rolls.
+-- A test boss: two KC varbits sharing one base var, and two unique items sharing
+-- another, like Rasial's separate armor and weapon rolls.
 local BOSS = {
     modes = {
         { key = "n", kc = "KC_NORMAL" },
         { key = "h", kc = "KC_HARD" },
     },
     items = {
-        [101] = { log = "LOG_WEAPON", kind = "unique" },
-        [102] = { log = "LOG_ARMOR", kind = "unique" },
-        [103] = { log = "LOG_SHARED", kind = "shared" },
-        [104] = { kind = "pet" },
+        [101] = { log = "LOG_WEAPON" },
+        [102] = { log = "LOG_ARMOR" },
     },
 }
 
@@ -67,7 +65,7 @@ describe("gamevars", function()
     it("reports each unique item that went up in one change", function()
         change(KC_VAR, 1, 2)
         reports = {}
-        change(LOG_VAR, 0x020101, 0x030202) -- weapon, armor and shared all +1
+        change(LOG_VAR, 0x020101, 0x030202) -- weapon, armor and an unlisted item all +1
         table.sort(reports)
         assert.are.same({ "drop 101 +1", "drop 102 +1" }, reports)
     end)
@@ -265,7 +263,7 @@ describe("gamevars", function()
         gamevars.Stop()
         local claimed = {
             modes = { { key = "n", kc = "KC_NORMAL" } },
-            items = { [101] = { log = "LOG_WEAPON", kind = "unique" } },
+            items = { [101] = { log = "LOG_WEAPON" } },
             claimedBy = { var = "LOG_SHARED", most = 200 }, -- the streak: 0 once claimed
         }
         gamevars.Start({ claimed }, function() end, function(_, itemID, count)
@@ -317,7 +315,7 @@ describe("gamevars", function()
         local loot -- the loot var, holding piles in 0x70000 and a difficulty in 0xF0000000
         local claimed = {
             modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
-            items = { [101] = { log = "LOG_WEAPON", kind = "unique" } },
+            items = { [101] = { log = "LOG_WEAPON" } },
             claims = {
                 {
                     var = "LOOT_BASE",
@@ -566,7 +564,6 @@ describe("gamevars", function()
             items = {
                 [101] = {
                     log = "LOG_WEAPON",
-                    kind = "unique",
                     stack = { most = 9, word = "spike" },
                 },
             },

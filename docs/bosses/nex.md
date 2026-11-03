@@ -27,3 +27,9 @@ random.
 - **Ancient emblem:** only drops to players carrying a tier 70 or better
   defender, so not every kill can drop it.
 - **Nex's Followers** (lore) and **Nexterminator** (pet): lore and pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Ancient emblem | 36159 |
+| Nex's Followers | 25044 |
+| Nexterminator | 33808 |

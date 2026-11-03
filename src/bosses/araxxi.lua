@@ -56,20 +56,11 @@ return {
     end,
 
     items = {
-        [LEG_TOP] = { log = VARS.log .. "LEG_TOP", kind = "unique", group = LEGS },
-        [LEG_MIDDLE] = { log = VARS.log .. "LEG_MIDDLE", kind = "unique", group = LEGS },
-        [LEG_BOTTOM] = { log = VARS.log .. "LEG_BOTTOM", kind = "unique", group = LEGS },
-        [FANG] = { log = VARS.log .. "FANG", kind = "unique", group = ADD_ONS }, -- Araxxi's fang
-        [EYE] = { log = VARS.log .. "EYE", kind = "unique", group = ADD_ONS }, -- Araxxi's eye
-        [WEB] = { log = VARS.log .. "WEB", kind = "unique", group = ADD_ONS }, -- Araxxi's web
-        [35870] = { log = VARS.log .. "PHEROMONE", kind = "excluded" }, -- Araxyte pheromone: a common drop
-        [31753] = { kind = "pet" }, -- Bill
-        [31752] = { kind = "pet" }, -- Lana
-        [31750] = { kind = "pet" }, -- Pete
-        [31748] = { kind = "pet" }, -- Dave
-        [31749] = { kind = "pet" }, -- Steve
-        [31751] = { kind = "pet" }, -- Gavin
-        [33809] = { kind = "pet" }, -- Barry
-        [33810] = { kind = "pet" }, -- Mallory
+        [LEG_TOP] = { log = VARS.log .. "LEG_TOP", group = LEGS },
+        [LEG_MIDDLE] = { log = VARS.log .. "LEG_MIDDLE", group = LEGS },
+        [LEG_BOTTOM] = { log = VARS.log .. "LEG_BOTTOM", group = LEGS },
+        [FANG] = { log = VARS.log .. "FANG", group = ADD_ONS }, -- Araxxi's fang
+        [EYE] = { log = VARS.log .. "EYE", group = ADD_ONS }, -- Araxxi's eye
+        [WEB] = { log = VARS.log .. "WEB", group = ADD_ONS }, -- Araxxi's web
     },
 }

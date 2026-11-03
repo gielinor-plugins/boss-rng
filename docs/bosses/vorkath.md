@@ -44,3 +44,8 @@ Each chest rolls once for a rare, in its first slot:
 - **Vorki** (pet): pets aren't counted.
 - **Vorkath's claw, Vorkath's head, weapon override token:** go straight to your
   backpack at the kill; not on this boss log page.
+
+| Boss log item | Id |
+|---|---|
+| Zemouregal's nexus | 56143 |
+| Vorki | 56145 |

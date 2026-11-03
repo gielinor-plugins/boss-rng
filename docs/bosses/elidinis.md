@@ -35,3 +35,8 @@ The rebalance doesn't say if the rares still share one roll; assumed yes.
 
 - **Edie** (pet) and **After The Flood** (lore): lore and pets aren't counted.
 - **The Gate of Elidinis** (boss trophy): not on the collection log.
+
+| Boss log item | Id |
+|---|---|
+| After The Flood | 57533 |
+| Edie | 57548 |

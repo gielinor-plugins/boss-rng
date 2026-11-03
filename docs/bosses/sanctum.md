@@ -61,3 +61,10 @@ two run rare fields; they add no rolls beyond the rates above.
   1 in 50 each from their boss): not on the collection log.
 - **The Brood Mother**, **The Beast of Darkness** and **Death and Devourers**
   (lore) and **Neffie** (pet): lore and pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| The Brood Mother | 57121 |
+| The Beast of Darkness | 57122 |
+| Death and Devourers | 57123 |
+| Neffie | 57167 |

@@ -76,17 +76,12 @@ return {
     end,
 
     items = {
-        [CODEX] = { log = VARS.log .. "COMBATV2_PRAYER_CODEX_DIVINE_RAGE", kind = "unique" },
+        [CODEX] = { log = VARS.log .. "COMBATV2_PRAYER_CODEX_DIVINE_RAGE" },
         [SCRIPTURE] = {
             log = VARS.log .. "RAID_REBIRTH1_AMASCUT_BOOK_UNLOCK_TOKEN",
-            kind = "unique",
         },
-        [ROAR] = { log = VARS.log .. "MAGIC_DEVOURER_WAND_T95", kind = "unique" },
-        [ODE] = { log = VARS.log .. "MAGIC_DEVOURER_ORB_T95", kind = "unique" },
+        [ROAR] = { log = VARS.log .. "MAGIC_DEVOURER_WAND_T95" },
+        [ODE] = { log = VARS.log .. "MAGIC_DEVOURER_ORB_T95" },
         [common.SHARD] = common.SHARD_ITEM, -- also dropped by Amascut
-        [57121] = { kind = "lore" }, -- The Brood Mother
-        [57122] = { kind = "lore" }, -- The Beast of Darkness
-        [57123] = { kind = "lore" }, -- Death and Devourers
-        [57167] = { kind = "pet" }, -- Neffie
     },
 }

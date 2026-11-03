@@ -33,3 +33,10 @@ Only if that misses is there a roll for Serenic essence.
 - **Dormant anima core pieces** (helm, body, legs): one boss log count shared by
   all four God Wars Dungeon 2 bosses. They still take table share above.
 - **Lilwyr** (pet): pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Dormant anima core helm | 37009 |
+| Dormant anima core body | 37012 |
+| Dormant anima core legs | 37015 |
+| Lilwyr | 37182 |

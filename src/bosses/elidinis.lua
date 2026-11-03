@@ -32,12 +32,10 @@ return {
     },
 
     items = {
-        [ATTUNER] = { log = VARS.log .. "SKILLING_OFFHAND_RUNECRAFTING", kind = "unique" },
-        [DOWSER] = { log = VARS.log .. "SKILLING_OFFHAND_DIVINATION", kind = "unique" },
-        [SCRIPTURE] = { log = VARS.log .. "ELIDINIS_BOOK_UNLOCK_TOKEN", kind = "unique" },
-        [CODEX] = { log = VARS.codex, kind = "unique" },
-        [OFFERING] = { log = VARS.log .. "OFFERINGS_AMULET_UPGRADE_MATERIAL", kind = "unique" },
-        [57533] = { kind = "lore" }, -- After The Flood
-        [57548] = { kind = "pet" }, -- Edie
+        [ATTUNER] = { log = VARS.log .. "SKILLING_OFFHAND_RUNECRAFTING" },
+        [DOWSER] = { log = VARS.log .. "SKILLING_OFFHAND_DIVINATION" },
+        [SCRIPTURE] = { log = VARS.log .. "ELIDINIS_BOOK_UNLOCK_TOKEN" },
+        [CODEX] = { log = VARS.codex },
+        [OFFERING] = { log = VARS.log .. "OFFERINGS_AMULET_UPGRADE_MATERIAL" },
     },
 }

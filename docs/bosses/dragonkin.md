@@ -38,3 +38,10 @@ Fury, Black stone dragon: Barge). Teams are at most three.
 - **Draconic energy:** a common drop.
 - **Redacted Dragonkin Research** and **Diary of an Overzealous Gnome** (lore)
   and **Bisdi** (pet): lore and pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Redacted Dragonkin Research | 43373 |
+| Diary of an Overzealous Gnome | 43374 |
+| Draconic energy | 43165 |
+| Bisdi | 47548 |

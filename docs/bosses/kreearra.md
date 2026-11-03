@@ -35,3 +35,17 @@ Hard mode has the same rates.
 - **Godsword shards:** a table every God Wars boss shares.
 - **Warpriest set:** also drops from the bodyguards and the god's other monsters.
 - **Armadyl lore book** and **Chick'arra** (pet): lore and pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Godsword shard 1 | 11710 |
+| Godsword shard 2 | 11712 |
+| Godsword shard 3 | 11714 |
+| Warpriest of Armadyl helm | 30300 |
+| Warpriest of Armadyl cape | 30303 |
+| Warpriest of Armadyl body | 30294 |
+| Warpriest of Armadyl legs | 30297 |
+| Warpriest of Armadyl gloves | 30288 |
+| Warpriest of Armadyl boots | 30291 |
+| Armadyl lore book | 25043 |
+| Chick'arra | 33804 |

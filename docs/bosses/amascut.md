@@ -93,3 +93,8 @@ Conclusions:
 - **Amascut's crown** (boss trophy, 1 in 500): not on the collection log.
 - **Memoirs of the Devourer** (lore) and **Amaskitty** (pet): lore and pets
   aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Memoirs of the Devourer | 59321 |
+| Amaskitty | 59363 |

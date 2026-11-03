@@ -33,3 +33,17 @@ Hard mode has the same rates.
 - **Godsword shards:** a table every God Wars boss shares.
 - **Warpriest set:** also drops from the bodyguards and the god's other monsters.
 - **The Glory of General Graardor** (lore) and **General Awwdor** (pet): lore and pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Godsword shard 1 | 11710 |
+| Godsword shard 2 | 11712 |
+| Godsword shard 3 | 11714 |
+| Warpriest of Bandos helm | 30318 |
+| Warpriest of Bandos cape | 30321 |
+| Warpriest of Bandos body | 30312 |
+| Warpriest of Bandos legs | 30315 |
+| Warpriest of Bandos gloves | 30306 |
+| Warpriest of Bandos boots | 30309 |
+| The Glory of General Graardor | 25042 |
+| General Awwdor | 33806 |

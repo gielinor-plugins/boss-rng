@@ -23,11 +23,10 @@ return {
         godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)
     ),
 
-    items = godwars2.Items({
-        [CREST] = { log = VARS.log .. "CREST", kind = "unique" },
-        [WAND] = { log = VARS.log .. "WEAPON", kind = "unique" },
-        [ORB] = { log = VARS.log .. "WEAPON_OFFHAND", kind = "unique" },
-        [ESSENCE] = { log = VARS.log .. "ESSENCE", kind = "unique" }, -- Serenic essence
-        [37182] = { kind = "pet" }, -- Lilwyr
-    }),
+    items = {
+        [CREST] = { log = VARS.log .. "CREST" },
+        [WAND] = { log = VARS.log .. "WEAPON" },
+        [ORB] = { log = VARS.log .. "WEAPON_OFFHAND" },
+        [ESSENCE] = { log = VARS.log .. "ESSENCE" }, -- Serenic essence
+    },
 }

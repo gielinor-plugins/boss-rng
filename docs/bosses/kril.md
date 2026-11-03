@@ -36,3 +36,17 @@ Hard mode has the same rates.
 - **Godsword shards:** a table every God Wars boss shares.
 - **Warpriest set:** also drops from the bodyguards and the god's other monsters.
 - **Razulei's Tale** (lore) and **K'ril Tinyroth** (pet): lore and pets aren't counted.
+
+| Boss log item | Id |
+|---|---|
+| Godsword shard 1 | 11710 |
+| Godsword shard 2 | 11712 |
+| Godsword shard 3 | 11714 |
+| Warpriest of Zamorak helm | 28785 |
+| Warpriest of Zamorak cape | 28788 |
+| Warpriest of Zamorak body | 28779 |
+| Warpriest of Zamorak legs | 28782 |
+| Warpriest of Zamorak gloves | 28773 |
+| Warpriest of Zamorak boots | 28776 |
+| Razulei's Tale | 25041 |
+| K'ril Tinyroth | 33805 |

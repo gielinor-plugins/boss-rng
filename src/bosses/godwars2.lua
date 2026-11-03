@@ -4,7 +4,6 @@
 -- are shared by all four bosses, so they aren't counted but still take table chance.
 
 local common = require("src/bosses/common")
-local tables = require("src/utils/tables")
 
 local godwars2 = {}
 
@@ -18,17 +17,6 @@ function godwars2.Rolls(mode, crest, weapons, essence)
         items[essence] = (1 - tableChance) * r[mode .. "Essence"]
         return { common.OneOf(items) }
     end
-end
-
--- Every God Wars 2 boss page lists these, with shared boss log counts.
-godwars2.SHARED = {
-    [37009] = { log = "ITEMLOG_ITEM_GWD2_HEAD", kind = "shared" }, -- Dormant anima core helm
-    [37012] = { log = "ITEMLOG_ITEM_GWD2_BODY", kind = "shared" }, -- Dormant anima core body
-    [37015] = { log = "ITEMLOG_ITEM_GWD2_LEGS", kind = "shared" }, -- Dormant anima core legs
-}
-
-function godwars2.Items(own)
-    return tables.Merge(own, godwars2.SHARED)
 end
 
 return godwars2

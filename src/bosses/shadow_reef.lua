@@ -32,12 +32,8 @@ return {
     modeFor = dungeon.ModeFor,
 
     items = {
-        [LIMB] = { log = VARS.log .. "LIMB", kind = "unique", group = CROSSBOW },
-        [MECHANISM] = { log = VARS.log .. "MECHANISM", kind = "unique", group = CROSSBOW },
-        [STOCK] = { log = VARS.log .. "STOCK", kind = "unique", group = CROSSBOW },
-        [47506] = { kind = "excluded" }, -- Black stone heart: a common drop
-        [47468] = { kind = "lore" }, -- The Last Offering
-        [47469] = { kind = "lore" }, -- Kranon's Ancient Journal
-        [47537] = { kind = "pet" }, -- Ambi
+        [LIMB] = { log = VARS.log .. "LIMB", group = CROSSBOW },
+        [MECHANISM] = { log = VARS.log .. "MECHANISM", group = CROSSBOW },
+        [STOCK] = { log = VARS.log .. "STOCK", group = CROSSBOW },
     },
 }

@@ -70,7 +70,8 @@ version before adding a feature. Where they differ, the current guidelines apply
 1. Add `src/bosses/<key>.lua` and list it in `src/bosses.lua`.
 2. Add its rates to `src/core/rates/base.lua`, by boss key.
 3. Add `docs/bosses/<key>.md`: drop rates, how kills are counted, vars read, in-game
-   tests, and what isn't counted. Copy the layout of an existing page.
+   tests, and what isn't counted, with the boss log ids of items left out of the
+   boss file. Copy the layout of an existing page.
 4. Add a case to `spec/bosses_spec.lua`, plus tests for any special counting.
 5. Confirm every var in game before relying on it: when it changes relative to
    the kill, and that it holds what its name suggests. Record what was seen in the

@@ -225,12 +225,10 @@ function gamevars.AllTime(boss)
         end
     end
     for itemID, item in pairs(boss.items) do
-        if item.kind == "unique" then
-            local key = tostring(itemID)
-            allTime.items[key] = value(item.log)
-            if allTime.items[key] == nil then
-                return nil
-            end
+        local key = tostring(itemID)
+        allTime.items[key] = value(item.log)
+        if allTime.items[key] == nil then
+            return nil
         end
     end
     for key, name in pairs(boss.reads or {}) do
@@ -377,14 +375,12 @@ function gamevars.Start(bosses, onKills, onDrops, ready)
             end)
         end
         for itemID, item in pairs(boss.items) do
-            if item.kind == "unique" then -- only items that count toward luck
-                local stack = item.stack and item.stack.most
-                watch(item.log, "drops", function(count)
-                    if canDrop(boss) then
-                        onDrops(boss, itemID, stack and 1 or count)
-                    end
-                end, nil, stack or (boss.claimedBy and boss.claimedBy.most))
-            end
+            local stack = item.stack and item.stack.most
+            watch(item.log, "drops", function(count)
+                if canDrop(boss) then
+                    onDrops(boss, itemID, stack and 1 or count)
+                end
+            end, nil, stack or (boss.claimedBy and boss.claimedBy.most))
         end
     end
 
