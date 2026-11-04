@@ -35,7 +35,7 @@ Info tab says so).
 ## How chests are saved
 
 Each looted chest is saved under a mode key for the brothers killed that run, so
-its rates can be rebuilt from the key ([saved data](../data/saved_data.md)). At
+its rates can be rebuilt from the key ([saved data](../data/saved-data.md)). At
 the loot, each brother killed sets his bit:
 
 | Brother | Bit | How it's known |

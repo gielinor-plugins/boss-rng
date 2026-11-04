@@ -1,6 +1,6 @@
 # Compatibility: changing rates, modes, items and bosses
 
-Saved data holds only kills, drops and streak starts (`saved_data.md`); rates apply
+Saved data holds only kills, drops and streak starts (`saved-data.md`); rates apply
 when shown. So most changes go in `src/core/rates/` and boss files, with no data
 conversion.
 

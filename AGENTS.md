@@ -1,14 +1,14 @@
 # AGENTS.md
 
-Instructions for AI coding agents working on Boss RNG. For people, the README's
-Development section covers the same setup.
+Instructions for AI coding agents working on Boss RNG. People can start from
+[docs/README.md](docs/README.md), which covers the same ground.
 
 ## The project
 
 Boss RNG is a RuneScape 3 plugin in Lua 5.4. It counts boss kills and unique drops
 as they happen and shows how lucky the player has been against published drop
-rates. See the README's Development section for the folder layout; the boss data
-format is documented at the top of `src/bosses.lua`.
+rates. Read [docs/technical/overview.md](docs/technical/overview.md) first: it maps
+every module. The boss data format is documented at the top of `src/bosses.lua`.
 
 ## Commands
 
@@ -62,26 +62,35 @@ version before adding a feature. Where they differ, the current guidelines apply
 
 ## Testing
 
-- Tests live in `spec/`, mirroring `src/`, and run without the game:
-  `spec/mock_api.lua` stands in for the game API (events, vars, saved data).
-- Add or update tests with every change in behavior.
-- Anything the mock can't show (when a var changes, what it holds) is confirmed
-  in game by the developer.
+See [docs/development/testing.md](docs/development/testing.md). In short: specs
+test behavior, not data; add or update one with every change in behavior; anything
+the mock can't show is confirmed in game by the developer, through dev probes in
+`dev/` that follow the same rules as the plugin.
 
 ## Adding a boss
 
-1. Add `src/bosses/<key>.lua` and list it in `src/bosses.lua`.
-2. Add its rates to `src/core/rates/base.lua`, by boss key.
-3. Add `docs/bosses/<key>.md`: drop rates, how kills are counted, vars read, in-game
-   tests, and what isn't counted, with the boss log ids of items left out of the
-   boss file. Copy the layout of an existing page.
-4. Add a case to `spec/bosses_spec.lua`, plus tests for any special counting, and
-   list its boss and mode keys in `spec/saved_keys_spec.lua`.
-5. Confirm every var in game before relying on it: when it changes relative to
-   the kill, and that it holds what its name suggests. Record what was seen in the
-   doc page's Tests section.
+Follow [docs/development/adding-a-boss.md](docs/development/adding-a-boss.md).
 
-## Style and Typography
+## Keeping the docs current
+
+Update the docs in the same commit as the change:
+
+| Change | Update |
+|---|---|
+| A boss added | Its page in `docs/bosses/`, the table in `docs/bosses/README.md`, `CHANGELOG.md` |
+| A boss's rates, counting or vars | Its page in `docs/bosses/` (rates, how kills are counted, vars read, tests) |
+| A game update's rates | The affected boss pages, `CHANGELOG.md` |
+| A module added, removed or renamed | `docs/technical/overview.md` |
+| An event subscribed, or what one does | `docs/technical/events.md` |
+| When views draw, or a new view | `docs/technical/ui.md` |
+| The luck math | `docs/technical/luck-math.md` |
+| A new cache | `docs/technical/caching.md` |
+| The saved shape | `docs/data/saved-data.md` and `saved-data.example.json`, `VERSION` in `src/core/tracker.lua` |
+| What's read or saved | `docs/guide/privacy.md`, the Data Protection section of `docs/release/modio-listing.md` |
+| What players see | `docs/guide/how-it-works.md` |
+| Tools or setup | `docs/development/setup.md` |
+
+## Style and typography
 
 - Concise, conventional Lua. Build only what is needed now.
 - Format with [StyLua](https://github.com/JohnnyMorganz/StyLua) (`.stylua.toml`):
@@ -90,5 +99,6 @@ version before adding a feature. Where they differ, the current guidelines apply
 - Text players see, docs and comments describe Boss RNG and RuneScape on their
   own terms, clearly enough for a new player to follow.
 - American English.
+- "Boss log" for kill counts, "collection log" for drops and their counts.
 - Use commas, colons, parentheses or separate sentences instead of em dashes and
   en dashes. Write ranges as "1 to 3".

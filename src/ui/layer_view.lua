@@ -3,7 +3,7 @@
 -- minimizes it or hands it to another plugin, with no event for either. So the view
 -- keeps a tiny invisible marker in the layer: once it's no longer among the layer's
 -- children, the layer isn't ours to draw in until it's given back (tested:
--- docs/data/cache.md).
+-- docs/technical/ui.md).
 
 local layerView = {}
 

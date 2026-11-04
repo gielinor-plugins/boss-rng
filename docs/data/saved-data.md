@@ -11,6 +11,7 @@ entry). All-time kill and log counts are read from the game, never saved.
 The record has a `version`. A record with any other version starts again.
 
 Keys are always text (item ids, days), and numbers come back as decimals (`13.0`).
+A sample record is in [`saved-data.example.json`](saved-data.example.json).
 
 ## `char:<name>`
 
@@ -57,21 +58,38 @@ kill.
 
 ### Example
 
-Vorkath: 13 hard mode chests on day 20756, a spike (56079) on the 13th, then 2 more
-on day 20757. No codex (56068) or scale (56321).
+[`saved-data.example.json`](saved-data.example.json) is a full record, taken from a
+real character with the name changed. Its Vorkath entry: 7 hard mode chests on day
+20760, with two spike drops (56079), the last at the 3rd chest. No codex (56068) or
+scale (56321) yet.
 
 ```json
 "vorkath": {
-  "kills": { "h": "20756:13,20757:2" },
+  "kills": { "h": "20760:7" },
   "dryFrom": {
-    "56079": { "day": 20756, "at": { "h": { "20756": 13 } } },
-    "any":   { "day": 20756, "at": { "h": { "20756": 13 } } }
+    "56079": { "day": 20760, "at": { "h": { "20760": 3 } } },
+    "any": { "day": 20760, "at": { "h": { "20760": 3 } } }
   },
-  "items": { "56079": 1 }
+  "items": { "56079": 2 }
 }
 ```
 
-`56079` and `any`: 2 kills. `56068` and `56321`: 15. A new kill changes only `kills`.
+`56079` and `any`: 4 kills dry. `56068` and `56321` have no entry, so they run from
+the first chest: 7. A new chest changes only `kills`.
+
+## On disk
+
+The example shows the record as Lua sees it. The game stores it in its plugin
+database as JSON, writing every table as a list of `{ "key": ..., "value": ... }`
+pairs and every number as a decimal:
+
+```json
+[
+  { "key": "version", "value": 1.0 },
+  { "key": "lastBoss", "value": "barrows" },
+  { "key": "bosses", "value": [ { "key": "vorkath", "value": [ ... ] } ] }
+]
+```
 
 ## Size
 

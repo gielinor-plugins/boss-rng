@@ -1,7 +1,8 @@
-# Caches
+# Caching
 
-All in memory, never saved. Each holds results worked out from saved data or the
-game, so a stale check only costs a recompute.
+What Boss RNG keeps in memory to avoid repeating work. Nothing here is saved:
+each cache holds results worked out from saved data or the game, so a stale check
+only costs a recompute.
 
 ## Picked boss's stats
 
@@ -23,32 +24,8 @@ picked boss's stats are worked out. The key is also the entry's `inputs`.
 
 ## Drawn views
 
-`src/ui.lua` redraws on the logic tick after a change, once however many changes the
-tick had (a kill and its drop are two). The panel and window are skipped when what
-they show is unchanged: the boss list and the shown boss's `inputs`. So a kill at
-another boss leaves them, and their scroll and open dropdowns, alone. Opening the
-window, or the game giving the panel a fresh layer, always draws. The settings page
-always redraws: it's small and rarely open.
-
-Only views still shown are redrawn. The game gives no event when it minimizes the
-ribbon panel, closes it or hands it to another plugin; it clears the layer. So each
-layer holds a 1 x 1 transparent marker (`src/ui/layer_view.lua`), and a layer that no
-longer lists the marker among its children isn't drawn in until the game gives it
-back (`ContentLayerReady` or `SettingsLayerReady`, which redraw). A layer that can't
-list its children falls back to the marker's `visibleGlobal`.
-
-Tested in game on 3 November 2026 (ribbon panel, read every half second):
-
-| Panel | Layer's children | Our marker |
-|---|---|---|
-| Open | 4, including the marker | a child |
-| Minimized or closed | 0 | not a child |
-| Given to another plugin | the other plugin's (2 to 4) | not a child, though its `visibleGlobal` could still read true |
-| Restored or picked again | `ContentLayerReady` fired, then redrawn | a new marker, a child |
-
-Kills while another plugin was shown or the panel was minimized drew nothing; switching
-back showed them. The layer's own `visible`, `visibleGlobal` and `hidden` never
-changed, so only a component of ours, found among its children, tells.
+The panel and window also skip a redraw when what they'd show is unchanged: see
+[UI](ui.md#when-views-draw).
 
 ## Encoded tallies
 

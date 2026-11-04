@@ -21,7 +21,7 @@ Scripture of Bik. Each player gets their own rolls, by contribution:
 - Loot can stack in the chest, but rolls are known at each kill, so kills stay
   the unit.
 - Kills are saved by unique rolls, as day and count
-  ([saved data](../data/saved_data.md)). Here, 30 full contribution kills and 2
+  ([saved data](../data/saved-data.md)). Here, 30 full contribution kills and 2
   at 345 to 359 one day, then 5 full the next:
 
 ```lua
