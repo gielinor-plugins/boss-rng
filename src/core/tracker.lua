@@ -24,6 +24,9 @@ local function eachBoss(from, convert)
     return to
 end
 
+-- The record as saved. A boss's encoded tallies are reused until talliesFor clears
+-- them, and share dryFrom and items with its tallies (only kills and sums are
+-- converted), so tallies change only through talliesFor.
 local function encode(record)
     return eachBoss(record, function(t, key)
         encoded[key] = encoded[key] or tallies.Encode(t)

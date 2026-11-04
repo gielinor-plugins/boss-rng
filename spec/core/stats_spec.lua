@@ -257,7 +257,11 @@ describe("stats with sums", function()
             dryFrom = {},
             items = {},
         }
-        assert.are.near(2 * 1 / 100 + 4 * 5 / 100, forBoss(LEVELLED, t).expected, 1e-12)
+        local result = forBoss(LEVELLED, t)
+        assert.are.near(2 * 1 / 100 + 4 * 5 / 100, result.expected, 1e-12)
+        -- The dry streak too: each day at its own average.
+        local missAll = (1 - 1 / 100) ^ 2 * (1 - 5 / 100) ^ 4
+        assert.are.near(1 - missAll, result.dryShare, 1e-12)
     end)
 end)
 
@@ -288,6 +292,38 @@ describe("stats with rates that changed", function()
 
     it("uses the drop rates in effect on each kill's day", function()
         assert.are.near(20 / 10 + 10 / 5, forBoss(CHANGED, spanning()).expected, 1e-9)
+    end)
+
+    it("gives the same stats however a rate version's kills fall across its days", function()
+        local function spread(days)
+            local byDay = { [tostring(CHANGE)] = 10 } -- the newer version, as one day
+            for i, n in ipairs(days) do
+                byDay[tostring(CHANGE - i)] = n
+            end
+            return { kills = { n = byDay }, dryFrom = {}, items = { ["1"] = 1 } }
+        end
+        local oneDay, manyDays =
+            forBoss(CHANGED, spread({ 20 })), forBoss(CHANGED, spread({ 5, 8, 7 }))
+        for _, field in ipairs({ "expected", "luck", "dryShare", "dryKills" }) do
+            assert.are.near(oneDay[field], manyDays[field], 1e-12)
+        end
+    end)
+
+    it("shows luck once expected drops reach 1, despite float rounding", function()
+        -- 1 kill at 1/6, then 10 at 1/12: exactly 1 expected drop, which floats add up
+        -- to 0.9999999999999999.
+        local sixths = {
+            rates = rates.History({
+                { values = { item = 1 / 6 } },
+                { since = CHANGE, values = { item = 1 / 12 } },
+            }),
+            modes = CHANGED.modes,
+            items = CHANGED.items,
+        }
+        local byMode = { n = { [tostring(CHANGE - 1)] = 1, [tostring(CHANGE)] = 10 } }
+        local result = forBoss(sixths, { kills = byMode, dryFrom = {}, items = {} })
+        assert.is_true(result.expected < 1) -- the rounding this guards against
+        assert.is_true(result.luck ~= nil)
     end)
 
     it("rates a dry streak spanning the change kill by kill", function()

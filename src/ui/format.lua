@@ -2,6 +2,11 @@
 
 local format = {}
 
+-- Sums of many floats can land on either side of a value they equal exactly (0.29
+-- * 100 is 28.999999999999996), so rounding and thresholds allow this much, as in
+-- src/core/stats.lua: far more than float error, far less than any real difference.
+local FLOAT_ERROR = 1e-9
+
 -- 1234567 gives "1,234,567".
 function format.Number(n)
     local text = tostring(math.floor(n))
@@ -29,17 +34,16 @@ function format.Percent(share)
     if share < 0.01 then
         return "under 1%"
     end
-    return math.floor(share * 100) .. "%"
+    return math.floor(share * 100 + FLOAT_ERROR) .. "%"
 end
 
 -- Luck between these shares reads as average.
 local AVERAGE_LOW, AVERAGE_HIGH = 0.4, 0.6
 
 -- A group's whole percent, rounded up and at least 1, so the player is never placed
--- in a smaller group. The offset keeps float noise (12.000000000000002) from
--- rounding up a step.
+-- in a smaller group.
 local function groupNumber(share)
-    return math.max(1, math.ceil(share * 100 - 1e-9))
+    return math.max(1, math.ceil(share * 100 - FLOAT_ERROR))
 end
 
 local function groupPercent(share)
@@ -159,10 +163,10 @@ end
 function format.Average(result)
     if not format.IsTracked(result) then
         return ""
-    elseif result.expected < 1 then
+    elseif result.expected < 1 - FLOAT_ERROR then
         return "Average player: under 1 unique"
     end
-    local average = string.format("%.1f", result.expected)
+    local average = string.format("%.1f", result.expected + FLOAT_ERROR)
     return "Average player: " .. average .. (average == "1.0" and " unique" or " uniques")
 end
 
@@ -171,10 +175,10 @@ end
 function format.AverageShort(result)
     if result.expected == 0 then
         return "0 drops"
-    elseif result.expected < 0.05 then
+    elseif result.expected < 0.05 - FLOAT_ERROR then
         return "<lt>0.1 drops"
     end
-    local average = string.format("%.1f", result.expected)
+    local average = string.format("%.1f", result.expected + FLOAT_ERROR)
     return average .. (average == "1.0" and " drop" or " drops")
 end
 

@@ -12,6 +12,11 @@ local stats = {}
 -- unique. Before that a dry streak is normal, so it shows how many would still be dry.
 local MIN_EXPECTED = 1
 
+-- Adding many kills' chances leaves float error in the last digits (exactly 1 can add up
+-- to 0.9999999999999999), so comparisons allow this much: far more than float error,
+-- far less than any real difference.
+local FLOAT_ERROR = 1e-9
+
 local NO_RATES = {} -- the rate values of a boss without any
 
 -- A boss's rates on a day: from boss.rates (a test boss's own history), or from the rate
@@ -31,80 +36,73 @@ function stats.Rolls(boss, mode, readings, day, means)
     return rolls
 end
 
--- Rolls(mode, day) and Chances(mode, day) for readings and t's sums, worked out once per
--- rate version, or per day for a mode with sums that day.
-local function ratesTable(boss, readings, t)
-    local rolls, chances = {}, {}
-    local lookup = {}
-    local function cached(store, mode, day, make)
+-- Kills of one mode in one rate version have the same chances (see "Rate versions" in
+-- docs/technical/luck-math.md), so a boss's kills are worked out in batches:
+-- batchesOf(byMode) adds byMode's kills up by mode and version, as a list of
+-- { mode, kills, rolls, chances }.
+-- A mode with sums that day (Arch-Glacor) has its own chances that day, so the day is
+-- its own version. Rolls and chances are worked out once per mode and version.
+local function batcher(boss, readings, t)
+    local versions = {} -- [mode][version key] = { rolls, chances }
+    local function versionOn(mode, day)
         local means = tallies.Means(t, mode.key, day)
         local key = means and day or valuesOn(boss, day)
-        store[mode] = store[mode] or {}
-        store[mode][key] = store[mode][key] or make(means)
-        return store[mode][key]
-    end
-    function lookup.Rolls(mode, day)
-        return cached(rolls, mode, day, function(means)
-            return stats.Rolls(boss, mode, readings, day, means)
-        end)
-    end
-    function lookup.Chances(mode, day)
-        return cached(chances, mode, day, function()
-            return luck.ItemChances(lookup.Rolls(mode, day))
-        end)
-    end
-    return lookup
-end
-
--- The modes t has kills for, in key order so results are the same every time. Saved
--- kills of a mode the boss no longer has are left out.
-local function modesOf(boss, t)
-    local keys = {}
-    for key in pairs(t.kills) do
-        if boss.modes[key] then
-            table.insert(keys, key)
+        versions[mode] = versions[mode] or {}
+        if versions[mode][key] == nil then
+            local rolls = stats.Rolls(boss, mode, readings, day, means)
+            versions[mode][key] = { rolls = rolls, chances = luck.ItemChances(rolls) }
         end
+        return versions[mode][key]
     end
-    table.sort(keys)
-    local modes = {}
-    for i, key in ipairs(keys) do
-        modes[i] = boss.modes[key]
-    end
-    return modes
-end
 
-local function eachKill(modes, byMode, fn)
-    for _, mode in ipairs(modes) do
-        for day, kills in pairs(byMode[mode.key] or {}) do
-            fn(mode, tonumber(day), kills)
+    local batches = {} -- [byMode] = its batches, worked out once
+    return function(byMode)
+        if batches[byMode] == nil then
+            local list, byVersion = {}, {}
+            for modeKey, byDay in pairs(byMode) do
+                local mode = boss.modes[modeKey] -- nil for a mode the boss no longer has
+                for day, kills in pairs(mode and byDay or {}) do
+                    local version = versionOn(mode, tonumber(day))
+                    local batch = byVersion[version]
+                    if batch == nil then
+                        batch = { mode = mode, kills = 0, rolls = version.rolls }
+                        batch.chances = version.chances
+                        byVersion[version] = batch
+                        table.insert(list, batch)
+                    end
+                    batch.kills = batch.kills + kills
+                end
+            end
+            batches[byMode] = list
         end
+        return batches[byMode]
     end
 end
 
-local function killsThatCanDrop(modes, lookup, byMode, itemID)
+local function killsThatCanDrop(batchesOf, byMode, itemID)
     local total = 0
-    eachKill(modes, byMode, function(mode, day, kills)
-        if lookup.Chances(mode, day)[itemID] then
-            total = total + kills
+    for _, batch in ipairs(batchesOf(byMode)) do
+        if batch.chances[itemID] then
+            total = total + batch.kills
         end
-    end)
+    end
     return total
 end
 
 -- Share of players who'd have got at least one of counted (a set of item ids) within
 -- byMode's kills.
-local function dryShare(modes, lookup, byMode, counted)
+local function dryShare(batchesOf, byMode, counted)
     local missAll = 1
-    eachKill(modes, byMode, function(mode, day, kills)
-        local chance = luck.ChanceOfAny(lookup.Rolls(mode, day), counted)
-        missAll = missAll * (1 - luck.DryPercentile(chance, kills))
-    end)
+    for _, batch in ipairs(batchesOf(byMode)) do
+        local chance = luck.ChanceOfAny(batch.rolls, counted)
+        missAll = missAll * (1 - luck.DryPercentile(chance, batch.kills))
+    end
     return 1 - missAll
 end
 
 -- Nil until expected reaches MIN_EXPECTED or a unique is received.
 local function luckOf(expected, received)
-    if expected > 0 and (expected >= MIN_EXPECTED or received > 0) then
+    if expected > 0 and (expected >= MIN_EXPECTED - FLOAT_ERROR or received > 0) then
         return luck.Percentile(expected, received)
     end
     return nil
@@ -116,8 +114,8 @@ local function killsToLuck(expected, rate)
     if rate <= 0 then
         return nil
     end
-    -- Subtract a tiny amount so float error can't round up to an extra kill.
-    return math.max(1, math.ceil((MIN_EXPECTED - expected) / rate - 1e-9))
+    -- Less FLOAT_ERROR, so float error can't round up to an extra kill.
+    return math.max(1, math.ceil((MIN_EXPECTED - expected) / rate - FLOAT_ERROR))
 end
 
 -- Uniques sharing a group become one row under the group's lowest item id: their counts
@@ -202,26 +200,26 @@ function stats.ForBoss(entry)
     if t == nil then
         return nil
     end
-    local lookup = ratesTable(boss, entry.readings or {}, t)
-    local modes = modesOf(boss, t)
+    local batchesOf = batcher(boss, entry.readings or {}, t)
 
     local result =
         { kills = 0, extraKills = 0, extraLabel = boss.extraKills, unit = boss.unit, items = {} }
     local expected = {} -- by item id
     local countedExpected = 0 -- over kills in the kill counts
-    eachKill(modes, t.kills, function(mode, day, kills)
+    for _, batch in ipairs(batchesOf(t.kills)) do
+        local mode, kills = batch.mode, batch.kills
         local key = mode.partial and "extraKills" or "kills"
         result[key] = result[key] + kills
         if mode.piles then
             result.piles = (result.piles or 0) + kills * mode.piles
         end
-        for itemID, chance in pairs(lookup.Chances(mode, day)) do
+        for itemID, chance in pairs(batch.chances) do
             expected[itemID] = (expected[itemID] or 0) + kills * chance
             if not mode.partial then
                 countedExpected = countedExpected + kills * chance
             end
         end
-    end)
+    end
     if allTime then
         result.allTime = allTimeTotals(boss, allTime)
     end
@@ -230,15 +228,20 @@ function stats.ForBoss(entry)
 
     result.expected, result.received = 0, 0
     local counted = {} -- the uniques in the boss's dry streak
+    local streaks = {} -- [streak key] = its kills, worked out once
+    local function streak(key)
+        streaks[key] = streaks[key] or tallies.Dry(t, key)
+        return streaks[key]
+    end
     local function shareOf(itemID, ids)
-        return dryShare(modes, lookup, tallies.Dry(t, tostring(itemID)), ids)
+        return dryShare(batchesOf, streak(tostring(itemID)), ids)
     end
     for itemID, item in pairs(boss.items) do
         local key = tostring(itemID)
         local row = {
             expected = expected[itemID] or 0,
             received = t.items[key] or 0,
-            dryKills = killsThatCanDrop(modes, lookup, tallies.Dry(t, key), itemID),
+            dryKills = killsThatCanDrop(batchesOf, streak(key), itemID),
             dryAtLeast = t.items[key] == nil and mayHaveEarlier,
             allTime = allTime and not item.stack and allTime.items[key] or nil,
         }
@@ -257,10 +260,10 @@ function stats.ForBoss(entry)
             or result.expected / math.max(1, result.extraKills)
         result.killsToLuck = killsToLuck(result.expected, rate)
     end
-    local dry = tallies.Dry(t, tallies.ANY)
+    local dry = streak(tallies.ANY)
     result.dryKills = tallies.Total(dry)
     result.dryAtLeast = result.received == 0 and mayHaveEarlier
-    result.dryShare = dryShare(modes, lookup, dry, counted)
+    result.dryShare = dryShare(batchesOf, dry, counted)
     grouped(boss, result.items, shareOf)
     return result
 end

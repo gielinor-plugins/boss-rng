@@ -11,6 +11,9 @@ describe("format", function()
         assert.are.equal("48%", format.Percent(0.4899))
         assert.are.equal("99%", format.Percent(0.9999))
         assert.are.equal("under 1%", format.Percent(0.00002))
+        -- Whole percents that floats store a hair low.
+        assert.are.equal("29%", format.Percent(0.29))
+        assert.are.equal("57%", format.Percent(0.57))
     end)
 
     it("words luck as a top or bottom group, or about average", function()
@@ -98,12 +101,21 @@ describe("format", function()
             "Average player: under 1 unique",
             format.Average({ kills = 5, expected = 0.98 })
         )
+        -- Exactly 1, short by float error.
+        assert.are.equal(
+            "Average player: 1.0 unique",
+            format.Average({ kills = 5, expected = 0.9999999999999999 })
+        )
         assert.are.equal("", format.Average({ kills = 0, expected = 0 }))
         assert.are.equal("19.4 drops", format.AverageShort({ expected = 19.38 }))
         assert.are.equal("0.5 drops", format.AverageShort({ expected = 0.53 }))
         assert.are.equal("<lt>0.1 drops", format.AverageShort({ expected = 0.04 }))
         assert.are.equal("0 drops", format.AverageShort({ expected = 0 }))
         assert.are.equal("1.0 drop", format.AverageShort({ expected = 1.02 }))
+        -- The same value, added up in a different order, stored a hair either side.
+        assert.are.equal("0.4 drops", format.AverageShort({ expected = 0.35 }))
+        assert.are.equal("0.4 drops", format.AverageShort({ expected = 0.05 * 7 }))
+        assert.are.equal("0.1 drops", format.AverageShort({ expected = 0.3 - 0.25 }))
     end)
 
     it("words the tracked totals, with partial kills and loot piles", function()

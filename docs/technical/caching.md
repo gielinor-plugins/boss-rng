@@ -1,7 +1,7 @@
 # Caching
 
-What Boss RNG keeps in memory to avoid repeating work. Nothing here is saved:
-each cache holds results worked out from saved data or the game, so a stale check
+What Boss RNG keeps in memory to avoid repeating work. Nothing here is saved.
+Each cache holds results worked out from saved data or the game, so a stale check
 only costs a recompute.
 
 ## Picked boss's stats
@@ -33,28 +33,50 @@ The panel and window also skip a redraw when what they'd show is unchanged: see
 only bosses without one. Cleared for one boss by `talliesFor` (before its tallies
 change) and for all when another character loads or every boss is reset.
 
-## Also
+## Within one stats calculation
 
-- `rates.For` builds each boss's rate history once.
-- Each `stats.ForBoss` call keeps rolls and chances per rate version, or per day
-  for a mode with sums that day (Arch-Glacor).
+`rates.For` builds each boss's rate history once. Within each `stats.ForBoss` call,
+`batcher` in `src/core/stats.lua` keeps:
+
+- each mode's rolls and each unique's chance per kill, once per
+  [rate version](luck-math.md#rate-versions);
+- each set of kills (all tracked kills, or one dry streak's) added up by mode and
+  rate version, as batches.
+
+Over years of play a boss has hundreds of days of kills but only a few rate
+versions, so the math runs once per batch, not once per day. Arch-Glacor is the
+exception: its rates depend on each day's average enrage and streak, so each day is
+its own version.
 
 ## Cost
 
-Measured on 2 November 2026 with Lua 5.4 on a desktop, 10 kills a day in every
-mode, a unique about every 20 days:
+`stats.ForBoss` was timed with Lua 5.4 on 4 November 2026, taking the fastest of 5
+runs, for 5 years of 10 kills a day in every mode listed, with a unique about every
+20 days. That's far more than a real player, to show the worst case. Times vary by
+about a fifth between runs:
 
-| Tracked | `stats.ForBoss` | Encode one boss |
+| Boss (modes played) | Day by day | In batches |
 |---|---|---|
-| Kree'arra, 1 year | 4.7 ms | 1.0 ms |
-| Vorkath, 1 year | 2.3 ms | 0.7 ms |
-| Amascut, 1 year | 7.2 ms | 0.7 ms |
-| Sanctum of Rebirth (6 modes), 1 year | 5.5 ms | 4.2 ms |
-| Kree'arra, 3 years | 20 ms | 3.1 ms |
+| Barrows (3 chest types) | about 2,400 ms | 7 ms |
+| Croesus (2 contribution levels) | about 200 ms | 3 ms |
+| Amascut (normal and 1,000%) | about 70 ms | 3 ms |
+| Kree'arra (normal and hard) | about 50 ms | 3 ms |
+| Arch-Glacor | about 25 ms | 11 ms |
+| Vorkath (hard) | about 9 ms | 1 ms |
 
-Each redraw draws the panel and the window, and each kill or drop saves every boss,
-so without these caches a heavy player would pay this on every redraw and kill.
-Typical data (weeks, not years) costs well under a millisecond.
+A heavy player's whole record: 10 kills a day at 5 bosses and 10 a week at 10 more,
+with a unique about every 20 days at each:
+
+| Played for | Saved record | Encoding every boss | Slowest boss's stats |
+|---|---|---|---|
+| 4 weeks | about 11 KB | under 1 ms | about 2 ms (Barrows) |
+| 1 year | about 50 KB | about 5 ms | about 3 ms (Barrows) |
+| 5 years | about 220 KB | about 25 ms | about 11 ms (Arch-Glacor) |
+
+So stats take milliseconds even after years, and rerun only when their inputs
+change (above). After a kill only that boss is re-encoded. How long the game takes
+to write the record wasn't measured. [Saved data](../data/saved-data.md) describes
+the record and its size.
 
 ## Rules
 
