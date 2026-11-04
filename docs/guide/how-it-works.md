@@ -23,6 +23,9 @@ keeps them. They're facts for reference and never change your luck.
 The ribbon panel shows one boss: the one you picked in its dropdown, or else the
 one you killed last.
 
+![The panel for Helwyr, rated about average luck.](../images/panel-helwyr.png)
+![The panel for Kerapac, not rated yet: luck shows at the next unique or after 56 more kills.](../images/panel-kerapac.png)
+
 | You see | It means |
 |---|---|
 | **Top 23% luck** | Only about 23% of players would have done as well with the same kills. |
@@ -50,21 +53,28 @@ The top shows the same luck and dry streak, then:
 
 The **Luck** tab lists each unique, unluckiest first:
 
-- **Item:** hover over the icon for the average player's drops of it. The number
-  on the icon is how many you got while tracked; it's dimmed until you get one.
+- **Item:** hover over the icon for its full name and the average player's drops of
+  it. The number on the icon is how many you got while tracked; it's dimmed until
+  you get one.
 - **Luck:** as above, or "91% are still dry" before it can be rated, or "no chance
   yet" if none of your tracked kills could drop it.
 - **Dry:** kills (or chests or piles, as above) since your last one of that unique.
 
+![The Luck tab for Kerapac: four uniques not rated yet, each with the share of players still dry and a dry streak.](../images/window-luck-kerapac.png)
+
 The **Info** tab lists what Boss RNG assumes for this boss (for example, that
 kills were solo when the game doesn't say), and tips for playing so kills are
 counted.
+
+![The Info tab for Arch-Glacor's hard mode: one assumption and one tip.](../images/window-info-archglacor.png)
 
 ## Resetting
 
 Data Controls, in Boss RNG's settings (Plugin Hub, Manage tab), resets one boss or
 every boss for the character you're logged in as. The game's own counts aren't
 changed.
+
+![Data Controls in Boss RNG's settings: Reset for all bosses, or for one boss picked from a list.](../images/settings.png)
 
 ## How luck is worked out
 

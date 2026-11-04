@@ -7,6 +7,8 @@ would have after the same kills, and shows how unusual your current dry streak i
 Boss RNG only reads what the game already shows you, keeps its data on your
 computer, and never acts in the game for you.
 
+![The details window for Vindicta & Gorvek: top 36% luck, a dry streak of 28 kills that 51% of players would also have, and each unique's luck and dry streak.](docs/images/window-luck-vindicta.png)
+
 ## Install
 
 Find **Boss RNG** in the Plugin Hub in game, or on its
