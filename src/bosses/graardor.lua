@@ -6,7 +6,7 @@ local godwars = require("src/bosses/godwars")
 local VARS = {
     kc = "BSLAY_KILLS_GWD_GRAARDOR",
     kcHard = "BSLAY_KILLS_GWD_GRAARDOR_HARDMODE",
-    log = "ITEMLOG_ITEM_GWD_BANDOS_", -- each unique's log count, by its piece
+    log = "ITEMLOG_ITEM_GWD_BANDOS_", -- each unique's collection log count, by its piece
 }
 
 local HELMET, CHESTPLATE, TASSETS = 25022, 11724, 11726
@@ -20,7 +20,7 @@ end
 local KILL_COUNTS, MODES = common.NormalAndHard(VARS, rolls)
 
 return {
-    key = "graardor", -- saved data key: never change it
+    key = "graardor",
     name = "General Graardor",
     assumptions = { common.SOLO_KILLS },
 

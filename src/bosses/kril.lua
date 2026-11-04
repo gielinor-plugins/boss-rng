@@ -7,7 +7,7 @@ local godwars = require("src/bosses/godwars")
 local VARS = {
     kc = "BSLAY_KILLS_GWD_KRIL",
     kcHard = "BSLAY_KILLS_GWD_KRIL_HARDMODE",
-    log = "ITEMLOG_ITEM_GWD_ZAMORAK_", -- each unique's log count, by its piece
+    log = "ITEMLOG_ITEM_GWD_ZAMORAK_", -- each unique's collection log count, by its piece
     staff = "ITEMLOG_ITEM_GWD_STEAM_BATTLESTAFF",
 }
 
@@ -26,7 +26,7 @@ end
 local KILL_COUNTS, MODES = common.NormalAndHard(VARS, rolls)
 
 return {
-    key = "kril", -- saved data key: never change it
+    key = "kril",
     name = "K'ril Tsutsaroth",
     assumptions = { common.SOLO_KILLS },
 

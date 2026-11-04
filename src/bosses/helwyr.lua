@@ -6,7 +6,7 @@ local godwars2 = require("src/bosses/godwars2")
 local VARS = {
     kc = "BSLAY_KILLS_HELWYR",
     kcHard = "BSLAY_KILLS_HELWYR_HARDMODE",
-    log = "ITEMLOG_ITEM_GWD2_SEREN_", -- each unique's log count, by its item
+    log = "ITEMLOG_ITEM_GWD2_SEREN_", -- each unique's collection log count, by its item
 }
 
 local CREST, WAND, ORB, ESSENCE = 37027, 37085, 40600, 37033
@@ -19,7 +19,7 @@ local KILL_COUNTS, MODES = common.NormalAndHard(
 )
 
 return {
-    key = "helwyr", -- saved data key: never change it
+    key = "helwyr",
     name = "Helwyr",
     assumptions = { common.SOLO_KILLS },
 

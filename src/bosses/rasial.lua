@@ -4,7 +4,7 @@ local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_RASIAL_BOSS",
-    log = "ITEMLOG_ITEM_NECRO_RASIAL_", -- each unique's log count, by its piece
+    log = "ITEMLOG_ITEM_NECRO_RASIAL_", -- each unique's collection log count, by its piece
 }
 
 local GUARD, LANTERN = 55480, 55482
@@ -22,7 +22,7 @@ end
 local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
 
 return {
-    key = "rasial", -- saved data key: never change it
+    key = "rasial",
     name = "Rasial, the First Necromancer",
     assumptions = {},
 

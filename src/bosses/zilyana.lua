@@ -7,7 +7,7 @@ local godwars = require("src/bosses/godwars")
 local VARS = {
     kc = "BSLAY_KILLS_GWD_ZILYANA",
     kcHard = "BSLAY_KILLS_GWD_ZILYANA_HARDMODE",
-    log = "ITEMLOG_ITEM_GWD_SARA_", -- each unique's log count, by its item
+    log = "ITEMLOG_ITEM_GWD_SARA_", -- each unique's collection log count, by its item
 }
 
 local SWORD, CROSSBOW, OFFHAND_CROSSBOW = 11730, 25037, 34855
@@ -22,7 +22,7 @@ end
 local KILL_COUNTS, MODES = common.NormalAndHard(VARS, rolls)
 
 return {
-    key = "zilyana", -- saved data key: never change it
+    key = "zilyana",
     name = "Commander Zilyana",
     assumptions = { common.SOLO_KILLS },
 
@@ -37,6 +37,5 @@ return {
         [HISS] = { log = VARS.log .. "AMULET_MAGIC" },
         [MURMUR] = { log = VARS.log .. "AMULET_RANGED" },
         [HILT] = { log = VARS.log .. "HILT" },
-        -- The wiki gives no rate for the hum ("very rare"), so it isn't counted.
     },
 }

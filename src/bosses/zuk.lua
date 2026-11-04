@@ -1,7 +1,8 @@
 -- TzKal-Zuk. A solo fight. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-11-02.
 -- Hard mode sword pieces are likelier in a run without checkpoints. Such a run, in
 -- either mode, gives an Igneous stone in the kill's tick, so each hard mode kill is
--- counted by whether the stone's log count rose with it (tested: docs/bosses/zuk.md).
+-- rated by whether the stone's collection log count rose with it (tests:
+-- docs/bosses/zuk.md).
 -- The pontifex shadow ring raises every unique (src/bosses/egwd.lua).
 
 local common = require("src/bosses/common")
@@ -10,7 +11,8 @@ local egwd = require("src/bosses/egwd")
 local VARS = {
     kc = "BSLAY_KILLS_EGWD_FUL_BOSS",
     kcHard = "BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE",
-    log = "ITEMLOG_ITEM_EGWD_FUL_", -- each item's log count (TzKal-Zuk's internal name is Ful)
+    -- Each item's collection log count (TzKal-Zuk's internal name is Ful)
+    log = "ITEMLOG_ITEM_EGWD_FUL_",
     codex = "ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_MAGMA_TEMPEST",
     -- Igneous stones: runs without checkpoints
     stones = "ITEMLOG_ITEM_EGWD_FUL_BOSS_INFERNAL_STONE",
@@ -19,7 +21,7 @@ local VARS = {
 local BLADE, CORE, HILT = 52505, 52507, 52509
 local CODEX, SCRIPTURE = 52530, 52492
 local SWORD = { name = "Sword pieces" }
-local STONE_CAP = 250 -- the boss log counts no more Igneous stones
+local STONE_CAP = 250 -- the collection log counts no more Igneous stones
 
 local function books(chance)
     return {
@@ -37,13 +39,14 @@ local function hardRolls(sword)
     end)
 end
 
--- A hard mode kill without checkpoints gave a stone in its tick, unless the log is full.
+-- A hard mode kill without checkpoints gave a stone in its tick, unless the collection
+-- log is full.
 local function hardKill(values)
     return (values.stone or values.stones >= STONE_CAP) and "h" or "hc"
 end
 
 return {
-    key = "zuk", -- saved data key: never change it
+    key = "zuk",
     name = "TzKal-Zuk",
     reads = egwd.Reads({ stones = VARS.stones }),
     assumptions = function(readings)
@@ -55,8 +58,7 @@ return {
         { var = VARS.kc, mode = "n" },
         { var = VARS.kcHard }, -- with or without checkpoints, by its kill event
     },
-    -- Normal, then hard mode without and with checkpoints. Keys are saved: never
-    -- change them.
+    -- Normal mode, then hard mode without and with checkpoints.
     modes = {
         n = {
             rolls = egwd.Boosted(function(r)

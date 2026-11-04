@@ -5,7 +5,7 @@ local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_SOLAK",
-    log = "ITEMLOG_ITEM_SOLAK_", -- each item's log count, by its name
+    log = "ITEMLOG_ITEM_SOLAK_", -- each item's collection log count, by its name
 }
 
 local GRIMOIRE, CROSSBOW, OFFHAND = 42785, 42770, 42774
@@ -22,7 +22,7 @@ end
 local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
 
 return {
-    key = "solak", -- saved data key: never change it
+    key = "solak",
     name = "Solak",
     assumptions = {},
 

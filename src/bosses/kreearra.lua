@@ -7,7 +7,7 @@ local godwars = require("src/bosses/godwars")
 local VARS = {
     kc = "BSLAY_KILLS_GWD_KREEARRA",
     kcHard = "BSLAY_KILLS_GWD_KREEARRA_HARDMODE",
-    log = "ITEMLOG_ITEM_GWD_ARMADYL_", -- each unique's log count, by its piece
+    log = "ITEMLOG_ITEM_GWD_ARMADYL_", -- each unique's collection log count, by its piece
 }
 
 local HELMET, CHESTPLATE, CHAINSKIRT = 11718, 11720, 11722
@@ -21,7 +21,7 @@ end
 local KILL_COUNTS, MODES = common.NormalAndHard(VARS, rolls)
 
 return {
-    key = "kreearra", -- saved data key: never change it
+    key = "kreearra",
     name = "Kree'arra",
     assumptions = { common.SOLO_KILLS },
 

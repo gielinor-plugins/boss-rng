@@ -1,9 +1,9 @@
 -- Barrows Brothers. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. With n
--- brothers killed (Linza not counted), a chest rolls min(n + 1, 7) times for a killed
--- brother's item; Linza adds her own roll. The amulet's rate is from Jagex's Late-Game
--- Rebalance design preview, which doesn't say whether partial chests roll it, so they're
--- assumed to. Each chest counts as looted, for a mode keyed by the brothers killed.
--- The kill count only counts chests with 6+ brothers.
+-- brothers killed (Linza not counted), a chest makes min(n + 1, 7) rolls for a killed
+-- brother's item, and Linza adds her own roll. The amulet's rate is from Jagex's
+-- Late-Game Rebalance design preview, which doesn't say whether partial chests roll it,
+-- so they're assumed to. Each looted chest is counted, under a mode for the brothers
+-- killed. Only chests with 6 or more brothers are in the game's kill count.
 
 local common = require("src/bosses/common")
 
@@ -13,7 +13,7 @@ local VARS = {
     killed = "BARROWS_KILLED_", -- 1 if that original brother was killed this run, by name
     killedCount = "BARROWS_KILLED_COUNT", -- brothers killed this run, Akrisae and Linza included
     linzaKilled = "SISTER_KILLED_LINZA", -- 1 if Linza was killed this run
-    log = "ITEMLOG_ITEM_BARROWS_", -- each item's log count, by brother and piece
+    log = "ITEMLOG_ITEM_BARROWS_", -- each item's collection log count, by brother and piece
 }
 local LOOTED = 0x4000000 -- the bit of VARS.run set when the chest is looted (no varbit name)
 
@@ -115,8 +115,8 @@ local function chestRolls(brothers, linza, r)
     return rolls
 end
 
--- A chest's mode key: "c" and the hex bits of the brothers killed ("cff": all and Linza).
--- Saved: never change the format.
+-- A chest's mode key: "c" and the hex bits of the brothers killed ("cff": all eight).
+-- Saved, so never change the format.
 local function chestKey(bits)
     return string.format("c%x", bits)
 end
@@ -141,7 +141,8 @@ for bits = 0, LINZA_BIT * 2 - 1 do
 end
 
 -- Read as the chest is looted, not as it opens: the first search brings out the tunnel
--- brother, who isn't dead yet. Akrisae is the count less the others.
+-- brother, who isn't dead yet. Akrisae has no var of his own: he's the brothers killed
+-- less the six originals and Linza.
 local function chestLooted(values)
     local bits, originals = 0, 0
     for i, b in ipairs(ORIGINALS) do
@@ -179,11 +180,11 @@ local function logItems()
 end
 
 return {
-    key = "barrows", -- saved data key: never change it
+    key = "barrows",
     name = "Barrows Brothers",
     assumptions = { "Amulet of the forsaken chance from complete and partial runs" },
 
-    killCounts = { { var = VARS.kc } }, -- by the chest looted, through its kill event
+    killCounts = { { var = VARS.kc } }, -- counted per chest looted, through its kill event
     modes = MODES,
     killEvents = { { var = VARS.run, mask = LOOTED, reads = lootReads(), mode = chestLooted } },
     extraKills = "partial", -- what tracked chests outside the kill count are called

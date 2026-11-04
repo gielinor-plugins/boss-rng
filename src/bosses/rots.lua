@@ -5,7 +5,7 @@ local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_BARROWSROTS", -- goes up at the kill, looted or not
-    log = "ITEMLOG_ITEM_ROTS_", -- each item's log count, by its name
+    log = "ITEMLOG_ITEM_ROTS_", -- each item's collection log count, by its name
 }
 
 local MALEVOLENT, MERCILESS, VENGEFUL = 30014, 30022, 30018 -- magic, melee and ranged
@@ -18,7 +18,7 @@ end
 local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
 
 return {
-    key = "rots", -- saved data key: never change it
+    key = "rots",
     name = "Barrows: Rise of the Six",
     -- The kill count can go up without the chest being looted.
     assumptions = { "Every chest looted" },

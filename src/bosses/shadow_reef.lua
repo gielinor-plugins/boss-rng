@@ -7,7 +7,7 @@ local eliteDungeon = require("src/bosses/elite_dungeon")
 
 local VARS = {
     kc = "BSLAY_KILLS_DUNGEON_ULTHVEN3", -- the Ambassador (Ulthven is the Shadow Reef)
-    log = "ITEMLOG_ITEM_DUNGEON_2H_RANGED_", -- each piece's log count, by its name
+    log = "ITEMLOG_ITEM_DUNGEON_2H_RANGED_", -- each piece's collection log count, by its name
 }
 
 local LIMB, MECHANISM, STOCK = 47490, 47494, 47492
@@ -24,7 +24,7 @@ local dungeon = eliteDungeon.New()
 dungeon.Add("a", VARS.kc, pieces) -- the Ambassador
 
 return {
-    key = "shadow_reef", -- saved data key: never change it
+    key = "shadow_reef",
     name = "The Shadow Reef",
     assumptions = { eliteDungeon.ASSUMPTION },
     killCounts = dungeon.killCounts,

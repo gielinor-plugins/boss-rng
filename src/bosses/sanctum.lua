@@ -1,14 +1,14 @@
--- Sanctum of Rebirth: three bosses in one run with one boss log page, each with its own
--- kill counts. Rates: RuneScape Wiki (from Jagex; CC BY-NC-SA 3.0), checked 2026-10-27.
--- Every player gets their own rolls. Each boss's loot waits in a chest until claimed,
--- and the run can't be entered again until it is, so each claim is one kill, counted
--- at its mode (see docs/bosses/sanctum.md for the tests behind this).
+-- Sanctum of Rebirth: three bosses in one run, sharing one collection log page, each with
+-- its own kill counts. Rates: RuneScape Wiki (from Jagex; CC BY-NC-SA 3.0), checked
+-- 2026-10-27. Every player gets their own rolls. Each boss's loot waits in a chest until
+-- claimed, and the run can't be entered again until it is, so each claim is one kill,
+-- counted at that boss's mode (tests: docs/bosses/sanctum.md).
 
 local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_RAID_REBIRTH1_", -- then each boss's name, with _HARDMODE for hard mode
-    log = "ITEMLOG_ITEM_", -- then each unique's log count name
+    log = "ITEMLOG_ITEM_", -- then each unique's collection log count name
     -- Each boss's waiting loot and its difficulty (rare fields never read)
     loot = "RAID_REBIRTH1_VARP_1",
 }
@@ -31,9 +31,9 @@ end
 
 local BOOKS, HARD_BOOKS = rolls("books"), rolls("hardBooks")
 
--- Each boss: its mode key (hard mode's adds h; keys are saved: never change them),
--- kill count name, rolls in normal then hard mode, and its loot waiting bit and
--- difficulty field (0 normal, 1 hard) in VARS.loot.
+-- Each boss: its mode key (hard mode's adds h), kill count name, rolls in normal and
+-- hard mode, and its loot waiting bit and difficulty field (0 normal, 1 hard) in
+-- VARS.loot.
 local BOSSES = {
     {
         key = "v", -- Vermyx
@@ -79,7 +79,7 @@ for _, b in ipairs(BOSSES) do
 end
 
 return {
-    key = "sanctum", -- saved data key: never change it
+    key = "sanctum",
     name = "Sanctum of Rebirth",
     assumptions = {},
 

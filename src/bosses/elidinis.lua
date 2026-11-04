@@ -1,13 +1,13 @@
--- Gate of Elidinis. Rates: Jagex's "Gate of Elidinis Drop Rates" via the RuneScape Wiki
--- (CC BY-NC-SA 3.0), checked 2026-10-31. Each Offering is one drop, so its log count is
--- its drops. The rebalanced
--- rares are taken as still one roll. Nearly every kill is solo, so solo is assumed.
+-- The Gate of Elidinis. Rates: Jagex's "Gate of Elidinis Drop Rates" via the RuneScape
+-- Wiki (CC BY-NC-SA 3.0), checked 2026-10-31. Each Latent Offering drop is a single
+-- item, so its collection log count is its drops. The Late-Game Rebalance is assumed to
+-- keep the four rares on one roll. Nearly every kill is solo, so solo is assumed.
 
 local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_ELIDINIS_BOSS",
-    log = "ITEMLOG_ITEM_ELIDINIS_BOSS_", -- each unique's log count, by its name
+    log = "ITEMLOG_ITEM_ELIDINIS_BOSS_", -- each unique's collection log count, by its name
     codex = "ITEMLOG_ITEM_COMBATV2_PRAYER_CODEX_ECLIPSED_SOUL",
 }
 
@@ -24,7 +24,7 @@ end
 local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
 
 return {
-    key = "elidinis", -- saved data key: never change it
+    key = "elidinis",
     name = "The Gate of Elidinis",
     assumptions = { common.SOLO_KILLS },
 

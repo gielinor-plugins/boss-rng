@@ -1,14 +1,15 @@
--- Croesus. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. Unique rolls rise
--- with contribution. Each kill counts at the player's last contribution before it (the
--- game resets it after), so its rolls are exact. The pontifex shadow ring raises every
--- unique (src/bosses/egwd.lua).
+-- Croesus. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. The number of
+-- unique rolls rises with the player's contribution. The game resets contribution after
+-- the kill, so each kill is rated at the last contribution seen before it, which gives
+-- its exact rolls. The pontifex shadow ring raises every unique (src/bosses/egwd.lua).
 
 local common = require("src/bosses/common")
 local egwd = require("src/bosses/egwd")
 
 local VARS = {
     kc = "BSLAY_KILLS_EGWD_BIK_BOSS",
-    log = "ITEMLOG_ITEM_EGWD_BIK_", -- each item's log count (Croesus's internal name is Bik)
+    -- Each item's collection log count (Croesus's internal name is Bik)
+    log = "ITEMLOG_ITEM_EGWD_BIK_",
     contribution = "EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION", -- the player's, through the fight
 }
 
@@ -43,7 +44,7 @@ local function rolls(n)
     end
 end
 
--- Modes by unique rolls ("r12"). Keys are saved: never change them.
+-- A mode for each number of unique rolls ("r12").
 local MODES = {}
 for n = 0, 12 do
     MODES["r" .. n] = { rolls = egwd.Boosted(rolls(n)) }
@@ -64,12 +65,12 @@ local function contributionMode(values)
 end
 
 return {
-    key = "croesus", -- saved data key: never change it
+    key = "croesus",
     name = "Croesus",
     reads = egwd.Reads(),
     assumptions = {},
 
-    killCounts = { { var = VARS.kc } }, -- by contribution, through its kill event
+    killCounts = { { var = VARS.kc } }, -- counted through its kill event, by contribution
     modes = MODES,
     killEvents = {
         {

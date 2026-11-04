@@ -1,12 +1,13 @@
 -- Araxxi. Rates: RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-28. The game keeps
--- one kill count for solo and duo, so each kill counts by the fight's duo flag.
+-- one kill count for solo and duo, so the fight's duo flag, read at each kill, decides
+-- the kill's rates.
 
 local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_ARAXXI",
     duo = "SB_DUO", -- 1 in a duo fight, private or public; 0 solo
-    -- Each item's log count (Araxxor's internal name is SB, the spider boss)
+    -- Each item's collection log count (Araxxor's internal name is SB, the spider boss)
     log = "ITEMLOG_ITEM_SB_",
 }
 
@@ -29,12 +30,11 @@ local function rolls(team)
 end
 
 return {
-    key = "araxxi", -- saved data key: never change it
+    key = "araxxi",
     name = "Araxxi",
     assumptions = {},
 
-    killCounts = { { var = VARS.kc } }, -- solo or duo, by its kill event
-    -- Mode keys are saved: never change them.
+    killCounts = { { var = VARS.kc } }, -- solo or duo, through its kill event
     modes = { s = { rolls = rolls("solo") }, d = { rolls = rolls("duo") } },
     killEvents = {
         {

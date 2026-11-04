@@ -5,7 +5,7 @@ local common = {}
 -- Kill counts don't say who was in the group, so solo kills are assumed.
 common.SOLO_KILLS = "Solo kills"
 
--- Shard of Genesis Essence: Amascut and Nakatra share one boss log count.
+-- Shard of Genesis Essence: Amascut and Nakatra share one collection log count.
 common.SHARD = 57128
 common.SHARD_ITEM = {
     log = "ITEMLOG_ITEM_COMBATV2_INNATE_MASTERY_UNLOCK_T95_WEAPON_STAT_UPGRADE_T1",
@@ -25,7 +25,7 @@ function common.OneMode(kc, rolls)
 end
 
 -- The killCounts and modes of a boss with normal (n) and hard (h) kill counts; hard's
--- rolls default to normal's. Mode keys are saved: never change them.
+-- rolls default to normal's.
 function common.NormalAndHard(vars, normal, hard)
     return { { var = vars.kc, mode = "n" }, { var = vars.kcHard, mode = "h" } }, {
         n = { rolls = normal },
@@ -51,6 +51,7 @@ function common.OneOf(chances)
     return { chance = chance, items = chances }
 end
 
+-- Equal weights for ids: a roll gives one of them at random.
 function common.Even(ids)
     local weights = {}
     for _, itemID in ipairs(ids) do

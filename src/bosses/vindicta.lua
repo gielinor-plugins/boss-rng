@@ -7,7 +7,7 @@ local godwars2 = require("src/bosses/godwars2")
 local VARS = {
     kc = "BSLAY_KILLS_VINDICTA",
     kcHard = "BSLAY_KILLS_VINDICTA_HARDMODE",
-    log = "ITEMLOG_ITEM_GWD2_ZAROS_", -- each unique's log count, by its item
+    log = "ITEMLOG_ITEM_GWD2_ZAROS_", -- each unique's collection log count, by its item
 }
 
 local CREST, LANCE, ESSENCE = 37018, 37070, 37030
@@ -20,7 +20,7 @@ local KILL_COUNTS, MODES = common.NormalAndHard(
 )
 
 return {
-    key = "vindicta", -- saved data key: never change it
+    key = "vindicta",
     name = "Vindicta & Gorvek",
     assumptions = { common.SOLO_KILLS },
 

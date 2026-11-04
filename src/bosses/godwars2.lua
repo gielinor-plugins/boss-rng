@@ -1,7 +1,8 @@
 -- Shared by the God Wars Dungeon 2 bosses. Not a boss file. Rates: RuneScape Wiki
 -- (CC BY-NC-SA 3.0), checked 2026-10-27: one table for an anima core piece, the crest or
--- the weapons, and only if it misses a roll for the essence. The anima pieces' log counts
--- are shared by all four bosses, so they aren't counted but still take table chance.
+-- the weapons, and only if it misses a roll for the essence. All four bosses share the
+-- anima pieces' collection log counts, so the pieces aren't counted, but they still take
+-- a share of the table.
 
 local common = require("src/bosses/common")
 

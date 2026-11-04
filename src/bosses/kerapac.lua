@@ -11,7 +11,8 @@ local egwd = require("src/bosses/egwd")
 local VARS = {
     kc = "BSLAY_KILLS_EGWD_JAS_BOSS",
     kcHard = "BSLAY_KILLS_EGWD_JAS_BOSS_HARDMODE",
-    log = "ITEMLOG_ITEM_EGWD_JAS_", -- each item's log count (Kerapac's internal name is Jas)
+    -- Each item's collection log count (Kerapac's internal name is Jas)
+    log = "ITEMLOG_ITEM_EGWD_JAS_",
     codex = "ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CONCENTRATED_BLAST",
 }
 
@@ -37,7 +38,7 @@ end
 local MODES = {}
 
 -- Modes for 1 to 3 piles in one difficulty ("n2": normal mode, 2 piles), each pile
--- rolling pile(r). Keys are saved: never change them.
+-- rolling pile(r).
 local function addPileModes(prefix, pile)
     for count = 1, MAX_PILES do
         MODES[prefix .. count] = {
@@ -71,12 +72,12 @@ local function killEvent(kc, prefix)
 end
 
 return {
-    key = "kerapac", -- saved data key: never change it
+    key = "kerapac",
     name = "Kerapac",
     reads = egwd.Reads(),
     assumptions = { "Kills you were away for count as 1 loot pile" },
 
-    killCounts = { { var = VARS.kc }, { var = VARS.kcHard } }, -- by piles, through kill events
+    killCounts = { { var = VARS.kc }, { var = VARS.kcHard } }, -- counted through kill events
     modes = MODES,
     killEvents = { killEvent(VARS.kc, "n"), killEvent(VARS.kcHard, "h") },
 

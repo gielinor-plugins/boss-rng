@@ -5,7 +5,7 @@ local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_CORPBEAST",
-    log = "ITEMLOG_ITEM_CORP_", -- each item's log count, by its name
+    log = "ITEMLOG_ITEM_CORP_", -- each item's collection log count, by its name
 }
 
 local SPECTRAL, ARCANE, ELYSIAN, DIVINE = 13752, 13746, 13750, 13748
@@ -22,7 +22,7 @@ end
 local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
 
 return {
-    key = "corp", -- saved data key: never change it
+    key = "corp",
     name = "Corporeal Beast",
     assumptions = { common.SOLO_KILLS },
 

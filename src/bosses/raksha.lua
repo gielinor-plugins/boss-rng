@@ -5,7 +5,7 @@ local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_DINO_BOSS_", -- by team size: SOLO or DUO
-    log = "ITEMLOG_ITEM_", -- then each unique's log count name
+    log = "ITEMLOG_ITEM_", -- then each unique's collection log count name
 }
 
 local BOOTS, SPIKE = 51082, 51086
@@ -17,7 +17,7 @@ local function rolls(r)
 end
 
 return {
-    key = "raksha", -- saved data key: never change it
+    key = "raksha",
     name = "Raksha, the Shadow Colossus",
     assumptions = {},
 
@@ -25,7 +25,6 @@ return {
         { var = VARS.kc .. "SOLO", mode = "s" },
         { var = VARS.kc .. "DUO", mode = "d" },
     },
-    -- Mode keys are saved: never change them.
     modes = { s = { rolls = rolls }, d = { rolls = rolls } },
 
     items = {

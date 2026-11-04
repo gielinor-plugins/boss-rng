@@ -5,7 +5,7 @@ local common = require("src/bosses/common")
 
 local VARS = {
     kc = "BSLAY_KILLS_GWD_NEX",
-    log = "ITEMLOG_ITEM_GWD_NEX_", -- each unique's log count, by its piece
+    log = "ITEMLOG_ITEM_GWD_NEX_", -- each unique's collection log count, by its piece
 }
 
 local TORVA_HELM, TORVA_BODY, TORVA_LEGS, TORVA_GLOVES, TORVA_BOOTS =
@@ -44,7 +44,7 @@ end
 local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
 
 return {
-    key = "nex", -- saved data key: never change it
+    key = "nex",
     name = "Nex",
     assumptions = { common.SOLO_KILLS },
 
@@ -70,7 +70,5 @@ return {
         [VIRTUS_BOOK] = { log = VARS.log .. "BOOK" },
         [VIRTUS_WAND] = { log = VARS.log .. "WAND" },
         [ZARYTE_BOW] = { log = VARS.log .. "BOW" },
-
-        -- Only drops with a tier 70+ defender, so it isn't counted.
     },
 }

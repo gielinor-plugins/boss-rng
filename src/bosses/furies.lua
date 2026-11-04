@@ -6,7 +6,7 @@ local godwars2 = require("src/bosses/godwars2")
 local VARS = {
     kc = "BSLAY_KILLS_TWINDEMONS",
     kcHard = "BSLAY_KILLS_TWINDEMONS_HARDMODE",
-    log = "ITEMLOG_ITEM_GWD2_ZAMORAK_", -- each unique's log count, by its item
+    log = "ITEMLOG_ITEM_GWD2_ZAMORAK_", -- each unique's collection log count, by its item
 }
 
 local CREST, NYMORA, AVARYSS, ESSENCE = 37024, 37090, 37095, 37032
@@ -19,7 +19,7 @@ local KILL_COUNTS, MODES = common.NormalAndHard(
 )
 
 return {
-    key = "furies", -- saved data key: never change it
+    key = "furies",
     name = "The Twin Furies",
     assumptions = { common.SOLO_KILLS },
 

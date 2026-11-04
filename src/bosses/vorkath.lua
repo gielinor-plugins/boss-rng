@@ -18,13 +18,12 @@ local CHEST, CHEST_HARD = 56071, 56072 -- Zemouregal & Vorkath loot (normal), (h
 local REWARD_WINDOW = "DROP_CASKET_REWARDINV" -- the inventory a chest opens into
 
 return {
-    key = "vorkath", -- saved data key: never change it
+    key = "vorkath",
     name = "Zemouregal & Vorkath",
     assumptions = {},
-    unit = "chest", -- what luck counts (see containers)
+    unit = "chest", -- luck counts chests opened, not kills
 
     killCounts = { { var = VARS.kc }, { var = VARS.kcHard } }, -- counted by chests opened
-    -- Mode keys are saved: never change them.
     modes = {
         n = {
             rolls = function(r)

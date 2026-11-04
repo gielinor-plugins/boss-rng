@@ -6,7 +6,7 @@ local godwars2 = require("src/bosses/godwars2")
 local VARS = {
     kc = "BSLAY_KILLS_SLISKE",
     kcHard = "BSLAY_KILLS_SLISKE_HARDMODE",
-    log = "ITEMLOG_ITEM_GWD2_SLISKE_", -- each unique's log count, by its item
+    log = "ITEMLOG_ITEM_GWD2_SLISKE_", -- each unique's collection log count, by its item
 }
 
 local CREST, GLAIVE, OFFHAND_GLAIVE, ESSENCE = 37021, 37075, 37080, 37031
@@ -19,7 +19,7 @@ local KILL_COUNTS, MODES = common.NormalAndHard(
 )
 
 return {
-    key = "gregorovic", -- saved data key: never change it
+    key = "gregorovic",
     name = "Gregorovic",
     assumptions = { common.SOLO_KILLS },
 

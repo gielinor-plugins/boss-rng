@@ -1,8 +1,9 @@
--- Amascut. Rates: Jagex's "Drop Rates Revealed" via the RuneScape Wiki (CC BY-NC-SA 3.0),
--- checked 2026-10-27. Each player rolls gear, the Nexus and, in enrage, the Shard; each
--- enrage tier has its own rates, so its own mode. A kill makes five loot piles (spares go
--- to top damagers) that wait in the chest until claimed, so piles claimed are counted
--- (tests: docs/bosses/amascut.md).
+-- Amascut, the Devourer. Rates: Jagex's "Drop Rates Revealed" via the RuneScape Wiki
+-- (CC BY-NC-SA 3.0), checked 2026-10-27. Each player rolls for gear, the Nexus and, in
+-- enrage, the Shard, and each enrage tier has its own rates, so its own mode. A kill
+-- makes five loot piles (spare piles go to the top damagers), which wait in the chest
+-- until claimed. So Boss RNG counts piles claimed, not kills (tests:
+-- docs/bosses/amascut.md).
 
 local common = require("src/bosses/common")
 
@@ -11,7 +12,7 @@ local VARS = {
     kcEnrage = "BSLAY_KILLS_AMASCUT_BOSS_HARDMODE", -- enrage mode, every tier
     enrage = "AMASCUT_BOSS_LAST_ENRAGE", -- set as an enrage instance starts
     loot = "AMASCUT_BOSS_VARP_1", -- the chest's waiting loot (below)
-    log = "ITEMLOG_ITEM_", -- then each unique's log count name
+    log = "ITEMLOG_ITEM_", -- then each unique's collection log count name
 }
 
 -- Bits of VARS.loot: piles waiting (AMASCUT_BOSS_COMMON_LOOT_AVAILABLE) and difficulty
@@ -47,7 +48,7 @@ end
 
 local TIERS = { 100, 500, 750, 1000, 2000 } -- enrage %, the last for 2,000% and above
 
--- Normal, and each enrage tier ("e1000"). Mode keys are saved: never change them.
+-- Normal mode, and each enrage tier ("e1000").
 local MODES = { n = { rolls = rolls("gear", "nexus") } }
 for _, e in ipairs(TIERS) do
     MODES["e" .. e] = { rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
@@ -64,19 +65,20 @@ local function tierMode(enrage)
     return "e" .. found
 end
 
--- A chest's piles share one enrage: a new instance can't start until they're claimed.
+-- All piles in a claim share one enrage, since a new instance can't start until
+-- they're claimed.
 local function claimedMode(values, old)
     return (old & DIFFICULTY) == 0 and "n" or tierMode(values.enrage)
 end
 
 return {
-    key = "amascut", -- saved data key: never change it
+    key = "amascut",
     name = "Amascut, the Devourer",
     assumptions = {},
-    unit = "pile", -- what luck counts: loot piles claimed (see claims)
+    unit = "pile", -- luck counts loot piles claimed, not kills
     tip = "Open the chest after each kill: stacked loot can't always be counted",
 
-    killCounts = { { var = VARS.kc }, { var = VARS.kcEnrage } }, -- by piles claimed
+    killCounts = { { var = VARS.kc }, { var = VARS.kcEnrage } }, -- counted through claims
     modes = MODES,
     claims = {
         {
