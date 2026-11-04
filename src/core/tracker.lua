@@ -11,7 +11,9 @@ local tracker = {}
 -- computer shares the plugin's saved data. A name change starts a new entry.
 local PREFIX = "char:"
 
--- The saved shape's version (see src/core/tallies.lua): any other version starts again.
+-- The saved shape's version (see src/core/tallies.lua). A record of any other version is
+-- replaced with an empty one, so raising this needs a converter first (see "Not built
+-- yet" in docs/data/compatibility.md).
 local VERSION = 1
 
 local encoded = {} -- each boss's encoded tallies, kept until they change (see talliesFor)

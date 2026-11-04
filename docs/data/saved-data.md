@@ -8,7 +8,8 @@ entry). All-time kill and log counts are read from the game, never saved.
 |---|---|---|
 | `char:<name>` | Tracked kills, drops and dry streaks | `src/core/tracker.lua`, `src/core/tallies.lua` |
 
-The record has a `version`. A record with any other version starts again.
+The record has a `version`. A record with any other version is replaced with an
+empty one ([Compatibility](compatibility.md#not-built-yet)).
 
 Keys are always text (item ids, days), and numbers come back as decimals (`13.0`).
 A sample record is in [`saved-data.example.json`](saved-data.example.json).

@@ -13,8 +13,9 @@ Check that page for changes before each release.
 - [ ] `busted`, `stylua --check .` and `luacheck .` pass.
 - [ ] Tried in the beta client: the panel, the details window, the settings page,
       and a kill at a boss.
-- [ ] If the saved shape changed, `VERSION` in `src/core/tracker.lua` is raised
-      ([Saved data](../data/saved-data.md)).
+- [ ] If the saved shape changed, `VERSION` in `src/core/tracker.lua` is raised,
+      with a converter from every older version
+      ([Compatibility](../data/compatibility.md#not-built-yet)).
 
 ## The version
 

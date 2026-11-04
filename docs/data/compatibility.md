@@ -62,13 +62,18 @@ to its expected drops, and its dry streak counts only those kills.
 
 ## Not built yet
 
-Two kinds of change would need code that doesn't exist yet. Prefer saving facts and
-working rates out from them by day, so most changes need neither.
+These changes would need code that doesn't exist yet. Prefer saving facts and
+working rates out from them by day, so most changes need none of it.
 
 - **A kill count rule changes by date,** such as Akrisae no longer counting toward a
   Barrows kill. Whether a mode is in the kill count (`partial`) is fixed by its key
   today; `stats.lua` would need to pass each kill's day to it, as it already does for
   rates. The saved chest keys record who died, so they'd still be right.
+- **The saved shape changes,** needing `VERSION` in `src/core/tracker.lua` raised.
+  Today a record of any other version is replaced with an empty one at the next
+  save, so raising `VERSION` alone would wipe every player's data. The same change
+  must add a converter from every older version, with a spec, and leave any record
+  it can't read untouched.
 - **One boss's saved facts change format,** such as saving per kill something now
   saved per run. That would need a data version per boss, with a converter from the
   old format. Today there's one version for the whole record (see
