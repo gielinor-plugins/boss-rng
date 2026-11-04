@@ -147,6 +147,41 @@ describe("tracker", function()
         end
     end)
 
+    it("reads entries saved in the documented format", function()
+        -- From docs/data/saved-data.example.json, as the game gives them back: every
+        -- number as a decimal.
+        local function startAt(day, n)
+            return { day = day, at = { h = { [tostring(math.tointeger(day))] = n } } }
+        end
+        mock.SetSaved("char:Tester", { version = 1.0, lastBoss = "barrows" })
+        mock.SetSaved("char:Tester:vorkath", {
+            version = 1.0,
+            kills = { h = "20760:7" },
+            dryFrom = { ["56079"] = startAt(20760.0, 3.0), any = startAt(20760.0, 3.0) },
+            items = { ["56079"] = 2.0 },
+        })
+        mock.SetSaved("char:Tester:archglacor", {
+            version = 1.0,
+            kills = { h = "20760:9" },
+            sums = { enrage = { h = "20760:23712" }, streak = { h = "20760:61" } },
+            dryFrom = { ["52115"] = startAt(20760.0, 9.0), any = startAt(20760.0, 9.0) },
+            items = { ["52115"] = 1.0 },
+        })
+        reload()
+        assert.are.equal("barrows", tracker.LastBossKey())
+        -- Vorkath: 7 chests, a spike at the 3rd, no codex yet.
+        local vorkath = tracker.Tallies({ key = "vorkath" })
+        assert.are.equal(7, tallies.Total(vorkath.kills))
+        assert.are.equal(2, vorkath.items["56079"])
+        assert.are.equal(4, tallies.Total(tallies.Dry(vorkath, "56079")))
+        assert.are.equal(4, tallies.Total(tallies.Dry(vorkath, "any")))
+        assert.are.equal(7, tallies.Total(tallies.Dry(vorkath, "56068")))
+        -- Arch-Glacor: its sums read back as that day's averages.
+        local means = tallies.Means(tracker.Tallies({ key = "archglacor" }), "h", 20760)
+        assert.are.near(23712 / 9, means.enrage, 1e-9)
+        assert.are.near(61 / 9, means.streak, 1e-9)
+    end)
+
     it("reads an entry of another version as empty", function()
         mock.SetSaved("char:Tester", { version = 3, lastBoss = "testboss" })
         mock.SetSaved("char:Tester:testboss", { version = 3, kills = { n = "20756:4" } })
