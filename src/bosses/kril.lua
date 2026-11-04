@@ -23,12 +23,15 @@ local function rolls(r)
     )
 end
 
+local KILL_COUNTS, MODES = common.NormalAndHard(VARS, rolls)
+
 return {
     key = "kril", -- saved data key: never change it
     name = "K'ril Tsutsaroth",
     assumptions = { common.SOLO_KILLS },
 
-    modes = common.Modes(VARS, rolls),
+    killCounts = KILL_COUNTS,
+    modes = MODES,
 
     items = {
         [HOOD] = { log = VARS.log .. "HEAD" },

@@ -64,16 +64,6 @@ local SAVED = {
     zuk = { "n", "h", "hc" },
 }
 
--- The rated mode a saved key reads back as, or nil.
-local function savedMode(boss, key)
-    for _, mode in ipairs(boss.modes) do
-        if mode.key == key and mode.rolls then
-            return mode
-        end
-    end
-    return boss.modeFor and boss.modeFor(key)
-end
-
 describe("saved keys", function()
     it("keeps every boss key, and lists every boss", function()
         local keys = {}
@@ -89,7 +79,7 @@ describe("saved keys", function()
     for _, boss in ipairs(bosses) do
         it("reads back every saved mode of " .. boss.name, function()
             for _, key in ipairs(SAVED[boss.key] or {}) do
-                local mode = savedMode(boss, key)
+                local mode = boss.modes[key]
                 assert(mode ~= nil and mode.rolls ~= nil, boss.key .. " mode " .. key)
                 assert.are.equal(key, mode.key)
             end

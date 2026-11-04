@@ -48,13 +48,9 @@ end
 local TIERS = { 100, 500, 750, 1000, 2000 } -- enrage %, the last for 2,000% and above
 
 -- Normal, and each enrage tier ("e1000"). Mode keys are saved: never change them.
-local MODES = { n = { key = "n", kc = VARS.kc, byEvent = true, rolls = rolls("gear", "nexus") } }
+local MODES = { n = { rolls = rolls("gear", "nexus") } }
 for _, e in ipairs(TIERS) do
-    MODES["e" .. e] = {
-        key = "e" .. e,
-        kc = VARS.kcEnrage,
-        rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e),
-    }
+    MODES["e" .. e] = { rolls = rolls("gear" .. e, "nexus" .. e, "shard" .. e) }
 end
 
 -- The highest tier at or below enrage (4,000% is 2,000%+), else the lowest.
@@ -80,11 +76,8 @@ return {
     unit = "pile", -- what luck counts: loot piles claimed (see claims)
     tip = "Open the chest after each kill: stacked loot can't always be counted",
 
-    -- Mode keys are saved: never change them. Counted through piles claimed.
-    modes = {
-        MODES.n,
-        { key = "e", kc = VARS.kcEnrage, byEvent = true },
-    },
+    killCounts = { { var = VARS.kc }, { var = VARS.kcEnrage } }, -- by piles claimed
+    modes = MODES,
     claims = {
         {
             var = VARS.loot,
@@ -94,9 +87,6 @@ return {
             mode = claimedMode,
         },
     },
-    modeFor = function(key)
-        return MODES[key]
-    end,
 
     items = {
         [MASK] = { log = VARS.log .. "MAGIC_DEVOURER_HEAD_T95" },

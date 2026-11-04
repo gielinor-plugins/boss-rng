@@ -23,20 +23,15 @@ return {
     assumptions = {},
     unit = "chest", -- what luck counts (see containers)
 
-    -- Mode keys are saved: never change them. Counted through chests opened.
+    killCounts = { { var = VARS.kc }, { var = VARS.kcHard } }, -- counted by chests opened
+    -- Mode keys are saved: never change them.
     modes = {
-        {
-            key = "n",
-            kc = VARS.kc,
-            byEvent = true,
+        n = {
             rolls = function(r)
                 return { common.OneOf({ [SPIKE] = r.spike, [CODEX] = r.codex }) }
             end,
         },
-        {
-            key = "h",
-            kc = VARS.kcHard,
-            byEvent = true,
+        h = {
             rolls = function(r)
                 return {
                     common.OneOf({

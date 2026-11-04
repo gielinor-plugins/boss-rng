@@ -30,9 +30,6 @@ local function rolls(r, readings, means)
     }
 end
 
--- Keys are saved: never change them.
-local HARD = { key = "h", kc = VARS.kc, byEvent = true, rolls = rolls }
-
 return {
     key = "archglacor", -- saved data key: never change it
     name = "Arch-Glacor (Hard Mode)",
@@ -40,20 +37,19 @@ return {
     assumptions = { "A claim's dark nilas count as one drop" },
     tip = "Uniques are only tracked when you claim the loot",
 
-    modes = { HARD },
+    killCounts = { { var = VARS.kc } }, -- through its kill event, for its sums
+    -- Mode keys are saved: never change them.
+    modes = { h = { rolls = rolls } },
     killEvents = {
         {
             var = VARS.kc,
             reads = { enrage = VARS.enrage, streak = VARS.streak },
             sums = { "enrage", "streak" },
             mode = function()
-                return HARD.key
+                return "h"
             end,
         },
     },
-    modeFor = function(key)
-        return key == HARD.key and HARD or nil
-    end,
     dropsAtClaim = { var = VARS.streak, most = CLAIM_MOST },
 
     items = {

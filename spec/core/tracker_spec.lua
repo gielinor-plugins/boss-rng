@@ -1,9 +1,9 @@
 local mock = require("spec/mock_api")
 
-local NORMAL, HARD = { key = "n", kc = "KC_NORMAL" }, { key = "h", kc = "KC_HARD" }
+local NORMAL, HARD = { key = "n" }, { key = "h" }
 local BOSS = {
     key = "testboss",
-    modes = { NORMAL, HARD },
+    modes = { n = NORMAL, h = HARD },
     items = {
         [101] = {},
         [102] = { pooledBy = {} },
@@ -72,7 +72,7 @@ describe("tracker", function()
     end)
 
     it("tracks a pooled unique only for the boss killed last", function()
-        local other = { key = "other", modes = { NORMAL }, items = BOSS.items }
+        local other = { key = "other", modes = { n = NORMAL }, items = BOSS.items }
         tracker.AddKills(other, NORMAL, 1, DAY)
         tracker.AddDrops(BOSS, 102, 1)
         assert.is_nil(tracker.Tallies(BOSS).items["102"])
@@ -154,7 +154,7 @@ describe("tracker", function()
     end)
 
     it("tells when a boss's tallies may have changed, or another character loaded", function()
-        local other = { key = "other", modes = { NORMAL }, items = {} }
+        local other = { key = "other", modes = { n = NORMAL }, items = {} }
         local function changesAfter(action)
             local before = tracker.Changes(BOSS)
             action()
@@ -180,7 +180,7 @@ describe("tracker", function()
     end)
 
     it("saves every boss's kills when one changes", function()
-        local other = { key = "other", modes = { NORMAL }, items = {} }
+        local other = { key = "other", modes = { n = NORMAL }, items = {} }
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         tracker.AddKills(other, NORMAL, 2, DAY)
         tracker.AddKills(BOSS, NORMAL, 1, NEXT_DAY)
@@ -190,7 +190,7 @@ describe("tracker", function()
     end)
 
     it("resets one boss, keeping the others, and starts it fresh", function()
-        local other = { key = "other", modes = { NORMAL }, items = {} }
+        local other = { key = "other", modes = { n = NORMAL }, items = {} }
         tracker.AddKills(other, NORMAL, 2, DAY)
         tracker.AddKills(BOSS, NORMAL, 3, DAY)
         tracker.AddDrops(BOSS, 101, 1)
@@ -265,7 +265,7 @@ describe("tracker", function()
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         tracker.AddDrops(BOSS, 101, 1)
         assert.are.equal(2, calls)
-        local other = { key = "other", modes = { NORMAL }, items = BOSS.items }
+        local other = { key = "other", modes = { n = NORMAL }, items = BOSS.items }
         tracker.AddKills(other, NORMAL, 1, DAY)
         tracker.AddDrops(BOSS, 102, 1) -- pooled, and the other boss was killed last
         assert.are.equal(3, calls) -- nothing changed, so nothing to tell

@@ -5,14 +5,11 @@ local stats = require("src/core/stats")
 local DAY = 20756 -- 30 Oct 2026
 
 -- Normal mode rolls item 1 at 1/100 and item 2 at 1/50; hard mode item 1 at 1/20.
+-- Test bosses are written as loaded, with each mode's key set (see src/bosses.lua).
 local BOSS = {
     modes = {
-        {
-            key = "n",
-            kc = "KC_NORMAL",
-            rolls = { { chance = 3 / 100, items = { [1] = 1, [2] = 2 } } },
-        },
-        { key = "h", kc = "KC_HARD", rolls = { { chance = 1 / 20, items = { [1] = 1 } } } },
+        n = { key = "n", rolls = { { chance = 3 / 100, items = { [1] = 1, [2] = 2 } } } },
+        h = { key = "h", rolls = { { chance = 1 / 20, items = { [1] = 1 } } } },
     },
     items = { [1] = {}, [2] = {} },
 }
@@ -56,8 +53,8 @@ describe("stats.ForBoss", function()
     it("adds up loot piles for modes that count them", function()
         local piled = {
             modes = {
-                { key = "p1", kc = "KC", piles = 1, rolls = {} },
-                { key = "p3", kc = "KC", piles = 3, rolls = {} },
+                p1 = { key = "p1", piles = 1, rolls = {} },
+                p3 = { key = "p3", piles = 3, rolls = {} },
             },
             items = {},
         }
@@ -195,9 +192,8 @@ describe("stats.ForBoss", function()
         local boss = {
             items = { [1] = {} },
             modes = {
-                {
+                n = {
                     key = "n",
-                    kc = "KC",
                     rolls = function(_, readings)
                         return { { chance = 1 / readings.rate, items = { [1] = 1 } } }
                     end,
@@ -215,9 +211,8 @@ describe("stats.ForBoss", function()
                 [2] = { group = group },
             },
             modes = {
-                {
+                n = {
                     key = "n",
-                    kc = "KC",
                     rolls = { { chance = 1 / 10, items = { [1] = 1, [2] = 1 } } },
                 },
             },
@@ -245,9 +240,8 @@ describe("stats with sums", function()
     -- Item 1 at a chance of the day's average "level" in hundredths.
     local LEVELLED = {
         modes = {
-            {
+            n = {
                 key = "n",
-                kc = "KC",
                 rolls = function(_, _, means)
                     return { { chance = means.level / 100, items = { [1] = 1 } } }
                 end,
@@ -276,9 +270,8 @@ describe("stats with rates that changed", function()
             { since = CHANGE, values = { item = 1 / 5 } },
         }),
         modes = {
-            {
+            n = {
                 key = "n",
-                kc = "KC",
                 rolls = function(r)
                     return { { chance = r.item, items = { [1] = 1 } } }
                 end,
@@ -309,9 +302,8 @@ describe("stats with rates that changed", function()
                 { since = CHANGE, values = { new = 1 / 5 } },
             }),
             modes = {
-                {
+                n = {
                     key = "n",
-                    kc = "KC",
                     rolls = function(r)
                         return { { chance = r.new, items = { [1] = 1 } } }
                     end,
@@ -331,19 +323,17 @@ describe("stats with rates that changed", function()
     end)
 end)
 
--- A boss whose kills are counted at each kill: full chests in the kill count
+-- A boss whose kills are told apart at each kill: full chests in the kill count
 -- (item 1 at 1/10), partial ones outside it (1/20).
 local EVENTED = {
-    modes = { { key = "n", kc = "KC", byEvent = true } },
-    modeFor = function(key)
-        local full = key == "Full"
-        local chance = full and 1 / 10 or 1 / 20
-        return {
-            key = key,
-            kc = full and "KC" or nil,
-            rolls = { { chance = chance, items = { [1] = 1 } } },
-        }
-    end,
+    modes = {
+        Full = { key = "Full", rolls = { { chance = 1 / 10, items = { [1] = 1 } } } },
+        Partial = {
+            key = "Partial",
+            partial = true,
+            rolls = { { chance = 1 / 20, items = { [1] = 1 } } },
+        },
+    },
     extraKills = "partial",
     items = { [1] = {} },
 }
@@ -364,7 +354,7 @@ describe("stats with kills counted at each kill", function()
     end)
 
     it("leaves out kills of modes the boss no longer has", function()
-        local boss = { modes = EVENTED.modes, items = EVENTED.items } -- no modeFor
+        local boss = { modes = { Partial = EVENTED.modes.Partial }, items = EVENTED.items }
         assert.are.equal(0, forBoss(boss, tallies({ Full = 10 })).kills)
     end)
 end)

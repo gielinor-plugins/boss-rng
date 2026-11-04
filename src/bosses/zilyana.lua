@@ -19,12 +19,15 @@ local function rolls(r)
     return godwars.Rolls(common.Each(CROSSBOWS, r.crossbow, common.Each(OTHERS, r.other)), HILT, r)
 end
 
+local KILL_COUNTS, MODES = common.NormalAndHard(VARS, rolls)
+
 return {
     key = "zilyana", -- saved data key: never change it
     name = "Commander Zilyana",
     assumptions = { common.SOLO_KILLS },
 
-    modes = common.Modes(VARS, rolls),
+    killCounts = KILL_COUNTS,
+    modes = MODES,
 
     items = {
         [SWORD] = { log = VARS.log .. "SWORD" },

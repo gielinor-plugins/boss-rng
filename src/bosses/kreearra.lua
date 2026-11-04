@@ -18,12 +18,15 @@ local function rolls(r)
     return godwars.Rolls(common.Each(ARMOR, r.armor), HILT, r)
 end
 
+local KILL_COUNTS, MODES = common.NormalAndHard(VARS, rolls)
+
 return {
     key = "kreearra", -- saved data key: never change it
     name = "Kree'arra",
     assumptions = { common.SOLO_KILLS },
 
-    modes = common.Modes(VARS, rolls),
+    killCounts = KILL_COUNTS,
+    modes = MODES,
 
     items = {
         [HELMET] = { log = VARS.log .. "HEAD" },

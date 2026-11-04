@@ -19,15 +19,15 @@ local function rolls(r)
     }
 end
 
+local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
+
 return {
     key = "corp", -- saved data key: never change it
     name = "Corporeal Beast",
     assumptions = { common.SOLO_KILLS },
 
-    -- Mode keys are saved: never change them.
-    modes = {
-        { key = "n", kc = VARS.kc, rolls = rolls },
-    },
+    killCounts = KILL_COUNTS,
+    modes = MODES,
 
     items = {
         [SPECTRAL] = { log = VARS.log .. "SIGIL_SPECTRAL" },

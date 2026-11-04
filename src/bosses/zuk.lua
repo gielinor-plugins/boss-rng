@@ -37,12 +37,6 @@ local function hardRolls(sword)
     end)
 end
 
--- Hard mode without and with checkpoints. Keys are saved: never change them.
-local HARD = {
-    h = { key = "h", kc = VARS.kcHard, byEvent = true, rolls = hardRolls("swordNoCheckpoints") },
-    hc = { key = "hc", kc = VARS.kcHard, rolls = hardRolls("sword") },
-}
-
 -- A hard mode kill without checkpoints gave a stone in its tick, unless the log is full.
 local function hardKill(values)
     return (values.stone or values.stones >= STONE_CAP) and "h" or "hc"
@@ -57,15 +51,20 @@ return {
         return full and { "Runs after 250 Igneous stones count as checkpoint-free" } or {}
     end,
 
+    killCounts = {
+        { var = VARS.kc, mode = "n" },
+        { var = VARS.kcHard }, -- with or without checkpoints, by its kill event
+    },
+    -- Normal, then hard mode without and with checkpoints. Keys are saved: never
+    -- change them.
     modes = {
-        {
-            key = "n",
-            kc = VARS.kc,
+        n = {
             rolls = egwd.Boosted(function(r)
                 return books(r.normal)
             end),
         },
-        HARD.h,
+        h = { rolls = hardRolls("swordNoCheckpoints") },
+        hc = { rolls = hardRolls("sword") },
     },
     killEvents = {
         {
@@ -75,9 +74,6 @@ return {
             mode = hardKill,
         },
     },
-    modeFor = function(key)
-        return HARD[key]
-    end,
 
     items = {
         [BLADE] = { log = VARS.log .. "BOSS_MELEE_WEAPON_TOP", group = SWORD },

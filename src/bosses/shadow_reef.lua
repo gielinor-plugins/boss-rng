@@ -27,9 +27,9 @@ return {
     key = "shadow_reef", -- saved data key: never change it
     name = "The Shadow Reef",
     assumptions = { eliteDungeon.ASSUMPTION },
-    modes = dungeon.modes, -- the group kill count's mode is counted only through its kill event
+    killCounts = dungeon.killCounts,
+    modes = dungeon.modes,
     killEvents = dungeon.killEvents,
-    modeFor = dungeon.ModeFor,
 
     items = {
         [LIMB] = { log = VARS.log .. "LIMB", group = CROSSBOW },

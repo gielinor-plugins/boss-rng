@@ -25,9 +25,9 @@ conversion.
 | Unique removed | Not supported yet; see below. |
 | Start counting an item (such as Saradomin's hum at Zilyana) | Add it to the boss file's `items` with its log count, rate in base: counts over every tracked kill, though earlier drops weren't tracked. Or 0 in base and its rate from the plugin update's day. Move it out of the doc's "Not counted". |
 | Stop counting a unique | Remove it from `items` and its roll, and list it under the doc's "Not counted". Its saved data stays, unused. |
-| New mode | New mode key and kill count var. Streaks span every mode. |
+| New mode | A new key in the boss file's `modes`, and its kill count in `killCounts`. Streaks span every mode. |
 | A kill's rate depends on values read at it (such as Arch-Glacor's enrage and streak) | Save the values as sums, not the rate, so a later rate change still re-rates the kills. |
-| Kill count rule changes (such as which brothers a Barrows kill needs) | A dated rule in the boss file, read with each kill's day. Not built: a mode's kill count is fixed by its key today, so `stats.lua` would first pass each kill's day to it, as it does for rolls. The saved facts don't change. |
+| Kill count rule changes (such as which brothers a Barrows kill needs) | A dated rule in the boss file, read with each kill's day. Not built: whether a mode is in the kill count (`partial` in `src/bosses.lua`) is fixed by its key today, so `stats.lua` would first pass each kill's day to it, as it does for rolls. The saved facts don't change. |
 | Saved facts change format for one boss | A version for that boss: see below. |
 
 Example (not real): Solak gains item 99999 at 1 in 300 on day 21000.

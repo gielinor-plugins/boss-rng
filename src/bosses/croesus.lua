@@ -46,8 +46,7 @@ end
 -- Modes by unique rolls ("r12"). Keys are saved: never change them.
 local MODES = {}
 for n = 0, 12 do
-    MODES["r" .. n] =
-        { key = "r" .. n, kc = VARS.kc, byEvent = true, rolls = egwd.Boosted(rolls(n)) }
+    MODES["r" .. n] = { rolls = egwd.Boosted(rolls(n)) }
 end
 
 -- A kill's mode from the player's contribution, or nil if none was seen.
@@ -70,7 +69,8 @@ return {
     reads = egwd.Reads(),
     assumptions = {},
 
-    modes = { MODES.r12 }, -- counted only through its kill event
+    killCounts = { { var = VARS.kc } }, -- by contribution, through its kill event
+    modes = MODES,
     killEvents = {
         {
             var = VARS.kc,
@@ -78,9 +78,6 @@ return {
             mode = contributionMode,
         },
     },
-    modeFor = function(key)
-        return MODES[key]
-    end,
 
     items = {
         [HELM] = { log = VARS.log .. "BOSS_MAGIC_HELM" },

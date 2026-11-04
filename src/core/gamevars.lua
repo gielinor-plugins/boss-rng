@@ -197,8 +197,8 @@ function gamevars.AllTimeKills(boss)
         return nil
     end
     local total = 0
-    for _, mode in ipairs(boss.modes) do
-        local kills = value(mode.kc)
+    for _, killCount in ipairs(boss.killCounts) do
+        local kills = value(killCount.var)
         if kills == nil then
             return nil
         end
@@ -214,9 +214,9 @@ function gamevars.AllTime(boss)
         return nil
     end
     local allTime = { kills = {}, items = {}, values = {} }
-    for _, mode in ipairs(boss.modes) do
-        allTime.kills[mode.kc] = value(mode.kc)
-        if allTime.kills[mode.kc] == nil then
+    for _, killCount in ipairs(boss.killCounts) do
+        allTime.kills[killCount.var] = value(killCount.var)
+        if allTime.kills[killCount.var] == nil then
             return nil
         end
     end
@@ -261,17 +261,18 @@ local function killed(boss, mode, count, sums)
     onKills(boss, mode, count, today(), sums)
 end
 
--- Kills counted by a kill count rising, for modes not counted by events. A kill
+-- Kills counted by a kill count rising, for kill counts naming their mode. A kill
 -- counted later, at a chest or claim, still changes the all-time kills shown.
 local function watchKillCounts(boss)
     local countedLater = boss.containers ~= nil or boss.claims ~= nil
-    for _, mode in ipairs(boss.modes) do
-        if not mode.byEvent then
-            watch(mode.kc, "kills", function(count)
+    for _, killCount in ipairs(boss.killCounts) do
+        local mode = killCount.mode and boss.modes[killCount.mode]
+        if mode then
+            watch(killCount.var, "kills", function(count)
                 killed(boss, mode, count)
             end)
         elseif countedLater then
-            watch(mode.kc, "kills", function()
+            watch(killCount.var, "kills", function()
                 safe.Call("updating after a kill", onRefresh)
             end)
         end
@@ -310,13 +311,10 @@ end
 
 local function watchContainers(boss)
     for itemID, container in pairs(boss.containers or {}) do
-        for _, mode in ipairs(boss.modes) do
-            if mode.key == container.mode then
-                containers.Add(itemID, container.window, function(count)
-                    killed(boss, mode, count)
-                end)
-            end
-        end
+        local mode = boss.modes[container.mode]
+        containers.Add(itemID, container.window, function(count)
+            killed(boss, mode, count)
+        end)
     end
 end
 

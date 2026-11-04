@@ -28,9 +28,9 @@ return {
     key = "dragonkin", -- saved data key: never change it
     name = "Dragonkin Laboratory",
     assumptions = { eliteDungeon.ASSUMPTION },
-    modes = dungeon.modes, -- each group kill count's mode is counted only through its kill event
+    killCounts = dungeon.killCounts,
+    modes = dungeon.modes,
     killEvents = dungeon.killEvents,
-    modeFor = dungeon.ModeFor,
 
     items = {
         [FLURRY] = { log = VARS.log .. "FLURRY" },

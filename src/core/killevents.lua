@@ -29,7 +29,7 @@ function killevents.Mode(boss, event, value, old, kept, rose)
         values.piles = piles.Count()
     end
     local key = event.mode(values, old)
-    return key and boss.modeFor(key), values
+    return key and boss.modes[key], values
 end
 
 -- The values a kill event adds up by day, or nil.

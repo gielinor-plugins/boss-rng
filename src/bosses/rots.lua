@@ -15,16 +15,16 @@ local function rolls(r)
     return { { chance = r.table, items = UNIQUES } }
 end
 
+local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
+
 return {
     key = "rots", -- saved data key: never change it
     name = "Barrows: Rise of the Six",
     -- The kill count can go up without the chest being looted.
     assumptions = { "Every chest looted" },
 
-    -- Mode keys are saved: never change them.
-    modes = {
-        { key = "n", kc = VARS.kc, rolls = rolls },
-    },
+    killCounts = KILL_COUNTS,
+    modes = MODES,
 
     items = {
         [MALEVOLENT] = { log = VARS.log .. "SHIELD_MAGIC" },

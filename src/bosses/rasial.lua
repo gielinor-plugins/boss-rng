@@ -19,15 +19,15 @@ local function rolls(r)
     }
 end
 
+local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
+
 return {
     key = "rasial", -- saved data key: never change it
     name = "Rasial, the First Necromancer",
     assumptions = {},
 
-    -- Mode keys are saved: never change them.
-    modes = {
-        { key = "n", kc = VARS.kc, rolls = rolls },
-    },
+    killCounts = KILL_COUNTS,
+    modes = MODES,
 
     items = {
         [GUARD] = { log = VARS.log .. "ARMGUARD_T95" },

@@ -28,28 +28,23 @@ describe("boss data", function()
 
     for _, boss in ipairs(bosses) do
         describe(boss.name, function()
-            it("names a KC varbit for each mode", function()
-                assert.is_true(#boss.modes > 0)
-                for _, mode in ipairs(boss.modes) do
-                    assert.is_true(startsWith(mode.kc, "BSLAY_KILLS_"))
+            it("names its kill count varbits, each counted directly or another way", function()
+                assert.is_true(#boss.killCounts > 0)
+                local otherWay = (boss.killEvents or boss.claims or boss.containers) ~= nil
+                for _, killCount in ipairs(boss.killCounts) do
+                    assert.is_true(startsWith(killCount.var, "BSLAY_KILLS_"))
+                    if killCount.mode then
+                        assert.is_true(boss.modes[killCount.mode] ~= nil)
+                    else
+                        assert.is_true(otherWay)
+                    end
                 end
             end)
 
-            it("keys each mode uniquely", function()
-                local seen = {}
-                for _, mode in ipairs(boss.modes) do
-                    assert.is_nil(seen[mode.key])
-                    seen[mode.key] = true
-                end
-            end)
-
-            it("counts a kill count by its kill events only if it has them", function()
-                for _, mode in ipairs(boss.modes) do
-                    assert.is_true(mode.byEvent == true or mode.rolls ~= nil)
-                    assert.is_true(
-                        not mode.byEvent
-                            or (boss.killEvents or boss.containers or boss.claims) ~= nil
-                    )
+            it("gives every mode its rolls", function()
+                for key, mode in pairs(boss.modes) do
+                    assert.is_true(mode.rolls ~= nil)
+                    assert.are.equal(key, mode.key)
                 end
             end)
 
@@ -67,7 +62,7 @@ describe("boss data", function()
             end)
 
             it("only rolls its listed uniques", function()
-                for _, mode in ipairs(boss.modes) do
+                for _, mode in pairs(boss.modes) do
                     for _, day in ipairs({ BEFORE, AFTER }) do
                         for itemID in pairs(luck.ItemChances(stats.Rolls(boss, mode, {}, day))) do
                             assert.is_true(boss.items[itemID] ~= nil)
@@ -154,6 +149,7 @@ local CASES = {
     -- Vermyx, then Vermyx in hard mode.
     {
         file = "sanctum",
+        modes = { "v", "vh" },
         rates = { [57156] = 1 / 250, [57124] = 1 / 250 },
         hard = { [57156] = 1 / 200 },
     },
@@ -215,6 +211,7 @@ local CASES = {
     -- Solo, then duo: the same rates.
     {
         file = "raksha",
+        modes = { "s", "d" },
         rates = { [51082] = 1 / 130, [51086] = 1 / 325, [51098] = 1 / 325 },
         hard = { [51082] = 1 / 130, [51094] = 1 / 325 },
     },
@@ -249,6 +246,7 @@ local CASES = {
     -- Full contribution: 12 rolls at 1/5,400 each, then 1/3,000 armor and 1/2,500 others.
     {
         file = "croesus",
+        modes = { "r12" },
         rates = { [52250] = 12 / 5400, [52345] = 12 / 5400 },
         after = { [52250] = 12 / 3000, [52345] = 12 / 2500, [52213] = 12 / 2500 },
     },
@@ -268,18 +266,10 @@ local CASES = {
     -- Hard mode only, a streak's first kill at 0% enrage: any unique 1,525 in a million.
     {
         file = "archglacor",
+        modes = { "h" },
         rates = { [52020] = 1525 / 1e6 * 0.24, [52115] = 1525 / 1e6 * 0.38, [52019] = 1 / 100 },
     },
 }
-
-local function modeKeyed(boss, key)
-    for _, mode in ipairs(boss.modes) do
-        if mode.key == key then
-            return mode
-        end
-    end
-    return boss.modeFor(key)
-end
 
 for _, case in ipairs(CASES) do
     describe(case.file, function()
@@ -288,8 +278,7 @@ for _, case in ipairs(CASES) do
         -- expected is { rates, hard rates }.
         local function check(day, expected)
             for modeIndex, rates in pairs(expected) do
-                local mode = case.modes and modeKeyed(boss, case.modes[modeIndex])
-                    or boss.modes[modeIndex]
+                local mode = boss.modes[(case.modes or { "n", "h" })[modeIndex]]
                 local chances = luck.ItemChances(stats.Rolls(boss, mode, {}, day))
                 for itemID, rate in pairs(rates) do
                     assert.are.near(rate, chances[itemID], 1e-12)
@@ -323,7 +312,7 @@ it("counts Kerapac's kills by the loot piles seen at them", function()
     assert.are.equal("h2", hard.mode({ piles = 2 }))
     assert.are.equal("n1", normal.mode({ piles = 0 })) -- away at the kill
     assert.are.equal("n3", normal.mode({ piles = 4 }))
-    local twoPiles = boss.modeFor("n2")
+    local twoPiles = boss.modes.n2
     assert.are.equal(2, twoPiles.piles)
     assert.are.near(2 / 256 / 3, luck.ItemChances(stats.Rolls(boss, twoPiles, {}))[51767], 1e-12)
 end)
@@ -333,7 +322,7 @@ describe("TzKal-Zuk's checkpoints", function()
     local event = boss.killEvents[1]
 
     local function pieceChance(key)
-        return luck.ItemChances(stats.Rolls(boss, boss.modeFor(key), {}))[52505] * 3
+        return luck.ItemChances(stats.Rolls(boss, boss.modes[key], {}))[52505] * 3
     end
 
     it("counts a hard mode kill by whether an Igneous stone came in its tick", function()
@@ -365,7 +354,7 @@ describe("the pontifex shadow ring", function()
     it("raises every Elder God Wars Dungeon unique 2% once overcharged", function()
         for _, case in ipairs(BOSSES) do
             local boss = require("src/bosses/" .. case.file)
-            local mode = boss.modeFor(case.mode)
+            local mode = boss.modes[case.mode]
             local plain = luck.ItemChances(stats.Rolls(boss, mode, { ring = 0 }))
             local raised = luck.ItemChances(stats.Rolls(boss, mode, { ring = 1 }))
             for itemID, chance in pairs(plain) do
@@ -375,7 +364,7 @@ describe("the pontifex shadow ring", function()
         end
         assert.are.near(
             1 / 49,
-            luck.ItemChances(stats.Rolls(zuk, zuk.modeFor("h"), { ring = 1 }))[52492],
+            luck.ItemChances(stats.Rolls(zuk, zuk.modes.h, { ring = 1 }))[52492],
             1e-12
         )
     end)
@@ -383,10 +372,10 @@ end)
 
 describe("Arch-Glacor's streaks", function()
     local boss = require("src/bosses/archglacor")
-    local hard = boss.modeFor("h")
+    local hard = boss.modes.h
 
     it("rates each kill by the fight's enrage and its place in the streak", function()
-        assert.are.equal(hard, boss.modeFor(boss.killEvents[1].mode({})))
+        assert.are.equal(hard, boss.modes[boss.killEvents[1].mode({})])
         local means = { enrage = 4000, streak = 200 } -- the most: any unique 66,500 in a million
         local chances = luck.ItemChances(stats.Rolls(boss, hard, { ring = 1 }, nil, means))
         assert.are.near(66500 / 1e6 * 0.38 / 0.98, chances[52021], 1e-12) -- the Leng artefact
@@ -400,7 +389,7 @@ it("counts each tracked Dragonkin Laboratory group kill by the players at the ki
     assert.is_nil(event.mode({ players = 0 })) -- not read yet: left uncounted
     assert.are.equal("b1", event.mode({ players = 1 }))
     assert.are.equal("b3", event.mode({ players = 4 }))
-    local mode = boss.modeFor(event.mode({ players = 2 }))
+    local mode = boss.modes[event.mode({ players = 2 })]
     assert.are.equal("b2", mode.key)
     assert.are.near(1 / 166, luck.ItemChances(stats.Rolls(boss, mode, {}))[43393], 1e-12)
 end)
@@ -408,7 +397,7 @@ end)
 it("counts the Shadow Reef's group kills by the players at the kill", function()
     local boss = require("src/bosses/shadow_reef")
     local event = boss.killEvents[1]
-    local mode = boss.modeFor(event.mode({ players = 2 }))
+    local mode = boss.modes[event.mode({ players = 2 })]
     assert.are.equal("a2", mode.key)
     assert.are.near(1 / 111 / 3, luck.ItemChances(stats.Rolls(boss, mode, {}))[47490], 1e-12)
 end)
@@ -421,12 +410,12 @@ it("counts each tracked Croesus kill at the unique rolls of its contribution", f
     assert.are.equal("r1", event.mode({ contribution = 60 }))
     assert.are.equal("r0", event.mode({ contribution = 59 })) -- one loot roll, no uniques
     assert.is_nil(event.mode({})) -- no contribution seen: uncounted
-    local two = boss.modeFor("r2")
+    local two = boss.modes.r2
     assert.are.near(2 / 5400, luck.ItemChances(stats.Rolls(boss, two, {}, BEFORE))[52250], 1e-12)
     -- The rebalance
     assert.are.near(2 / 3000, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52250], 1e-12)
     assert.are.near(2 / 2500, luck.ItemChances(stats.Rolls(boss, two, {}, AFTER))[52345], 1e-12)
-    assert.are.same({}, stats.Rolls(boss, boss.modeFor("r0"), {}))
+    assert.are.same({}, stats.Rolls(boss, boss.modes.r0, {}))
 end)
 
 describe("Barrows", function()
@@ -452,8 +441,8 @@ describe("Barrows", function()
     end)
 
     it("gives a full chest the kill count and a partial one only its brothers' items", function()
-        local full = boss.modeFor(opened(SIX, true, true))
-        assert.are.equal("BSLAY_KILLS_BARROWS", full.kc)
+        local full = boss.modes[opened(SIX, true, true)]
+        assert.is_nil(full.partial)
         local chances = luck.ItemChances(stats.Rolls(boss, full, {}, BEFORE))
         assert.are.near(7 / 73 / 7 / 4, chances[4716], 1e-12)
         assert.are.near(1 / 96 / 5, chances[37449], 1e-12)
@@ -461,11 +450,11 @@ describe("Barrows", function()
         -- Five originals and Akrisae make six: in the kill count too.
         local fiveAndAkrisae =
             opened({ "Dharok", "Guthan", "Karil", "Torag", "Verac" }, true, false)
-        assert.are.equal("BSLAY_KILLS_BARROWS", boss.modeFor(fiveAndAkrisae).kc)
+        assert.is_nil(boss.modes[fiveAndAkrisae].partial)
 
-        local partial = boss.modeFor(opened({ "Ahrim", "Dharok", "Guthan" }, false, false))
-        assert.is_nil(partial.kc)
-        chances = luck.ItemChances(stats.Rolls(boss, partial, {}, BEFORE))
+        local threeBrothers = boss.modes[opened({ "Ahrim", "Dharok", "Guthan" }, false, false)]
+        assert.is_true(threeBrothers.partial)
+        chances = luck.ItemChances(stats.Rolls(boss, threeBrothers, {}, BEFORE))
         assert.are.near(4 / 276 / 3 / 4, chances[4716], 1e-12) -- 3 brothers: 4 rolls at 1/276
         assert.is_nil(chances[4732]) -- no Karil
         assert.is_nil(chances[37449]) -- no Linza
@@ -498,7 +487,7 @@ end)
 
 it("rolls Nakatra's Shard of Genesis Essence only in hard mode", function()
     local sanctum = require("src/bosses/sanctum")
-    local normal = luck.ItemChances(stats.Rolls(sanctum, sanctum.modeFor("n"), {}))
+    local normal = luck.ItemChances(stats.Rolls(sanctum, sanctum.modes.n, {}))
     assert.is_nil(normal[57128])
 end)
 
@@ -511,6 +500,6 @@ end)
 -- The generals' uniques can't drop together, so their chances simply add up.
 it("gives a general at most one unique per kill", function()
     local zilyana = require("src/bosses/zilyana")
-    local rolls = stats.Rolls(zilyana, zilyana.modes[1], {}, BEFORE)
+    local rolls = stats.Rolls(zilyana, zilyana.modes.n, {}, BEFORE)
     assert.are.near(1 / 64 + HILT, luck.ChanceOfAny(rolls), 1e-12)
 end)

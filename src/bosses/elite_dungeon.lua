@@ -18,20 +18,19 @@ local function playersMode(id, players)
     return id .. math.min(players, #TEAMS)
 end
 
+-- A dungeon's killCounts, modes and killEvents, filled in by Add.
 function eliteDungeon.New()
-    local dungeon = { modes = {}, killEvents = {}, tracked = {} }
+    local dungeon = { killCounts = {}, modes = {}, killEvents = {} }
 
     -- A boss by id (a short saved key: never change it). Its solo kill count is
-    -- kc .. "_SOLO"; rolls(team)(r) gives a team's rolls.
+    -- kc .. "_SOLO", saved as mode id .. "s"; its group kill count is counted by the
+    -- players at the kill. rolls(team)(r) gives a team's rolls.
     function dungeon.Add(id, kc, rolls)
-        table.insert(
-            dungeon.modes,
-            { key = id .. "s", kc = kc .. "_SOLO", rolls = rolls(TEAMS[1]) }
-        )
-        table.insert(dungeon.modes, { key = id .. "g", kc = kc, byEvent = true })
+        table.insert(dungeon.killCounts, { var = kc .. "_SOLO", mode = id .. "s" })
+        table.insert(dungeon.killCounts, { var = kc })
+        dungeon.modes[id .. "s"] = { rolls = rolls(TEAMS[1]) }
         for players, team in ipairs(TEAMS) do
-            local key = playersMode(id, players)
-            dungeon.tracked[key] = { key = key, kc = kc, rolls = rolls(team) }
+            dungeon.modes[playersMode(id, players)] = { rolls = rolls(team) }
         end
         table.insert(dungeon.killEvents, {
             var = kc,
@@ -40,10 +39,6 @@ function eliteDungeon.New()
                 return playersMode(id, values.players)
             end,
         })
-    end
-
-    function dungeon.ModeFor(key)
-        return dungeon.tracked[key]
     end
 
     return dungeon

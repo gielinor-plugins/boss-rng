@@ -117,8 +117,14 @@ end
 
 -- A chest's mode key: "c" and the hex bits of the brothers killed ("cff": all and Linza).
 -- Saved: never change the format.
-local function chestMode(key)
-    local bits = tonumber(key:sub(2), 16) or 0
+local function chestKey(bits)
+    return string.format("c%x", bits)
+end
+
+-- A mode for every set of brothers a chest can have. Chests with fewer than
+-- FULL_CHEST brothers aren't in the kill count.
+local MODES = {}
+for bits = 0, LINZA_BIT * 2 - 1 do
     local brothers = {}
     for i, b in ipairs(BROTHERS) do
         if bits & (1 << (i - 1)) ~= 0 then
@@ -126,10 +132,12 @@ local function chestMode(key)
         end
     end
     local linza = bits & LINZA_BIT ~= 0
-    local function rolls(r)
-        return chestRolls(brothers, linza, r)
-    end
-    return { key = key, kc = #brothers >= FULL_CHEST and VARS.kc or nil, rolls = rolls }
+    MODES[chestKey(bits)] = {
+        rolls = function(r)
+            return chestRolls(brothers, linza, r)
+        end,
+        partial = #brothers < FULL_CHEST or nil,
+    }
 end
 
 -- Read as the chest is looted, not as it opens: the first search brings out the tunnel
@@ -147,7 +155,7 @@ local function chestLooted(values)
     if values.linzaKilled == 1 then
         bits = bits | LINZA_BIT
     end
-    return string.format("c%x", bits)
+    return chestKey(bits)
 end
 
 local function lootReads()
@@ -175,13 +183,10 @@ return {
     name = "Barrows Brothers",
     assumptions = { "Amulet of the forsaken chance from complete and partial runs" },
 
-    -- Counted only through its kill event: each chest gets its own mode.
-    modes = {
-        { key = "n", kc = VARS.kc, byEvent = true },
-    },
+    killCounts = { { var = VARS.kc } }, -- by the chest looted, through its kill event
+    modes = MODES,
     killEvents = { { var = VARS.run, mask = LOOTED, reads = lootReads(), mode = chestLooted } },
-    modeFor = chestMode,
-    extraKills = "partial", -- tracked chests outside the kill count
+    extraKills = "partial", -- what tracked chests outside the kill count are called
 
     items = logItems(),
 }

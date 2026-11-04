@@ -1,12 +1,11 @@
 local mock = require("spec/mock_api")
 
--- A test boss: two KC varbits sharing one base var, and two unique items sharing
--- another, like Rasial's separate armor and weapon rolls.
+-- A test boss, written as loaded (with each mode's key set): two kill count varbits
+-- sharing one base var, and two unique items sharing another, like Rasial's separate
+-- armor and weapon rolls.
 local BOSS = {
-    modes = {
-        { key = "n", kc = "KC_NORMAL" },
-        { key = "h", kc = "KC_HARD" },
-    },
+    killCounts = { { var = "KC_NORMAL", mode = "n" }, { var = "KC_HARD", mode = "h" } },
+    modes = { n = { key = "n" }, h = { key = "h" } },
     items = {
         [101] = { log = "LOG_WEAPON" },
         [102] = { log = "LOG_ARMOR" },
@@ -14,6 +13,16 @@ local BOSS = {
 }
 
 local KC_VAR, LOG_VAR = 1, 2
+
+-- Modes for any key a test's kill event or claim gives.
+local function anyModes()
+    return setmetatable({}, {
+        __index = function(modes, key)
+            modes[key] = { key = key }
+            return modes[key]
+        end,
+    })
+end
 
 describe("gamevars", function()
     local gamevars, reports, tick
@@ -96,7 +105,8 @@ describe("gamevars", function()
         function()
             gamevars.Stop()
             local evented = {
-                modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+                killCounts = { { var = "KC_NORMAL" } },
+                modes = anyModes(),
                 items = {},
                 killEvents = {
                     {
@@ -107,9 +117,6 @@ describe("gamevars", function()
                         end,
                     },
                 },
-                modeFor = function(key)
-                    return { key = key }
-                end,
             }
             gamevars.Start({ evented }, function(_, mode, count)
                 table.insert(reports, mode.key .. " +" .. count)
@@ -127,7 +134,8 @@ describe("gamevars", function()
     it("gives a kill event the last value above 0 of a varbit reset at the kill", function()
         gamevars.Stop()
         local evented = {
-            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            killCounts = { { var = "KC_NORMAL" } },
+            modes = anyModes(),
             items = {},
             killEvents = {
                 {
@@ -138,9 +146,6 @@ describe("gamevars", function()
                     end,
                 },
             },
-            modeFor = function(key)
-                return { key = key }
-            end,
         }
         gamevars.Start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
@@ -159,7 +164,8 @@ describe("gamevars", function()
     it("tells a kill event whether a varbit rose in its tick", function()
         gamevars.Stop()
         local evented = {
-            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            killCounts = { { var = "KC_NORMAL" } },
+            modes = anyModes(),
             items = {},
             killEvents = {
                 {
@@ -170,9 +176,6 @@ describe("gamevars", function()
                     end,
                 },
             },
-            modeFor = function(key)
-                return { key = key }
-            end,
         }
         gamevars.Start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
@@ -190,7 +193,8 @@ describe("gamevars", function()
         function()
             gamevars.Stop()
             local evented = {
-                modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+                killCounts = { { var = "KC_NORMAL" } },
+                modes = anyModes(),
                 items = {},
                 killEvents = {
                     {
@@ -201,9 +205,6 @@ describe("gamevars", function()
                         end,
                     },
                 },
-                modeFor = function(key)
-                    return { key = key }
-                end,
             }
             gamevars.Start({ evented }, function(_, mode)
                 table.insert(reports, mode.key)
@@ -234,7 +235,8 @@ describe("gamevars", function()
     it("passes a kill event's sums with its kill", function()
         gamevars.Stop()
         local evented = {
-            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            killCounts = { { var = "KC_NORMAL" } },
+            modes = anyModes(),
             items = {},
             killEvents = {
                 {
@@ -246,9 +248,6 @@ describe("gamevars", function()
                     end,
                 },
             },
-            modeFor = function(key)
-                return { key = key }
-            end,
         }
         local sums = {}
         gamevars.Start({ evented }, function(_, _, _, _, s)
@@ -262,7 +261,8 @@ describe("gamevars", function()
     it("counts drops of loot claimed later only just after the claim", function()
         gamevars.Stop()
         local claimed = {
-            modes = { { key = "n", kc = "KC_NORMAL" } },
+            killCounts = { { var = "KC_NORMAL", mode = "n" } },
+            modes = { n = { key = "n" } },
             items = { [101] = { log = "LOG_WEAPON" } },
             dropsAtClaim = { var = "LOG_SHARED", most = 200 }, -- the streak: 0 once claimed
         }
@@ -287,7 +287,8 @@ describe("gamevars", function()
     it("can watch bits of a var the game doesn't name as a varbit", function()
         gamevars.Stop()
         local evented = {
-            modes = {},
+            killCounts = {},
+            modes = anyModes(),
             items = {},
             killEvents = {
                 {
@@ -298,9 +299,6 @@ describe("gamevars", function()
                     end,
                 },
             },
-            modeFor = function(key)
-                return { key = key }
-            end,
         }
         gamevars.Start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
@@ -313,7 +311,8 @@ describe("gamevars", function()
         local LOOT_VAR = 3
         local loot -- the loot var, holding piles in 0x70000 and a difficulty in 0xF0000000
         local claimed = {
-            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            killCounts = { { var = "KC_NORMAL" } },
+            modes = anyModes(),
             items = { [101] = { log = "LOG_WEAPON" } },
             claims = {
                 {
@@ -325,9 +324,6 @@ describe("gamevars", function()
                     end,
                 },
             },
-            modeFor = function(key)
-                return { key = key }
-            end,
         }
 
         -- Starts watching with value waiting in the loot var.
@@ -386,10 +382,8 @@ describe("gamevars", function()
                 end
             end
             local two = {
-                modes = {
-                    { key = "a", kc = "KC_NORMAL", byEvent = true },
-                    { key = "b", kc = "KC_HARD", byEvent = true },
-                },
+                killCounts = { { var = "KC_NORMAL" }, { var = "KC_HARD" } },
+                modes = anyModes(),
                 items = {},
                 claims = {
                     {
@@ -405,9 +399,6 @@ describe("gamevars", function()
                         mode = only("b"),
                     },
                 },
-                modeFor = function(key)
-                    return { key = key }
-                end,
             }
             gamevars.Stop()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
@@ -451,7 +442,8 @@ describe("gamevars", function()
 
     it("reads the vars a boss reads for its rolls", function()
         var.VarPlayer.LOG_SHARED.value = 9
-        local reader = { modes = {}, items = {}, reads = { shared = "LOG_SHARED" } }
+        local reader =
+            { killCounts = {}, modes = {}, items = {}, reads = { shared = "LOG_SHARED" } }
         assert.are.same({ shared = 9 }, gamevars.AllTime(reader).values)
     end)
 
@@ -555,7 +547,8 @@ describe("gamevars", function()
         local CHEST = 500
         local WINDOW = "DROP_CASKET_REWARDINV"
         local chested = {
-            modes = { { key = "n", kc = "KC_NORMAL", byEvent = true } },
+            killCounts = { { var = "KC_NORMAL" } },
+            modes = anyModes(),
             containers = { [CHEST] = { mode = "n", window = WINDOW } },
             items = {
                 [101] = {

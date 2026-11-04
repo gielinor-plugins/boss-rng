@@ -3,15 +3,19 @@
 --   key           saved data key: never change
 --   name          shown name
 --   assumptions   a list of lines, or function(readings) giving them
---   modes         a list of { key, kc, rolls, byEvent }:
---                   key      short and saved: never change
---                   kc       kill count varbit
+--   killCounts    a list of { var, mode }: the boss's kill count varbits, added up for
+--                 its all-time kills. Each rise of one with a mode is a kill of that
+--                 mode; one without is counted by killEvents, claims or containers
+--   modes         { [key] = { rolls, piles, partial } }: each kind of kill, by the short
+--                 key its kills are saved under (never change one; key is also set
+--                 on the mode when loaded):
 --                   rolls    a plain list, or function(r, readings, means) of the day's
 --                            rate values (src/core/rates/, by boss key), the values read
 --                            from the game (see reads) and the day's averages of its
 --                            kills' sums (see killEvents; nil without)
---                   byEvent  counted by killEvents, containers or claims, so kc isn't
---                            watched; no rolls unless kills are counted for it directly
+--                   piles    loot piles a kill gives, shown with the kills (Kerapac)
+--                   partial  true for kills outside the kill counts (Barrows chests
+--                            with too few brothers)
 --   items         { [item id] = { log, group, stack } }: the uniques counted in luck.
 --                 Boss log items not counted are listed in the boss's doc.
 --                   log      log count varbit
@@ -40,8 +44,7 @@
 --   dropsAtClaim  { var, most }: var falls to 0 when waiting loot is claimed
 --                 (Arch-Glacor's streak). Drops count only just after a claim, not
 --                 after any kill this session, and a log can rise by up to most at once
---   modeFor       function(key): an event's mode; kc nil means outside the kill count
---   extraKills    label for kills outside the kill count ("partial")
+--   extraKills    label for kills outside the kill counts ("partial")
 --   containers    { [item id] = { mode, window } }: counts containers opened, not
 --                 kills (src/core/containers.lua)
 --   claims        a list of { var, mask, kills, reads, mode(values, old) }: counts loot
@@ -87,6 +90,9 @@ end
 
 local listedBy = {} -- [log var] = the bosses listing that unique
 for _, boss in ipairs(bosses) do
+    for key, mode in pairs(boss.modes) do
+        mode.key = key
+    end
     for _, item in pairs(boss.items) do
         listedBy[item.log] = listedBy[item.log] or {}
         table.insert(listedBy[item.log], boss)

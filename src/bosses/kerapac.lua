@@ -34,15 +34,13 @@ local function hardPile(r)
     }
 end
 
-local TRACKED = {}
+local MODES = {}
 
 -- Modes for 1 to 3 piles in one difficulty ("n2": normal mode, 2 piles), each pile
 -- rolling pile(r). Keys are saved: never change them.
-local function addPileModes(prefix, kc, pile)
+local function addPileModes(prefix, pile)
     for count = 1, MAX_PILES do
-        TRACKED[prefix .. count] = {
-            key = prefix .. count,
-            kc = kc,
+        MODES[prefix .. count] = {
             piles = count,
             rolls = egwd.Boosted(function(r)
                 local rolls = {}
@@ -57,8 +55,8 @@ local function addPileModes(prefix, kc, pile)
     end
 end
 
-addPileModes("n", VARS.kc, normalPile)
-addPileModes("h", VARS.kcHard, hardPile)
+addPileModes("n", normalPile)
+addPileModes("h", hardPile)
 
 -- A kill's mode by the piles seen at it. None seen means the player was away, most
 -- likely not the top damager, so it counts as 1.
@@ -78,15 +76,9 @@ return {
     reads = egwd.Reads(),
     assumptions = { "Kills you were away for count as 1 loot pile" },
 
-    -- Counted only through its kill events, by piles.
-    modes = {
-        { key = "n", kc = VARS.kc, byEvent = true },
-        { key = "h", kc = VARS.kcHard, byEvent = true },
-    },
+    killCounts = { { var = VARS.kc }, { var = VARS.kcHard } }, -- by piles, through kill events
+    modes = MODES,
     killEvents = { killEvent(VARS.kc, "n"), killEvent(VARS.kcHard, "h") },
-    modeFor = function(key)
-        return TRACKED[key]
-    end,
 
     items = {
         [SYMBOL] = { log = VARS.log .. "BOSS_MAGIC_WEAPON_TOP", group = STAFF },

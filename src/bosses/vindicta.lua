@@ -13,16 +13,19 @@ local VARS = {
 local CREST, LANCE, ESSENCE = 37018, 37070, 37030
 local WEAPONS = { LANCE }
 
+local KILL_COUNTS, MODES = common.NormalAndHard(
+    VARS,
+    godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),
+    godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)
+)
+
 return {
     key = "vindicta", -- saved data key: never change it
     name = "Vindicta & Gorvek",
     assumptions = { common.SOLO_KILLS },
 
-    modes = common.Modes(
-        VARS,
-        godwars2.Rolls("normal", CREST, WEAPONS, ESSENCE),
-        godwars2.Rolls("hard", CREST, WEAPONS, ESSENCE)
-    ),
+    killCounts = KILL_COUNTS,
+    modes = MODES,
 
     items = {
         [CREST] = { log = VARS.log .. "CREST" },

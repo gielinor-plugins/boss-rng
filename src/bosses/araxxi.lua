@@ -28,21 +28,14 @@ local function rolls(team)
     end
 end
 
--- Tracked kills' modes. Keys are saved: never change them.
-local TRACKED = {
-    s = { key = "s", kc = VARS.kc, rolls = rolls("solo") },
-    d = { key = "d", kc = VARS.kc, rolls = rolls("duo") },
-}
-
 return {
     key = "araxxi", -- saved data key: never change it
     name = "Araxxi",
     assumptions = {},
 
-    -- Counted only through its kill event.
-    modes = {
-        { key = "n", kc = VARS.kc, byEvent = true },
-    },
+    killCounts = { { var = VARS.kc } }, -- solo or duo, by its kill event
+    -- Mode keys are saved: never change them.
+    modes = { s = { rolls = rolls("solo") }, d = { rolls = rolls("duo") } },
     killEvents = {
         {
             var = VARS.kc,
@@ -52,9 +45,6 @@ return {
             end,
         },
     },
-    modeFor = function(key)
-        return TRACKED[key]
-    end,
 
     items = {
         [LEG_TOP] = { log = VARS.log .. "LEG_TOP", group = LEGS },

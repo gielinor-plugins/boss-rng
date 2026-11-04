@@ -21,11 +21,12 @@ return {
     name = "Raksha, the Shadow Colossus",
     assumptions = {},
 
-    -- Mode keys are saved: never change them.
-    modes = {
-        { key = "s", kc = VARS.kc .. "SOLO", rolls = rolls },
-        { key = "d", kc = VARS.kc .. "DUO", rolls = rolls },
+    killCounts = {
+        { var = VARS.kc .. "SOLO", mode = "s" },
+        { var = VARS.kc .. "DUO", mode = "d" },
     },
+    -- Mode keys are saved: never change them.
+    modes = { s = { rolls = rolls }, d = { rolls = rolls } },
 
     items = {
         [BOOTS] = { log = VARS.log .. "DINO_SLAYER_RANGED_BOOTS" },

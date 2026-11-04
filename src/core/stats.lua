@@ -54,26 +54,19 @@ local function ratesTable(boss, readings, t)
     return lookup
 end
 
--- A boss's modes, then each mode its kill events counted (see src/bosses.lua). Saved
+-- The modes t has kills for, in key order so results are the same every time. Saved
 -- kills of a mode the boss no longer has are left out.
 local function modesOf(boss, t)
-    local modes, known = {}, {}
-    for _, mode in ipairs(boss.modes) do
-        table.insert(modes, mode)
-        known[mode.key] = true
-    end
     local keys = {}
     for key in pairs(t.kills) do
-        if not known[key] then
+        if boss.modes[key] then
             table.insert(keys, key)
         end
     end
-    table.sort(keys) -- the same order every time
-    for _, key in ipairs(keys) do
-        local mode = boss.modeFor and boss.modeFor(key)
-        if mode then
-            table.insert(modes, mode)
-        end
+    table.sort(keys)
+    local modes = {}
+    for i, key in ipairs(keys) do
+        modes[i] = boss.modes[key]
     end
     return modes
 end
@@ -210,14 +203,14 @@ function stats.ForBoss(entry)
     local expected = {} -- by item id
     local countedExpected = 0 -- over kills in the kill counts
     eachKill(modes, t.kills, function(mode, day, kills)
-        local key = mode.kc and "kills" or "extraKills"
+        local key = mode.partial and "extraKills" or "kills"
         result[key] = result[key] + kills
         if mode.piles then
             result.piles = (result.piles or 0) + kills * mode.piles
         end
         for itemID, chance in pairs(lookup.Chances(mode, day)) do
             expected[itemID] = (expected[itemID] or 0) + kills * chance
-            if mode.kc then
+            if not mode.partial then
                 countedExpected = countedExpected + kills * chance
             end
         end

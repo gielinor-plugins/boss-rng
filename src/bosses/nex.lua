@@ -41,15 +41,15 @@ local function rolls(r)
     return { { chance = r.table, items = UNIQUES } }
 end
 
+local KILL_COUNTS, MODES = common.OneMode(VARS.kc, rolls)
+
 return {
     key = "nex", -- saved data key: never change it
     name = "Nex",
     assumptions = { common.SOLO_KILLS },
 
-    -- Mode keys are saved: never change them.
-    modes = {
-        { key = "n", kc = VARS.kc, rolls = rolls },
-    },
+    killCounts = KILL_COUNTS,
+    modes = MODES,
 
     items = {
         [TORVA_HELM] = { log = VARS.log .. "HEAD_MELEE" },

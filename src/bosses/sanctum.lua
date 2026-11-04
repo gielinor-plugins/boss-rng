@@ -31,37 +31,51 @@ end
 
 local BOOKS, HARD_BOOKS = rolls("books"), rolls("hardBooks")
 
--- Vermyx, Kezalam and Nakatra, each then in hard mode. Mode keys are saved: never change them.
-local MODES = {
-    { key = "v", kc = VARS.kc .. "WYRM_BOSS", rolls = BOOKS },
-    { key = "vh", kc = VARS.kc .. "WYRM_BOSS_HARDMODE", rolls = HARD_BOOKS },
-    { key = "k", kc = VARS.kc .. "BEAST_BOSS", rolls = BOOKS },
-    { key = "kh", kc = VARS.kc .. "BEAST_BOSS_HARDMODE", rolls = HARD_BOOKS },
-    { key = "n", kc = VARS.kc .. "SLAYER_MASTER_BOSS", rolls = rolls("books", "weapons") },
+-- Each boss: its mode key (hard mode's adds h; keys are saved: never change them),
+-- kill count name, rolls in normal then hard mode, and its loot waiting bit and
+-- difficulty field (0 normal, 1 hard) in VARS.loot.
+local BOSSES = {
     {
-        key = "nh",
-        kc = VARS.kc .. "SLAYER_MASTER_BOSS_HARDMODE",
-        rolls = rolls("hardBooks", "hardWeapons", "hardShard"),
+        key = "v", -- Vermyx
+        kc = "WYRM_BOSS",
+        rolls = BOOKS,
+        hard = HARD_BOOKS,
+        loot = 0x1,
+        difficulty = 0x300,
+    },
+    {
+        key = "k", -- Kezalam
+        kc = "BEAST_BOSS",
+        rolls = BOOKS,
+        hard = HARD_BOOKS,
+        loot = 0x4,
+        difficulty = 0xC00,
+    },
+    {
+        key = "n", -- Nakatra
+        kc = "SLAYER_MASTER_BOSS",
+        rolls = rolls("books", "weapons"),
+        hard = rolls("hardBooks", "hardWeapons", "hardShard"),
+        loot = 0x10,
+        difficulty = 0x3000,
     },
 }
-local byKey = {}
-for _, mode in ipairs(MODES) do
-    mode.byEvent = true -- counted through claims
-    byKey[mode.key] = mode
-end
 
--- A boss's claim, for its normal and hard mode (MODES[i] and MODES[i + 1]): its
--- loot waiting bit and difficulty field (0 normal, 1 hard) in VARS.loot.
-local function claim(i, loot, difficulty)
-    local normal, hard = MODES[i], MODES[i + 1]
-    return {
+-- Each boss's kill counts are counted through its claim.
+local KILL_COUNTS, MODES, CLAIMS = {}, {}, {}
+for _, b in ipairs(BOSSES) do
+    local normal, hard = VARS.kc .. b.kc, VARS.kc .. b.kc .. "_HARDMODE"
+    table.insert(KILL_COUNTS, { var = normal })
+    table.insert(KILL_COUNTS, { var = hard })
+    MODES[b.key], MODES[b.key .. "h"] = { rolls = b.rolls }, { rolls = b.hard }
+    table.insert(CLAIMS, {
         var = VARS.loot,
-        mask = loot,
-        kills = { normal.kc, hard.kc },
+        mask = b.loot,
+        kills = { normal, hard },
         mode = function(_, old)
-            return (old & difficulty) == 0 and normal.key or hard.key
+            return (old & b.difficulty) == 0 and b.key or b.key .. "h"
         end,
-    }
+    })
 end
 
 return {
@@ -69,11 +83,9 @@ return {
     name = "Sanctum of Rebirth",
     assumptions = {},
 
+    killCounts = KILL_COUNTS,
     modes = MODES,
-    claims = { claim(1, 0x1, 0x300), claim(3, 0x4, 0xC00), claim(5, 0x10, 0x3000) },
-    modeFor = function(key)
-        return byKey[key]
-    end,
+    claims = CLAIMS,
 
     items = {
         [CODEX] = { log = VARS.log .. "COMBATV2_PRAYER_CODEX_DIVINE_RAGE" },

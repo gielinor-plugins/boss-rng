@@ -19,11 +19,17 @@ function common.Repeat(rolls, n, roll)
     return rolls
 end
 
--- Normal and hard mode; hard's rolls default to normal's. Keys are saved: never change.
-function common.Modes(vars, normal, hard)
-    return {
-        { key = "n", kc = vars.kc, rolls = normal },
-        { key = "h", kc = vars.kcHard, rolls = hard or normal },
+-- The killCounts and modes of a boss with one kill count, saved as mode n.
+function common.OneMode(kc, rolls)
+    return { { var = kc, mode = "n" } }, { n = { rolls = rolls } }
+end
+
+-- The killCounts and modes of a boss with normal (n) and hard (h) kill counts; hard's
+-- rolls default to normal's. Mode keys are saved: never change them.
+function common.NormalAndHard(vars, normal, hard)
+    return { { var = vars.kc, mode = "n" }, { var = vars.kcHard, mode = "h" } }, {
+        n = { rolls = normal },
+        h = { rolls = hard or normal },
     }
 end
 
