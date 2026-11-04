@@ -24,8 +24,17 @@ local function anyModes()
     })
 end
 
+local realPrint = print
+
 describe("gameVars", function()
     local gameVars, reports, tick
+    local printed -- what the code printed this test; any line fails it, unless expected
+
+    -- Starts watching bosses; a test that doesn't need drops or refreshes leaves them out.
+    local function start(bosses, kills, drops, refresh)
+        local function ignore() end
+        gameVars.Start(bosses, kills, drops or ignore, refresh or ignore)
+    end
 
     local function advance(ticks)
         tick = tick + ticks
@@ -44,6 +53,10 @@ describe("gameVars", function()
     end
 
     before_each(function()
+        printed = {}
+        _G.print = function(...)
+            table.insert(printed, table.concat({ ... }, " "))
+        end
         mock.Reset()
         local kcVar = mock.AddVar("KC_BASE", KC_VAR)
         mock.AddVarbit("KC_NORMAL", -1, kcVar, 0xFFFF)
@@ -53,20 +66,27 @@ describe("gameVars", function()
         mock.AddVarbit("LOG_ARMOR", -4, logVar, 0xFF00)
         mock.AddVarbit("LOG_SHARED", -5, logVar, 0xFF0000)
 
-        -- Fresh copies of gameVars and the modules that keep game state for it.
+        -- Fresh copies of gameVars and the modules that keep game state for it, and of
+        -- safe, which prints each error only once.
         local stateful =
             { "game_vars", "var_watch", "kill_events", "claims", "containers", "piles" }
         for _, name in ipairs(stateful) do
             package.loaded["src/core/" .. name] = nil
         end
+        package.loaded["src/utils/safe"] = nil
         gameVars = require("src/core/game_vars")
         reports, tick = {}, 1000
         mock.inGame = true
-        gameVars.Start({ BOSS }, function(_, mode, count)
+        start({ BOSS }, function(_, mode, count)
             table.insert(reports, "kill " .. mode.key .. " +" .. count)
         end, function(_, itemID, count)
             table.insert(reports, "drop " .. itemID .. " +" .. count)
         end)
+    end)
+
+    after_each(function()
+        _G.print = realPrint
+        assert.are.same({}, printed)
     end)
 
     it("reports a kill for the slice that went up", function()
@@ -94,7 +114,7 @@ describe("gameVars", function()
 
     it("keeps reporting when one report fails", function()
         gameVars.Stop()
-        gameVars.Start({ BOSS }, function()
+        start({ BOSS }, function()
             error("broken kill report")
         end, function(_, itemID)
             table.insert(reports, "drop " .. itemID)
@@ -103,6 +123,8 @@ describe("gameVars", function()
         send(LOG_VAR, 0x01, 0x02)
         advance(1)
         assert.are.same({ "drop 101" }, reports)
+        assert.is_true(printed[1]:find("broken kill report", 1, true) ~= nil)
+        printed = {} -- the one error expected
     end)
 
     it(
@@ -123,7 +145,7 @@ describe("gameVars", function()
                     },
                 },
             }
-            gameVars.Start({ evented }, function(_, mode, count)
+            start({ evented }, function(_, mode, count)
                 table.insert(reports, mode.key .. " +" .. count)
             end, function() end)
             mock.SetValue("WHO", 3)
@@ -152,7 +174,7 @@ describe("gameVars", function()
                 },
             },
         }
-        gameVars.Start({ evented }, function(_, mode)
+        start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
         end, function() end)
         advance(1)
@@ -182,7 +204,7 @@ describe("gameVars", function()
                 },
             },
         }
-        gameVars.Start({ evented }, function(_, mode)
+        start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
         end, function() end)
         advance(1)
@@ -211,7 +233,7 @@ describe("gameVars", function()
                     },
                 },
             }
-            gameVars.Start({ evented }, function(_, mode)
+            start({ evented }, function(_, mode)
                 table.insert(reports, mode.key)
             end, function() end)
             advance(1)
@@ -255,7 +277,7 @@ describe("gameVars", function()
             },
         }
         local sums = {}
-        gameVars.Start({ evented }, function(_, _, _, _, s)
+        start({ evented }, function(_, _, _, _, s)
             table.insert(sums, s)
         end, function() end)
         mock.SetValue("LOG_SHARED", 7)
@@ -271,7 +293,7 @@ describe("gameVars", function()
             items = { [101] = { log = "LOG_WEAPON" } },
             dropsAtClaim = { var = "LOG_SHARED", most = 200 }, -- the streak: 0 once claimed
         }
-        gameVars.Start({ claimed }, function() end, function(_, itemID, count)
+        start({ claimed }, function() end, function(_, itemID, count)
             table.insert(reports, "drop " .. itemID .. " +" .. count)
         end)
         advance(1)
@@ -305,7 +327,7 @@ describe("gameVars", function()
                 },
             },
         }
-        gameVars.Start({ evented }, function(_, mode)
+        start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
         end, function() end)
         change(LOG_VAR, 0x020000, 0x1020000)
@@ -332,11 +354,11 @@ describe("gameVars", function()
         }
 
         -- Starts watching with value waiting in the loot var.
-        local function start(value)
+        local function startWith(value)
             gameVars.Stop()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
             loot.value = value
-            gameVars.Start({ claimed }, function(_, mode, count)
+            start({ claimed }, function(_, mode, count)
                 table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function(_, itemID, count)
                 table.insert(reports, "drop " .. itemID .. " +" .. count)
@@ -354,7 +376,7 @@ describe("gameVars", function()
         end
 
         it("counts every pile seen arriving at its claim, with its drops", function()
-            start(0)
+            startWith(0)
             kill(1, 0, 0x10000) -- one pile: not counted yet
             kill(2, 0x10000, 0x30000) -- two more
             assert.are.same({}, reports)
@@ -368,7 +390,7 @@ describe("gameVars", function()
         end)
 
         it("leaves a claim uncounted, drops and all, if a kill didn't raise it", function()
-            start(0)
+            startWith(0)
             kill(1, 0, 0x50000)
             kill(2, 0x50000, 0x50000) -- the count didn't change: its piles are unknown
             send(LOOT_VAR, 0x50000, 0)
@@ -408,7 +430,7 @@ describe("gameVars", function()
             gameVars.Stop()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
             loot.value = 0
-            gameVars.Start({ two }, function(_, mode, count)
+            start({ two }, function(_, mode, count)
                 table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function() end, function() end)
             advance(1)
@@ -425,7 +447,7 @@ describe("gameVars", function()
         end)
 
         it("leaves loot waiting from before it was watched uncounted", function()
-            start(0x20000)
+            startWith(0x20000)
             kill(1, 0x20000, 0x30000)
             change(LOOT_VAR, 0x30000, 0)
             assert.are.same({}, reports)
@@ -435,7 +457,7 @@ describe("gameVars", function()
     it("reports each kill with today, from the game clock", function()
         gameVars.Stop()
         local days = {}
-        gameVars.Start({ BOSS }, function(_, _, _, day)
+        start({ BOSS }, function(_, _, _, day)
             table.insert(days, day)
         end, function() end)
         mock.SetValue("CLOCK_TIME_DATE_MINUTES", 29888748) -- 30 Oct 2026, 01:48 UTC
@@ -472,7 +494,7 @@ describe("gameVars", function()
     it("says when vars can be trusted after entering the game", function()
         local ready = 0
         gameVars.Stop()
-        gameVars.Start({ BOSS }, function() end, function() end, function()
+        start({ BOSS }, function() end, function() end, function()
             ready = ready + 1
         end)
         advance(1)
@@ -541,7 +563,7 @@ describe("gameVars", function()
     it("waits for the game if it starts on the login screen", function()
         gameVars.Stop()
         mock.inGame = false
-        gameVars.Start({ BOSS }, function()
+        start({ BOSS }, function()
             table.insert(reports, "kill")
         end, function() end)
         change(KC_VAR, 1, 2)
@@ -576,7 +598,7 @@ describe("gameVars", function()
         before_each(function()
             gameVars.Stop()
             mock.backpack[CHEST] = 3
-            gameVars.Start({ chested }, function(_, mode, count)
+            start({ chested }, function(_, mode, count)
                 table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function(_, itemID, count)
                 table.insert(reports, "drop " .. itemID .. " +" .. count)

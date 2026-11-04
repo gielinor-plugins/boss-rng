@@ -86,8 +86,6 @@ describe("format", function()
         assert.are.equal("", format.DryCount({ dryKills = 0, dryAtLeast = true }))
     end)
 
-    it("capitalizes a headline", function() end)
-
     it("words what an average player would have", function()
         assert.are.equal(
             "Average player: 2.3 uniques",
