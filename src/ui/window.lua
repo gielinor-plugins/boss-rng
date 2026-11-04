@@ -28,14 +28,16 @@ local HEIGHT = 32 + TABS_Y + 42 + PAGE_HEIGHT + 8
 -- the bar, a 6 px gap and "bottom 40%" (86 px) for Luck, then an 8 px gap; "99,999+"
 -- (53 px) for Dry. Names get the rest, and are shortened to fit.
 local NAME_X, NAME_WIDTH, VALUE_X, DRY_X, DRY_WIDTH = 50, 135, 193, 333, 53
-local BAR_WIDTH = 40
+local BAR_WIDTH, BAR_GAP = 40, 6
 local INSET = 10 -- the panel's x on the page (6 px padding and a 4 px frame), for the header
 local STRIPES = { 0xFFFFFF0D, 0xFFFFFF05 }
 -- The align modes have no plain "right"; horizontal BOTTOMRIGHT is right.
 local RIGHT = ui.AlignMode.BOTTOMRIGHT
 
 local win = nil -- the window while open
-local position = { x = 200, y = 120 } -- kept while the plugin runs, so it reopens in place
+-- Kept while the plugin runs: each redraw builds a new window, so it stays where the
+-- player moved it, and reopens there.
+local position = { x = 200, y = 120 }
 local activeTab = 1 -- the open tab, also kept
 
 function window.IsOpen()
@@ -126,13 +128,12 @@ local function addRow(panel, row, tracked)
         column(panel, "-", DRY_X, DRY_WIDTH, RIGHT)
         return
     end
+    local x = VALUE_X
     if item.luck then
         luckBar.AddInRow(panel, slot, VALUE_X, item.luck, BAR_WIDTH)
-        local x = VALUE_X + BAR_WIDTH + 6
-        column(panel, format.LuckShort(item), x, DRY_X - x)
-    else
-        column(panel, format.LuckShort(item), VALUE_X, DRY_X - VALUE_X)
+        x = x + BAR_WIDTH + BAR_GAP
     end
+    column(panel, format.LuckShort(item), x, DRY_X - x)
     local dry = format.DryCount(item)
     column(panel, dry ~= "" and dry or "-", DRY_X, DRY_WIDTH, RIGHT) -- "-": no dry streak yet
 end
