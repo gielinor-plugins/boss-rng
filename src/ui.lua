@@ -70,7 +70,7 @@ local function redrawAll()
     end
 end
 
--- Redraws on the next logic tick: once, however many times it's asked for in a tick,
+-- Redraws on the next logic tick once, no matter how many times it's asked for in a tick,
 -- and never inside a component's own event, which would destroy it mid-event.
 local function redrawSoon()
     Event.Logic.Subscribe(REDRAW_REF, function()
