@@ -486,7 +486,7 @@ describe("gameVars", function()
     end)
 
     it("ignores drops of a boss not killed since entering the game", function()
-        change(LOG_VAR, 0x00, 0x02) -- boss log counts sent again, from 0
+        change(LOG_VAR, 0x00, 0x02) -- collection log counts sent again, from 0
         assert.are.same({}, reports)
         change(KC_VAR, 1, 2)
         change(LOG_VAR, 0x02, 0x03)
@@ -501,7 +501,7 @@ describe("gameVars", function()
 
     it("ignores counts sent again from 0, even for a boss just killed", function()
         change(KC_VAR, 1, 2)
-        change(LOG_VAR, 0x02, 0x00) -- the log count drops to 0...
+        change(LOG_VAR, 0x02, 0x00) -- the collection log count drops to 0...
         change(LOG_VAR, 0x00, 0x02) -- ...and comes back: no drop
         change(LOG_VAR, 0x02, 0x03)
         assert.are.same({ "kill n +1", "drop 101 +1" }, reports)

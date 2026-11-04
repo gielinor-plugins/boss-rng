@@ -6,7 +6,7 @@ luckBar.HEIGHT = 10
 
 local BAR_BACK = Vector4.new(0.0, 0.0, 0.0, 0.6)
 local TICK = Vector4.new(1.0, 1.0, 1.0, 0.9) -- marks average luck on a bar
--- A plain gold fill.
+-- The filled part: a plain gold sprite that stretches cleanly.
 local BAR_FILL = "TIMERBAR_120_S_1"
 
 local function rect(parent, x, y, width, colour)

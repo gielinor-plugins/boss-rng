@@ -68,9 +68,9 @@ function format.LuckShort(result)
     return "average"
 end
 
--- Luck as a sentence ("Spooned: top 3% luck" or "Cursed: bottom 2% luck" in the
--- top or bottom 10%), or until it's rated, when it will show: "Luck: next unique or
--- 40 kills".
+-- Luck as a sentence ("Spooned: top 3% luck" or "Cursed: bottom 2% luck" in the top
+-- or bottom 10%), or, before it's rated, when it will be: "Luck: next unique or 40
+-- kills".
 function format.Luck(result)
     local text
     if not format.IsTracked(result) then
@@ -113,7 +113,7 @@ function format.Dry(result)
 end
 
 -- "212 kills (+4 partial) · 2 uniques".
--- Kills, then with details any kills outside the kill count and loot piles, then uniques.
+-- Kills, then (with details) partial kills and loot piles, then uniques.
 local function trackedCounts(result, word, details)
     local text = count(result.kills, word)
     if details and (result.extraKills or 0) > 0 then
@@ -143,8 +143,8 @@ function format.TrackedShort(result)
     return not format.IsTracked(result) and "" or trackedCounts(result, "tracked " .. unit(result))
 end
 
--- The game's own totals, shown as facts but never used for luck. A stacked
--- unique's log counts items, so it gets its own count before "other uniques".
+-- The game's own totals, shown as facts but never used for luck. A stacked unique's
+-- collection log count counts items, so it gets its own count before "other uniques".
 function format.AllTime(result)
     if result.allTime == nil then
         return ""

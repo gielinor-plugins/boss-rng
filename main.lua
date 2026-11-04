@@ -1,4 +1,5 @@
--- Boss RNG: how lucky have you been at bosses?
+-- Boss RNG's entry point: starts the UI and game_vars, and stops both when the plugin
+-- is turned off. docs/technical/overview.md explains how the modules fit together.
 
 local bosses = require("src/bosses")
 local gameVars = require("src/core/game_vars")

@@ -2,8 +2,10 @@
 
 local common = {}
 
--- A divider's options, inset each side by inset (in line with the text), with 8 px
--- above and below the line.
+-- A divider's options, inset each side by inset (in line with the text). The UI
+-- library's divider is a tall image with its line partway down and empty space around
+-- it, so marginTop pulls it up and height sets the room it takes in the layout: the
+-- line sits 8 px below the text above it and 8 px above what follows.
 function common.Divider(inset)
     return {
         x = inset,

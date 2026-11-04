@@ -21,7 +21,8 @@ local ROWS, ROW_GAP = 4, 4 -- rows shown before the panel scrolls
 -- The panel: 2 px padding around the rows, inside its 4 px frame.
 local PANEL_HEIGHT = ROWS * 40 + (ROWS - 1) * ROW_GAP + 2 * 2 + 2 * 4
 local PAGE_HEIGHT = 28 + PANEL_HEIGHT + 6 -- the header's 28 px above, 6 px below
--- The title bar, the content down to the tabs, the tab strip, the page, the frame.
+-- The window's height: the title bar (32 px), the content down to the tabs, the tab
+-- strip (42 px), the page and the bottom frame (8 px).
 local HEIGHT = 32 + TABS_Y + 42 + PAGE_HEIGHT + 8
 local NAME_X, NAME_WIDTH, VALUE_X, DRY_X, DRY_WIDTH = 50, 132, 190, 330, 56
 local BAR_WIDTH = 40
@@ -32,7 +33,7 @@ local RIGHT = ui.AlignMode.BOTTOMRIGHT
 
 local win = nil -- the window while open
 local position = { x = 200, y = 120 } -- kept while the plugin runs, so it reopens in place
-local activeTab = 1 -- also kept
+local activeTab = 1 -- the open tab, also kept
 
 function window.IsOpen()
     return win ~= nil
@@ -107,7 +108,7 @@ local function addRow(panel, row, tracked)
     local item = row.item
     local received = math.tointeger(item.received) or 0
     local slot = panel:AddItemSlot(config.Obj.FromID(math.tointeger(row.id)), {
-        -- game text breaks lines on <br>
+        -- the game's text breaks lines on <br>
         tooltip = tracked and (row.name .. "<br>Average player: " .. format.AverageShort(item))
             or row.name,
         itemInset = 4,

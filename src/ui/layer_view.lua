@@ -1,8 +1,8 @@
--- A view filling a layer the game gives us, the ribbon panel or the settings
+-- A view filling a layer the game gives Boss RNG: the ribbon panel or the settings
 -- page. The game clears the layer each time it opens or resizes it, and when it
 -- minimizes it or hands it to another plugin, with no event for either. So the view
 -- keeps a tiny invisible marker in the layer: once it's no longer among the layer's
--- children, the layer isn't ours to draw in until it's given back (tested:
+-- children, the layer isn't Boss RNG's to draw in until it's given back (tested:
 -- docs/technical/ui.md).
 
 local layerView = {}

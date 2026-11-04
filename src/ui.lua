@@ -70,8 +70,8 @@ local function redrawAll()
     end
 end
 
--- Redraws on the next logic tick, once however often it's asked for in a tick, and
--- not during a component's own event.
+-- Redraws on the next logic tick: once, however many times it's asked for in a tick,
+-- and never inside a component's own event, which would destroy it mid-event.
 local function redrawSoon()
     Event.Logic.Subscribe(REDRAW_REF, function()
         Event.Logic.Unsubscribe(REDRAW_REF)
@@ -115,7 +115,7 @@ local function onContentLayerReady(event)
     drawPanel(currentState())
 end
 
--- Redraws the views, e.g. once all-time totals can be read after login.
+-- Redraws the views now, for example once all-time totals can be read after login.
 bossUi.Refresh = redrawAll
 
 function bossUi.Start()
