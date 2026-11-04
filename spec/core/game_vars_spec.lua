@@ -24,8 +24,8 @@ local function anyModes()
     })
 end
 
-describe("gamevars", function()
-    local gamevars, reports, tick
+describe("gameVars", function()
+    local gameVars, reports, tick
 
     local function advance(ticks)
         tick = tick + ticks
@@ -53,15 +53,16 @@ describe("gamevars", function()
         mock.AddVarbit("LOG_ARMOR", -4, logVar, 0xFF00)
         mock.AddVarbit("LOG_SHARED", -5, logVar, 0xFF0000)
 
-        -- Fresh copies of gamevars and the modules that keep game state for it.
-        local stateful = { "gamevars", "vars", "killevents", "claims", "containers", "piles" }
+        -- Fresh copies of gameVars and the modules that keep game state for it.
+        local stateful =
+            { "game_vars", "var_watch", "kill_events", "claims", "containers", "piles" }
         for _, name in ipairs(stateful) do
             package.loaded["src/core/" .. name] = nil
         end
-        gamevars = require("src/core/gamevars")
+        gameVars = require("src/core/game_vars")
         reports, tick = {}, 1000
         mock.inGame = true
-        gamevars.Start({ BOSS }, function(_, mode, count)
+        gameVars.Start({ BOSS }, function(_, mode, count)
             table.insert(reports, "kill " .. mode.key .. " +" .. count)
         end, function(_, itemID, count)
             table.insert(reports, "drop " .. itemID .. " +" .. count)
@@ -92,8 +93,8 @@ describe("gamevars", function()
     end)
 
     it("keeps reporting when one report fails", function()
-        gamevars.Stop()
-        gamevars.Start({ BOSS }, function()
+        gameVars.Stop()
+        gameVars.Start({ BOSS }, function()
             error("broken kill report")
         end, function(_, itemID)
             table.insert(reports, "drop " .. itemID)
@@ -107,7 +108,7 @@ describe("gamevars", function()
     it(
         "reports a kill event's kill for the mode its values say, not its kill count's own mode",
         function()
-            gamevars.Stop()
+            gameVars.Stop()
             local evented = {
                 killCounts = { { var = "KC_NORMAL" } },
                 modes = anyModes(),
@@ -122,7 +123,7 @@ describe("gamevars", function()
                     },
                 },
             }
-            gamevars.Start({ evented }, function(_, mode, count)
+            gameVars.Start({ evented }, function(_, mode, count)
                 table.insert(reports, mode.key .. " +" .. count)
             end, function() end)
             mock.SetValue("WHO", 3)
@@ -136,7 +137,7 @@ describe("gamevars", function()
     )
 
     it("gives a kill event the last value above 0 of a varbit reset at the kill", function()
-        gamevars.Stop()
+        gameVars.Stop()
         local evented = {
             killCounts = { { var = "KC_NORMAL" } },
             modes = anyModes(),
@@ -151,7 +152,7 @@ describe("gamevars", function()
                 },
             },
         }
-        gamevars.Start({ evented }, function(_, mode)
+        gameVars.Start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
         end, function() end)
         advance(1)
@@ -166,7 +167,7 @@ describe("gamevars", function()
     end)
 
     it("tells a kill event whether a varbit rose in its tick", function()
-        gamevars.Stop()
+        gameVars.Stop()
         local evented = {
             killCounts = { { var = "KC_NORMAL" } },
             modes = anyModes(),
@@ -181,7 +182,7 @@ describe("gamevars", function()
                 },
             },
         }
-        gamevars.Start({ evented }, function(_, mode)
+        gameVars.Start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
         end, function() end)
         advance(1)
@@ -195,7 +196,7 @@ describe("gamevars", function()
     it(
         "gives a kill event the piles the player owns that gained a watched item in its tick",
         function()
-            gamevars.Stop()
+            gameVars.Stop()
             local evented = {
                 killCounts = { { var = "KC_NORMAL" } },
                 modes = anyModes(),
@@ -210,7 +211,7 @@ describe("gamevars", function()
                     },
                 },
             }
-            gamevars.Start({ evented }, function(_, mode)
+            gameVars.Start({ evented }, function(_, mode)
                 table.insert(reports, mode.key)
             end, function() end)
             advance(1)
@@ -237,7 +238,7 @@ describe("gamevars", function()
     )
 
     it("passes a kill event's sums with its kill", function()
-        gamevars.Stop()
+        gameVars.Stop()
         local evented = {
             killCounts = { { var = "KC_NORMAL" } },
             modes = anyModes(),
@@ -254,7 +255,7 @@ describe("gamevars", function()
             },
         }
         local sums = {}
-        gamevars.Start({ evented }, function(_, _, _, _, s)
+        gameVars.Start({ evented }, function(_, _, _, _, s)
             table.insert(sums, s)
         end, function() end)
         mock.SetValue("LOG_SHARED", 7)
@@ -263,14 +264,14 @@ describe("gamevars", function()
     end)
 
     it("counts drops of loot claimed later only just after the claim", function()
-        gamevars.Stop()
+        gameVars.Stop()
         local claimed = {
             killCounts = { { var = "KC_NORMAL", mode = "n" } },
             modes = { n = { key = "n" } },
             items = { [101] = { log = "LOG_WEAPON" } },
             dropsAtClaim = { var = "LOG_SHARED", most = 200 }, -- the streak: 0 once claimed
         }
-        gamevars.Start({ claimed }, function() end, function(_, itemID, count)
+        gameVars.Start({ claimed }, function() end, function(_, itemID, count)
             table.insert(reports, "drop " .. itemID .. " +" .. count)
         end)
         advance(1)
@@ -289,7 +290,7 @@ describe("gamevars", function()
     end)
 
     it("can watch bits of a var the game doesn't name as a varbit", function()
-        gamevars.Stop()
+        gameVars.Stop()
         local evented = {
             killCounts = {},
             modes = anyModes(),
@@ -304,7 +305,7 @@ describe("gamevars", function()
                 },
             },
         }
-        gamevars.Start({ evented }, function(_, mode)
+        gameVars.Start({ evented }, function(_, mode)
             table.insert(reports, mode.key)
         end, function() end)
         change(LOG_VAR, 0x020000, 0x1020000)
@@ -332,10 +333,10 @@ describe("gamevars", function()
 
         -- Starts watching with value waiting in the loot var.
         local function start(value)
-            gamevars.Stop()
+            gameVars.Stop()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
             loot.value = value
-            gamevars.Start({ claimed }, function(_, mode, count)
+            gameVars.Start({ claimed }, function(_, mode, count)
                 table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function(_, itemID, count)
                 table.insert(reports, "drop " .. itemID .. " +" .. count)
@@ -404,10 +405,10 @@ describe("gamevars", function()
                     },
                 },
             }
-            gamevars.Stop()
+            gameVars.Stop()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
             loot.value = 0
-            gamevars.Start({ two }, function(_, mode, count)
+            gameVars.Start({ two }, function(_, mode, count)
                 table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function() end, function() end)
             advance(1)
@@ -432,9 +433,9 @@ describe("gamevars", function()
     end)
 
     it("reports each kill with today, from the game clock", function()
-        gamevars.Stop()
+        gameVars.Stop()
         local days = {}
-        gamevars.Start({ BOSS }, function(_, _, _, day)
+        gameVars.Start({ BOSS }, function(_, _, _, day)
             table.insert(days, day)
         end, function() end)
         mock.SetValue("CLOCK_TIME_DATE_MINUTES", 29888748) -- 30 Oct 2026, 01:48 UTC
@@ -448,7 +449,7 @@ describe("gamevars", function()
         var.VarPlayer.LOG_SHARED.value = 9
         local reader =
             { killCounts = {}, modes = {}, items = {}, reads = { shared = "LOG_SHARED" } }
-        assert.are.same({ shared = 9 }, gamevars.AllTime(reader).values)
+        assert.are.same({ shared = 9 }, gameVars.AllTime(reader).values)
     end)
 
     it("reads all-time totals once vars can be trusted", function()
@@ -459,19 +460,19 @@ describe("gamevars", function()
             kills = { KC_NORMAL = 40, KC_HARD = 2 },
             items = { ["101"] = 3, ["102"] = 1 },
             values = {},
-        }, gamevars.AllTime(BOSS))
+        }, gameVars.AllTime(BOSS))
         mock.Fire("GameStateChanged", { newState = GameState.LOGINSCREEN })
-        assert.is_nil(gamevars.AllTime(BOSS))
+        assert.is_nil(gameVars.AllTime(BOSS))
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
-        assert.is_nil(gamevars.AllTime(BOSS)) -- vars may still be arriving
+        assert.is_nil(gameVars.AllTime(BOSS)) -- vars may still be arriving
         advance(5 * 50)
-        assert.are.equal(40, gamevars.AllTime(BOSS).kills.KC_NORMAL)
+        assert.are.equal(40, gameVars.AllTime(BOSS).kills.KC_NORMAL)
     end)
 
     it("says when vars can be trusted after entering the game", function()
         local ready = 0
-        gamevars.Stop()
-        gamevars.Start({ BOSS }, function() end, function() end, function()
+        gameVars.Stop()
+        gameVars.Start({ BOSS }, function() end, function() end, function()
             ready = ready + 1
         end)
         advance(1)
@@ -538,9 +539,9 @@ describe("gamevars", function()
     end)
 
     it("waits for the game if it starts on the login screen", function()
-        gamevars.Stop()
+        gameVars.Stop()
         mock.inGame = false
-        gamevars.Start({ BOSS }, function()
+        gameVars.Start({ BOSS }, function()
             table.insert(reports, "kill")
         end, function() end)
         change(KC_VAR, 1, 2)
@@ -573,9 +574,9 @@ describe("gamevars", function()
         end
 
         before_each(function()
-            gamevars.Stop()
+            gameVars.Stop()
             mock.backpack[CHEST] = 3
-            gamevars.Start({ chested }, function(_, mode, count)
+            gameVars.Start({ chested }, function(_, mode, count)
                 table.insert(reports, "kill " .. mode.key .. " +" .. count)
             end, function(_, itemID, count)
                 table.insert(reports, "drop " .. itemID .. " +" .. count)
@@ -619,7 +620,7 @@ describe("gamevars", function()
     end)
 
     it("unsubscribes everything when stopped", function()
-        gamevars.Stop()
+        gameVars.Stop()
         assert.are.equal(0, mock.SubscriptionCount())
     end)
 end)

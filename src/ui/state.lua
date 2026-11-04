@@ -2,7 +2,7 @@
 -- all-time totals, readings, stats, table rows and notes.
 
 local bosses = require("src/bosses")
-local gamevars = require("src/core/gamevars")
+local gameVars = require("src/core/game_vars")
 local stats = require("src/core/stats")
 local tallies = require("src/core/tallies")
 local tracker = require("src/core/tracker")
@@ -58,7 +58,7 @@ local function bossesWithKills()
     local list = {}
     for _, boss in ipairs(bosses) do
         local t = tracker.Tallies(boss)
-        if t and (tallies.Total(t.kills) > 0 or (gamevars.AllTimeKills(boss) or 0) > 0) then
+        if t and (tallies.Total(t.kills) > 0 or (gameVars.AllTimeKills(boss) or 0) > 0) then
             table.insert(list, { boss = boss, tallies = t })
         end
     end
@@ -89,7 +89,7 @@ local cached = { inputs = nil, stats = nil }
 -- game, see reads in src/bosses.lua) and stats, reusing the last stats while their
 -- inputs are unchanged.
 local function withStats(entry)
-    entry.allTime = gamevars.AllTime(entry.boss)
+    entry.allTime = gameVars.AllTime(entry.boss)
     local allTime = entry.allTime or {}
     entry.readings = allTime.values or {}
     local inputs = table.concat({

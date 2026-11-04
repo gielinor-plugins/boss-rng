@@ -1,5 +1,5 @@
 -- Reads boss kill counts and boss log counts: all-time totals, and each kill and
--- drop as a count goes up. It stores nothing; it and its helpers (vars, and the
+-- drop as a count goes up. It stores nothing; it and its helpers (var_watch, and the
 -- containers, claims, kill events and piles modules) are the only code that reads
 -- the game. These counts aren't hidden (the Beasts tab and boss log show them, and
 -- Jagex confirmed they may be read without either open); hidden values such as bad
@@ -8,14 +8,14 @@
 local claims = require("src/core/claims")
 local containers = require("src/core/containers")
 local days = require("src/utils/days")
-local killevents = require("src/core/killevents")
+local killEvents = require("src/core/kill_events")
 local piles = require("src/core/piles")
 local safe = require("src/utils/safe")
-local vars = require("src/core/vars")
+local varWatch = require("src/core/var_watch")
 
-local gamevars = {}
+local gameVars = {}
 
-local REF = "bossrng_gamevars"
+local REF = "bossrng_game_vars"
 
 -- Uniques waiting for a claim (dropsAtClaim in src/bosses.lua) reach the boss log with it;
 -- allow this long after the claim.
@@ -27,54 +27,54 @@ local killedThisSession = {} -- [boss] = true once a kill is reported since ente
 local claimedAt = {} -- [boss] = tick its loot was last claimed (dropsAtClaim in src/bosses.lua)
 
 local function queueKill(report, change)
-    vars.Queue("kills", report, change)
+    varWatch.Queue("kills", report, change)
 end
 
 local function onVarTransmit(event)
     if type(event.oldValue) ~= "number" or type(event.newValue) ~= "number" then
         return
     end
-    vars.OnTransmit(event)
-    if vars.IsReady() then
+    varWatch.OnTransmit(event)
+    if varWatch.IsReady() then
         claims.OnVar(event.var.id, event.oldValue, event.newValue, queueKill)
     end
 end
 
 local function onGameStateChanged(event)
-    vars.OnGameState(event.newState)
+    varWatch.OnGameState(event.newState)
     announced = false
     killedThisSession = {}
     containers.Forget()
 end
 
 local function onInventory(event)
-    if vars.IsReady() then
+    if varWatch.IsReady() then
         containers.OnInventory(event)
     end
 end
 
 local function onPileAdded(event)
-    if vars.IsReady() then
+    if varWatch.IsReady() then
         piles.OnAdded(event)
     end
 end
 
 local function onPileChanged(event)
-    if vars.IsReady() then
+    if varWatch.IsReady() then
         piles.OnChanged(event)
     end
 end
 
 local function onLogic(event)
     containers.EndTick(queueKill)
-    vars.OnLogic(event.logicTick)
+    varWatch.OnLogic(event.logicTick)
     -- Kill events read this tick's rises and piles, so they're cleared after.
-    killevents.EndTick()
+    killEvents.EndTick()
     claims.EndTick()
     piles.EndTick()
-    if vars.IsReady() and not announced then
+    if varWatch.IsReady() and not announced then
         announced = true
-        vars.ReadCounts()
+        varWatch.ReadCounts()
         claims.Ready()
         containers.Ready()
         safe.Call("updating once the game is ready", onRefresh)
@@ -82,13 +82,13 @@ local function onLogic(event)
 end
 
 -- A boss's all-time kills, or nil until vars can be trusted or if any can't be read.
-function gamevars.AllTimeKills(boss)
-    if not vars.IsReady() then
+function gameVars.AllTimeKills(boss)
+    if not varWatch.IsReady() then
         return nil
     end
     local total = 0
     for _, killCount in ipairs(boss.killCounts) do
-        local kills = vars.Value(killCount.var)
+        local kills = varWatch.Value(killCount.var)
         if kills == nil then
             return nil
         end
@@ -99,26 +99,26 @@ end
 
 -- A boss's all-time totals, nil as above: { kills = { [kill count var] = n },
 -- items = { [unique's id text] = n }, values = { [reads key] = n } }.
-function gamevars.AllTime(boss)
-    if not vars.IsReady() then
+function gameVars.AllTime(boss)
+    if not varWatch.IsReady() then
         return nil
     end
     local allTime = { kills = {}, items = {}, values = {} }
     for _, killCount in ipairs(boss.killCounts) do
-        allTime.kills[killCount.var] = vars.Value(killCount.var)
+        allTime.kills[killCount.var] = varWatch.Value(killCount.var)
         if allTime.kills[killCount.var] == nil then
             return nil
         end
     end
     for itemID, item in pairs(boss.items) do
         local key = tostring(itemID)
-        allTime.items[key] = vars.Value(item.log)
+        allTime.items[key] = varWatch.Value(item.log)
         if allTime.items[key] == nil then
             return nil
         end
     end
     for key, name in pairs(boss.reads or {}) do
-        allTime.values[key] = vars.Value(name)
+        allTime.values[key] = varWatch.Value(name)
         if allTime.values[key] == nil then
             return nil
         end
@@ -130,7 +130,7 @@ local CLOCK = "CLOCK_TIME_DATE_MINUTES" -- minutes since 1 January 1970 (UTC)
 
 -- Today, from the game clock (see src/utils/days.lua), or 0 if it can't be read.
 local function today()
-    local minutes = vars.Value(CLOCK)
+    local minutes = varWatch.Value(CLOCK)
     return minutes and days.FromMinutes(minutes) or 0
 end
 
@@ -138,12 +138,12 @@ end
 -- loot that waits for a claim, just after the claim.
 local function canDrop(boss)
     if boss.dropsAtClaim then
-        return claimedAt[boss] ~= nil and vars.Tick() - claimedAt[boss] <= CLAIM_TICKS
+        return claimedAt[boss] ~= nil and varWatch.Tick() - claimedAt[boss] <= CLAIM_TICKS
     end
     return killedThisSession[boss]
 end
 
--- Called with each kill and drop (see gamevars.Start).
+-- Called with each kill and drop (see gameVars.Start).
 local onKills, onDrops = nil, nil
 
 local function killed(boss, mode, count, sums)
@@ -158,11 +158,11 @@ local function watchKillCounts(boss)
     for _, killCount in ipairs(boss.killCounts) do
         local mode = killCount.mode and boss.modes[killCount.mode]
         if mode then
-            vars.Watch(killCount.var, "kills", function(count)
+            varWatch.Watch(killCount.var, "kills", function(count)
                 killed(boss, mode, count)
             end)
         elseif countedLater then
-            vars.Watch(killCount.var, "kills", function()
+            varWatch.Watch(killCount.var, "kills", function()
                 safe.Call("updating after a kill", onRefresh)
             end)
         end
@@ -171,7 +171,7 @@ end
 
 local function watchKillEvents(boss)
     for _, event in ipairs(boss.killEvents or {}) do
-        killevents.Add(boss, event, function(mode, sums)
+        killEvents.Add(boss, event, function(mode, sums)
             killed(boss, mode, 1, sums)
         end)
     end
@@ -182,13 +182,13 @@ local function watchClaims(boss)
         local base = var.VarPlayer[claim.var]
         if base then
             local countKill = claims.Add(base, claim.mask, function(old, count)
-                local mode = killevents.Mode(boss, claim, old)
+                local mode = killEvents.Mode(boss, claim, old)
                 if mode then
                     killed(boss, mode, count)
                 end
             end)
             for _, kc in ipairs(claim.kills) do
-                vars.Watch(kc, "kills", countKill)
+                varWatch.Watch(kc, "kills", countKill)
             end
         else
             print("[Boss RNG] Unknown var " .. claim.var)
@@ -210,16 +210,16 @@ end
 local function watchDrops(boss)
     if boss.dropsAtClaim then
         local held = 0
-        vars.Follow(boss.dropsAtClaim.var, function(now)
-            if vars.IsReady() and held > 0 and now == 0 then
-                claimedAt[boss] = vars.Tick()
+        varWatch.Follow(boss.dropsAtClaim.var, function(now)
+            if varWatch.IsReady() and held > 0 and now == 0 then
+                claimedAt[boss] = varWatch.Tick()
             end
             held = now
         end)
     end
     for itemID, item in pairs(boss.items) do
         local stack = item.stack and item.stack.most
-        vars.Watch(item.log, "drops", function(count)
+        varWatch.Watch(item.log, "drops", function(count)
             if canDrop(boss) then
                 onDrops(boss, itemID, stack and 1 or count)
             end
@@ -245,7 +245,7 @@ local HANDLERS = {
 -- a chest or claim) raises a kill count. The game can resend log counts long
 -- after login as jumps from 0, so only bosses killed this session, or just claimed,
 -- can have drops.
-function gamevars.Start(bosses, kills, drops, refresh)
+function gameVars.Start(bosses, kills, drops, refresh)
     onKills, onDrops, onRefresh = kills, drops, refresh
     for _, boss in ipairs(bosses) do
         watchKillCounts(boss)
@@ -255,24 +255,24 @@ function gamevars.Start(bosses, kills, drops, refresh)
         watchDrops(boss)
     end
 
-    vars.Start(Player.IsAvailable())
+    varWatch.Start(Player.IsAvailable())
 
     for name, handler in pairs(HANDLERS) do
         Event[name].Subscribe(REF, handler)
     end
 end
 
-function gamevars.Stop()
+function gameVars.Stop()
     for name in pairs(HANDLERS) do
         Event[name].Unsubscribe(REF)
     end
     claimedAt = {}
-    vars.Clear()
+    varWatch.Clear()
     claims.Clear()
-    killevents.Clear()
+    killEvents.Clear()
     containers.Clear()
     piles.Clear()
     onKills, onDrops, onRefresh, announced, killedThisSession = nil, nil, nil, false, {}
 end
 
-return gamevars
+return gameVars

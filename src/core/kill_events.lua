@@ -1,21 +1,21 @@
 -- Kills told apart by what the game shows around them (killEvents in src/bosses.lua):
 -- values read at the kill, a value's last before the game resets it (lasts), whether
 -- a count rose in the kill's tick (rises), the player's loot piles (piles) and values
--- added up by day (sums). gamevars wires each boss's kill events in.
+-- added up by day (sums). gameVars wires each boss's kill events in.
 
 local piles = require("src/core/piles")
-local vars = require("src/core/vars")
+local varWatch = require("src/core/var_watch")
 
-local killevents = {}
+local killEvents = {}
 
 local risen = {} -- each kill event's rises seen this tick
 
 -- The mode a kill event or claim says the kill was, and the values it read, given a
 -- claim var's old value; nil if a value can't be read or it gives none.
-function killevents.Mode(boss, event, old, kept, rose)
+function killEvents.Mode(boss, event, old, kept, rose)
     local values = {}
     for key, name in pairs(event.reads or {}) do
-        values[key] = vars.Value(name)
+        values[key] = varWatch.Value(name)
         if values[key] == nil then
             return nil
         end
@@ -46,11 +46,11 @@ local function sumsOf(event, values)
 end
 
 -- Watches a boss's kill event; report(mode, sums) gets each kill it gives a mode.
-function killevents.Add(boss, event, report)
+function killEvents.Add(boss, event, report)
     piles.Watch(event.piles or {})
     local kept = {} -- each of event.lasts' last value above 0 since the last kill
     for key, name in pairs(event.lasts or {}) do
-        vars.Follow(name, function(now)
+        varWatch.Follow(name, function(now)
             if now > 0 then
                 kept[key] = now
             end
@@ -59,12 +59,12 @@ function killevents.Add(boss, event, report)
     local rose = {} -- each of event.rises that rose this tick
     table.insert(risen, rose)
     for key, name in pairs(event.rises or {}) do
-        vars.Watch(name, "rises", function()
+        varWatch.Watch(name, "rises", function()
             rose[key] = true
         end)
     end
-    vars.Watch(event.var, "kills", function()
-        local mode, values = killevents.Mode(boss, event, nil, kept, rose)
+    varWatch.Watch(event.var, "kills", function()
+        local mode, values = killEvents.Mode(boss, event, nil, kept, rose)
         for key in pairs(kept) do
             kept[key] = nil
         end
@@ -75,7 +75,7 @@ function killevents.Add(boss, event, report)
 end
 
 -- Forgets this tick's rises, after its kills are reported.
-function killevents.EndTick()
+function killEvents.EndTick()
     for _, rose in ipairs(risen) do
         for key in pairs(rose) do
             rose[key] = nil
@@ -83,8 +83,8 @@ function killevents.EndTick()
     end
 end
 
-function killevents.Clear()
+function killEvents.Clear()
     risen = {}
 end
 
-return killevents
+return killEvents

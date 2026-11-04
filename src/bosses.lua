@@ -30,7 +30,7 @@
 --   reads         { [key] = var }: each value is passed in readings (nil until read)
 --   killEvents    a list of { var, mask, reads, lasts, rises, piles, sums, mode }: when
 --                 var (or its mask bits) rises, mode(values) gives the kill's mode key,
---                 or nil to leave it uncounted (see src/core/killevents.lua):
+--                 or nil to leave it uncounted (see src/core/kill_events.lua):
 --                   reads    { [key] = var }: read at the kill
 --                   lasts    { [key] = varbit }: its last value above 0 since the
 --                            previous kill, for values the game resets at the kill

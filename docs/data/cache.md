@@ -18,7 +18,7 @@ game, so a stale check only costs a recompute.
 | all-time counts | the game sends new counts (read every redraw) |
 | readings | a value the boss reads from the game (see `reads` in `src/bosses.lua`) changes |
 
-The dropdown reads only `tallies.Total` and `gamevars.AllTimeKills`, so only the
+The dropdown reads only `tallies.Total` and `gameVars.AllTimeKills`, so only the
 picked boss's stats are worked out. The key is also the entry's `inputs`.
 
 ## Drawn views
