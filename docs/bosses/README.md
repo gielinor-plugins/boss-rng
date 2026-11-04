@@ -1,7 +1,9 @@
 # Supported bosses
 
-Boss RNG supports 27 bosses. Each has a page with its drop rates, how its kills are
-counted, every value it reads from the game, and what was tested in game.
+Boss RNG supports 31 bosses in 27 entries: Dragonkin Laboratory and the Sanctum of
+Rebirth each have three bosses, with their own kill counts, in one entry. Each entry
+has a page with its drop rates, how its kills are counted, every value it reads from
+the game, and what was tested in game.
 
 | Boss | How kills are counted | Kills told apart by |
 |---|---|---|
