@@ -14,6 +14,10 @@ local BOSS = {
 
 local KC_VAR, LOG_VAR = 1, 2
 
+-- Logic ticks (50 a second): the wait after entering the game before vars are trusted
+-- (src/core/var_watch.lua), and how long after a claim its drops count (game_vars).
+local SETTLE_TICKS, CLAIM_TICKS = 5 * 50, 10 * 50
+
 -- Modes for any key a test's kill event or claim gives.
 local function anyModes()
     return setmetatable({}, {
@@ -306,7 +310,7 @@ describe("gameVars", function()
         send(LOG_VAR, 0x020001, 0x000001) -- claimed
         change(LOG_VAR, 0x000001, 0x000005) -- with four from a long streak
         assert.are.same({ "drop 101 +4" }, reports)
-        advance(10 * 50)
+        advance(CLAIM_TICKS)
         change(LOG_VAR, 0x000005, 0x000006) -- long after
         assert.are.same({ "drop 101 +4" }, reports)
     end)
@@ -499,7 +503,7 @@ describe("gameVars", function()
         assert.is_nil(gameVars.AllTime(BOSS))
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
         assert.is_nil(gameVars.AllTime(BOSS)) -- vars may still be arriving
-        advance(5 * 50)
+        advance(SETTLE_TICKS)
         assert.are.equal(40, gameVars.AllTime(BOSS).kills.KC_NORMAL)
     end)
 
@@ -512,9 +516,8 @@ describe("gameVars", function()
         advance(1)
         assert.are.equal(1, ready)
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
-        advance(1)
-        assert.are.equal(1, ready)
-        advance(5 * 50)
+        advance(SETTLE_TICKS - 1)
+        assert.are.equal(1, ready) -- one tick short of the wait
         advance(1)
         assert.are.equal(2, ready)
     end)
@@ -528,7 +531,7 @@ describe("gameVars", function()
 
         -- Back in the game: a new session, with no kills yet.
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
-        advance(5 * 50)
+        advance(SETTLE_TICKS)
         change(LOG_VAR, 0x03, 0x04)
         assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
     end)
@@ -544,7 +547,7 @@ describe("gameVars", function()
     it("knows each count's value once the game is ready", function()
         var.VarPlayer.LOG_WEAPON.value = 2
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
-        advance(5 * 50) -- ready: the weapon's count is 2
+        advance(SETTLE_TICKS) -- ready: the weapon's count is 2
         change(KC_VAR, 1, 2)
         change(LOG_VAR, 0x00, 0x02) -- sent again from 0: no drop
         change(LOG_VAR, 0x02, 0x03)
@@ -556,9 +559,16 @@ describe("gameVars", function()
         mock.Fire("GameStateChanged", { newState = GameState.LOGINSCREEN })
         var.VarPlayer.KC_NORMAL.value = 3 -- another, with fewer kills
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
-        advance(5 * 50)
+        advance(SETTLE_TICKS)
         change(KC_VAR, 3, 4)
         assert.are.same({ "kill n +1", "kill n +1" }, reports)
+    end)
+
+    it("counts a rise of up to 3 as that many kills, and ignores more", function()
+        change(KC_VAR, 1, 3)
+        change(KC_VAR, 3, 7) -- 4 at once: not kills
+        change(KC_VAR, 7, 8)
+        assert.are.same({ "kill n +2", "kill n +1" }, reports)
     end)
 
     it("ignores big jumps and decreases", function()
@@ -577,7 +587,7 @@ describe("gameVars", function()
         change(KC_VAR, 1, 2)
         mock.Fire("GameStateChanged", { newState = GameState.GAME })
         change(KC_VAR, 2, 3)
-        advance(5 * 50)
+        advance(SETTLE_TICKS)
         change(KC_VAR, 3, 4)
         assert.are.same({ "kill n +1" }, reports)
     end)
@@ -664,6 +674,7 @@ describe("gameVars", function()
     end)
 
     it("unsubscribes everything when stopped", function()
+        assert.is_true(mock.SubscriptionCount() > 0)
         gameVars.Stop()
         assert.are.equal(0, mock.SubscriptionCount())
     end)

@@ -23,6 +23,13 @@ describe("tracker", function()
         tracker = require("src/core/tracker")
     end
 
+    -- Like restarting the client: only the saved data is kept.
+    local function restart()
+        mock.Reset(true)
+        mock.inGame = true
+        reload()
+    end
+
     before_each(function()
         mock.Reset()
         mock.inGame = true
@@ -88,6 +95,17 @@ describe("tracker", function()
         assert.are.equal("testboss", tracker.LastBossKey())
     end)
 
+    it("forgets the last boss killed when that boss is reset", function()
+        local other = { key = "other", modes = { n = NORMAL }, items = {} }
+        tracker.AddKills(BOSS, NORMAL, 1, DAY)
+        tracker.Reset(other) -- another boss: still remembered
+        assert.are.equal("testboss", tracker.LastBossKey())
+        tracker.Reset(BOSS)
+        assert.is_nil(tracker.LastBossKey())
+        restart()
+        assert.is_nil(tracker.LastBossKey())
+    end)
+
     it(
         "counts a unique added later from the first tracked kill, like its expected drops",
         function()
@@ -136,9 +154,7 @@ describe("tracker", function()
                 count(mode, d, n)
             end
             if random(10) == 0 then -- reload, to go through saving
-                mock.Reset(true)
-                mock.inGame = true
-                reload()
+                restart()
             end
             local t = tracker.Tallies(BOSS)
             for _, key in ipairs(DRY_KEYS) do
@@ -236,9 +252,7 @@ describe("tracker", function()
         tracker.Reset(BOSS)
         assert.is_nil(mock.Saved("char:Tester:testboss"))
         tracker.AddKills(BOSS, NORMAL, 1, NEXT_DAY)
-        mock.Reset(true) -- reload, to go through saving
-        mock.inGame = true
-        reload()
+        restart() -- reload, to go through saving
         local t = tracker.Tallies(BOSS)
         assert.are.equal(1, tallies.Total(t.kills))
         assert.are.same({}, t.items)
@@ -258,22 +272,12 @@ describe("tracker", function()
         end)
         tracker.ResetAll()
         assert.are.equal(1, calls)
-        mock.Reset(true)
-        mock.inGame = true
-        reload()
+        restart()
         assert.are.same(EMPTY, tracker.Tallies(BOSS))
         assert.is_nil(tracker.LastBossKey())
         assert.is_nil(mock.Saved("char:Tester:gone"))
         assert.are.equal("20756:1", mock.Saved("char:Other:testboss").kills.n)
         assert.are.equal("20756:1", mock.Saved("char:Tester2:testboss").kills.n)
-    end)
-
-    it("keeps its data after a reload", function()
-        tracker.AddKills(BOSS, NORMAL, 1, DAY)
-        mock.Reset(true)
-        mock.inGame = true
-        reload()
-        assert.are.equal(1, tallies.Total(tracker.Tallies(BOSS).kills))
     end)
 
     it("keeps characters separate", function()

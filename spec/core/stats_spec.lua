@@ -233,6 +233,21 @@ describe("stats.ForBoss", function()
         assert.are.equal(3, row.received)
         assert.are.equal(3, row.allTime)
         assert.are.equal(10, row.dryKills) -- since the latest of either
+        assert.is_false(row.dryAtLeast)
+        -- The share still dry after those 10 kills, at the chance of either piece.
+        assert.are.near(1 - (1 - 1 / 10) ^ 10, row.dryShare, 1e-12)
+    end)
+
+    it("leaves a group's all-time count unknown if a member's is", function()
+        local group = { name = "Pieces" }
+        local boss = {
+            items = { [1] = { group = group }, [2] = { group = group } },
+            modes = {
+                n = { key = "n", rolls = { { chance = 1 / 10, items = { [1] = 1, [2] = 1 } } } },
+            },
+        }
+        local result = forBoss(boss, tallies({ n = 10 }), totals({ KC = 10 }, { ["1"] = 2 }))
+        assert.is_nil(result.items[1].allTime)
     end)
 end)
 
@@ -385,8 +400,9 @@ describe("stats with kills counted at each kill", function()
 
     it("estimates kills until luck shows at the rate of kills in the kill count", function()
         assert.are.equal(5, forBoss(EVENTED, tallies({ Full = 5 })).killsToLuck) -- 0.5 more at 0.1
-        -- 0.3 more
-        assert.are.equal(3, forBoss(EVENTED, tallies({ Full = 5, Partial = 4 })).killsToLuck)
+        -- 0.3 more at the kill count's 0.1 a kill: partial kills raise the expected drops,
+        -- but not the rate (which would give 0.7 / 2 = 0.35 a kill, so 1 kill).
+        assert.are.equal(3, forBoss(EVENTED, tallies({ Full = 2, Partial = 10 })).killsToLuck)
     end)
 
     it("leaves out kills of modes the boss no longer has", function()

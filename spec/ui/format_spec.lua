@@ -29,6 +29,13 @@ describe("format", function()
         assert.are.equal("Top 11% luck", format.Luck({ kills = 10, luck = 0.89 }))
         assert.are.equal("Cursed: bottom 10% luck", format.Luck({ kills = 10, luck = 0.1 }))
         assert.are.equal("Bottom 11% luck", format.Luck({ kills = 10, luck = 0.1001 }))
+        -- "About average" is 40% to 60% luck, both included.
+        assert.are.equal("About average luck", format.Luck({ kills = 10, luck = 0.4 }))
+        assert.are.equal("Bottom 39% luck", format.Luck({ kills = 10, luck = 0.39 }))
+        assert.are.equal("Top 39% luck", format.Luck({ kills = 10, luck = 0.61 }))
+    end)
+
+    it("words luck before it's rated", function()
         assert.are.equal("No tracked kills yet", format.Luck({ kills = 0 }))
         assert.are.equal(
             "Luck: next unique or 14 kills",
@@ -44,10 +51,8 @@ describe("format", function()
             format.Luck({ kills = 2, killsToLuck = 3, unit = "chest" })
         )
         assert.are.equal("No tracked chests yet", format.Luck({ kills = 0, unit = "chest" }))
-        assert.are.equal(
-            "Tracked: 2 chests · 0 uniques",
-            format.Tracked({ kills = 2, received = 0, unit = "chest" })
-        )
+        -- When the kills needed can't be worked out.
+        assert.are.equal("Luck: next unique or more kills", format.Luck({ kills = 20 }))
     end)
 
     it("words luck in a few words for columns", function()
@@ -146,6 +151,11 @@ describe("format", function()
             format.Tracked({ kills = 3, received = 0 })
         )
         assert.are.equal("", format.Tracked({ kills = 0, received = 0 }))
+        -- A boss counting chests says so.
+        assert.are.equal(
+            "Tracked: 2 chests · 0 uniques",
+            format.Tracked({ kills = 2, received = 0, unit = "chest" })
+        )
     end)
 
     it("words the game's all-time totals, once read", function()

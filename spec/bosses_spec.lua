@@ -29,28 +29,28 @@ describe("boss data", function()
     for _, boss in ipairs(bosses) do
         describe(boss.name, function()
             it("names its kill count varbits, each counted directly or another way", function()
-                assert.is_true(#boss.killCounts > 0)
+                assert(#boss.killCounts > 0, "no kill counts")
                 local otherWay = (boss.killEvents or boss.claims or boss.containers) ~= nil
                 for _, killCount in ipairs(boss.killCounts) do
-                    assert.is_true(startsWith(killCount.var, "BSLAY_KILLS_"))
+                    assert(startsWith(killCount.var, "BSLAY_KILLS_"), killCount.var)
                     if killCount.mode then
-                        assert.is_true(boss.modes[killCount.mode] ~= nil)
+                        assert(boss.modes[killCount.mode] ~= nil, "no mode " .. killCount.mode)
                     else
-                        assert.is_true(otherWay)
+                        assert(otherWay, killCount.var .. " has no mode and nothing else counts it")
                     end
                 end
             end)
 
             it("gives every mode its rolls", function()
                 for key, mode in pairs(boss.modes) do
-                    assert.is_true(mode.rolls ~= nil)
+                    assert(mode.rolls ~= nil, "mode " .. key .. " has no rolls")
                     assert.are.equal(key, mode.key)
                 end
             end)
 
             it("gives every unique a log varbit", function()
                 for _, item in pairs(boss.items) do
-                    assert.is_true(startsWith(item.log, "ITEMLOG_ITEM_"))
+                    assert(startsWith(item.log, "ITEMLOG_ITEM_"), item.log)
                 end
             end)
 
@@ -65,7 +65,7 @@ describe("boss data", function()
                 for _, mode in pairs(boss.modes) do
                     for _, day in ipairs({ BEFORE, AFTER }) do
                         for itemID in pairs(luck.ItemChances(stats.Rolls(boss, mode, {}, day))) do
-                            assert.is_true(boss.items[itemID] ~= nil)
+                            assert(boss.items[itemID] ~= nil, "rolls unlisted item " .. itemID)
                         end
                     end
                 end

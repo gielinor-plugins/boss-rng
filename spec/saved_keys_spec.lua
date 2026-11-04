@@ -69,10 +69,10 @@ describe("saved keys", function()
         local keys = {}
         for _, boss in ipairs(bosses) do
             keys[boss.key] = true
-            assert.is_true(SAVED[boss.key] ~= nil)
+            assert(SAVED[boss.key] ~= nil, boss.key .. " is missing from SAVED")
         end
         for key in pairs(SAVED) do
-            assert.is_true(keys[key])
+            assert(keys[key], "no boss loads saved key " .. key)
         end
     end)
 

@@ -37,3 +37,56 @@ describe("state", function()
         assert.are.same({}, state.Notes({ boss = { assumptions = {} }, readings = {} }))
     end)
 end)
+
+describe("state.Current", function()
+    local mock = require("spec/mock_api")
+    local DAY = 20761
+    local tracker, current, byKey
+
+    before_each(function()
+        mock.Reset()
+        mock.inGame = true
+        -- Fresh copies, sharing one tracker, like a plugin reload.
+        package.loaded["src/core/tracker"] = nil
+        package.loaded["src/ui/state"] = nil
+        tracker = require("src/core/tracker")
+        current = require("src/ui/state")
+        byKey = {}
+        for _, boss in ipairs(require("src/bosses")) do
+            byKey[boss.key] = boss
+        end
+    end)
+
+    local function kill(key)
+        local boss = byKey[key]
+        local mode = boss.modes.n or boss.modes.h
+        tracker.AddKills(boss, mode, 1, DAY)
+    end
+
+    local function shown()
+        local list, selected = current.Current()
+        return list[selected].boss.key, list[selected]
+    end
+
+    it("shows the last boss killed, or the one picked until another boss is killed", function()
+        kill("vorkath")
+        kill("rasial")
+        assert.are.equal("rasial", shown())
+        current.Pick("vorkath")
+        assert.are.equal("vorkath", shown())
+        kill("rasial") -- the same boss as before: the pick stays
+        assert.are.equal("vorkath", shown())
+        kill("graardor")
+        assert.are.equal("graardor", shown())
+    end)
+
+    it("works out the shown boss's stats again only when they may have changed", function()
+        kill("rasial")
+        local _, first = shown()
+        local _, again = shown()
+        assert.are.equal(first.stats, again.stats) -- reused
+        kill("rasial")
+        local _, after = shown()
+        assert.are.equal(2, after.stats.kills)
+    end)
+end)

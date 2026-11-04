@@ -17,8 +17,9 @@ describe("rates.History", function()
         assert.are.equal(3, history:On(250).b)
     end)
 
-    it("leaves out versions whose update isn't live yet", function()
-        assert.are.equal(3, #history.versions)
+    it("never applies a version whose update isn't live yet", function()
+        assert.are.equal(1, history:On(150).a) -- not 9, the not-yet-live value
+        assert.are.equal(4, history:On(200).a)
     end)
 
     it("gives the newest version for a day not known", function()
@@ -42,7 +43,7 @@ describe("the rate files", function()
 
     it("give every boss its base rates", function()
         for _, boss in ipairs(bosses) do
-            assert.is_true(base.rates[boss.key] ~= nil)
+            assert(base.rates[boss.key] ~= nil, "no base rates for " .. boss.key)
         end
     end)
 
@@ -52,12 +53,13 @@ describe("the rate files", function()
             keys[boss.key] = true
         end
         for i = 2, #rates.UPDATES do
-            local update = require("src/core/rates/" .. rates.UPDATES[i])
-            assert.is_true(update.day == false or type(update.day) == "number")
+            local name = rates.UPDATES[i]
+            local update = require("src/core/rates/" .. name)
+            assert(update.day == false or type(update.day) == "number", name .. ": day")
             for key, values in pairs(update.rates) do
-                assert.is_true(keys[key] == true)
-                for name in pairs(values) do
-                    assert.is_true(base.rates[key][name] ~= nil)
+                assert(keys[key] == true, name .. ": no boss " .. key)
+                for rate in pairs(values) do
+                    assert(base.rates[key][rate] ~= nil, name .. ": " .. key .. " has no " .. rate)
                 end
             end
         end
