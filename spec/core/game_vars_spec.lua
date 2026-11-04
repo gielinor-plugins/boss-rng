@@ -446,6 +446,18 @@ describe("gameVars", function()
             assert.are.same({ "kill a +1", "kill b +1" }, reports)
         end)
 
+        it("leaves a claim uncounted if part of the loot was taken first", function()
+            startWith(0)
+            kill(1, 0, 0x10000)
+            kill(2, 0x10000, 0x30000)
+            change(LOOT_VAR, 0x30000, 0x10000) -- part taken: no claim yet
+            change(LOOT_VAR, 0x10000, 0) -- the rest: not all of what arrived
+            assert.are.same({}, reports)
+            kill(3, 0, 0x10000) -- the next chest counts again
+            change(LOOT_VAR, 0x10000, 0)
+            assert.are.same({ "kill n +1" }, reports)
+        end)
+
         it("leaves loot waiting from before it was watched uncounted", function()
             startWith(0x20000)
             kill(1, 0x20000, 0x30000)
@@ -537,6 +549,16 @@ describe("gameVars", function()
         change(LOG_VAR, 0x00, 0x02) -- sent again from 0: no drop
         change(LOG_VAR, 0x02, 0x03)
         assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
+    end)
+
+    it("counts the next character's kills from their own kill count", function()
+        change(KC_VAR, 49, 50) -- one character
+        mock.Fire("GameStateChanged", { newState = GameState.LOGINSCREEN })
+        var.VarPlayer.KC_NORMAL.value = 3 -- another, with fewer kills
+        mock.Fire("GameStateChanged", { newState = GameState.GAME })
+        advance(5 * 50)
+        change(KC_VAR, 3, 4)
+        assert.are.same({ "kill n +1", "kill n +1" }, reports)
     end)
 
     it("ignores big jumps and decreases", function()

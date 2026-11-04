@@ -6,7 +6,6 @@ function days.FromMinutes(minutes)
     return minutes // (24 * 60)
 end
 
--- By the civil calendar algorithm: years start in March, so leap days fall last.
 function days.FromDate(year, month, day)
     year = month <= 2 and year - 1 or year
     local era = year // 400
