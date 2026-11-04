@@ -1,6 +1,6 @@
 # Solak
 
-Source: [RuneScape Wiki](https://runescape.wiki/w/Solak) (CC BY-NC-SA 3.0), checked 28 October 2026.
+Source: [RuneScape Wiki](https://runescape.wiki/w/Solak) (CC BY-NC-SA 3.0), checked 28 October 2026; crossbow from Jagex's [Late-Game Rebalance](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
 
 ## Drop rates
 
@@ -12,6 +12,9 @@ makes three rolls:
 | Unique table | 1 in 100 | Erethdor's grimoire 1 in 200; Blightbound crossbow, main hand or off-hand, 1 in 400 each |
 | Merethiel's stave | 1 in 500 | |
 | Purple mushroom | 1 in 500 | |
+
+From the Late-Game Rebalance, each Blightbound crossbow piece is 1 in 200, so the
+unique table is about 1 in 67. The other rates stay as they are.
 
 ## How kills are counted
 

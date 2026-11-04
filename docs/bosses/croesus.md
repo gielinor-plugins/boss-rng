@@ -1,6 +1,6 @@
 # Croesus
 
-Source: [RuneScape Wiki](https://runescape.wiki/w/Croesus) (CC BY-NC-SA 3.0), checked 28 October 2026.
+Source: [RuneScape Wiki](https://runescape.wiki/w/Croesus) (CC BY-NC-SA 3.0), checked 28 October 2026; changes from Jagex's [Late-Game Rebalance](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
 
 ## Drop rates
 
@@ -12,6 +12,10 @@ Scripture of Bik. Each player gets their own rolls, by contribution:
 - From 60, unique rolls equal loot rolls: 1 at 60, 2 at 100, 3 at 180, 4 at
   230, 5 at 280, 6 at 310, 7 at 330, 8 at 345, 9 at 360, 10 at 380, 11 at 400,
   12 at 420 or more.
+
+From the Late-Game Rebalance, each unique roll gives each Cryptbloom piece at 1 in
+3,000 and each other unique at 1 in 2,500, so any unique at about 1 in 306. The
+rebalance doesn't say if its rates are per kill or per roll; assumed per unique roll.
 
 ## How kills are counted
 

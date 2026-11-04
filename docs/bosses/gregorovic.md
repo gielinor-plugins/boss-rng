@@ -1,6 +1,6 @@
 # Gregorovic
 
-Source: [RuneScape Wiki](https://runescape.wiki/w/Gregorovic) (CC BY-NC-SA 3.0), checked 27 October 2026.
+Source: [RuneScape Wiki](https://runescape.wiki/w/Gregorovic) (CC BY-NC-SA 3.0), checked 27 October 2026; crest from Jagex's [Late-Game Rebalance](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
 
 ## Drop rates
 
@@ -12,6 +12,10 @@ misses is there a roll for Sliskean essence.
 |---|---|---|
 | Each table item | 1 in 256 | 1 in 179 |
 | Sliskean essence | 1 in 64 | 1 in 44 |
+
+From the Late-Game Rebalance, the Crest of Sliske is 1 in 128 in both modes, and the
+other table items stay as they are. The rebalance doesn't give a hard mode rate, so
+it's assumed to be the same.
 
 ## How kills are counted
 

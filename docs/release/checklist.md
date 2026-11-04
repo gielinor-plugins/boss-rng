@@ -8,8 +8,8 @@ Check that page for changes before each release.
 
 - [ ] Drop rates are current. For a game update, add its rates file in
       `src/core/rates/` with the day it went live ([Compatibility](../data/compatibility.md)).
-- [ ] `src/core/rates/late_game_rebalance.lua`: its day is assumed to be 30 November
-      2026. Confirm the day and rates against the patch notes.
+- [ ] `src/core/rates/late_game_rebalance.lua`: its day is assumed until the patch
+      notes are out. Confirm the day and rates against them.
 - [ ] `busted`, `stylua --check .` and `luacheck .` pass.
 - [ ] Tried in the beta client: the panel, the details window, the settings page,
       and a kill at a boss.

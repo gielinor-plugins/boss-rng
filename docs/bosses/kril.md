@@ -1,6 +1,6 @@
 # K'ril Tsutsaroth
 
-Source: [RuneScape Wiki](https://runescape.wiki/w/K%27ril_Tsutsaroth) (CC BY-NC-SA 3.0), checked 27 October 2026.
+Source: [RuneScape Wiki](https://runescape.wiki/w/K%27ril_Tsutsaroth) (CC BY-NC-SA 3.0), checked 27 October 2026; changes from Jagex's [Late-Game Rebalance](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
 
 ## Drop rates
 
@@ -8,10 +8,15 @@ Each kill has a 1 in 64 roll at the unique table, which gives one item at random
 Only if that misses is there a 1 in 512 hilt roll, so a kill gives at most one.
 Hard mode has the same rates.
 
-| Item | Per kill |
-|---|---|
-| Subjugation hood, garb, gown, gloves, boots, ward; Zamorakian spear; steam battlestaff | 1 in 512 each |
-| Hilt | about 1 in 520 (63/64 x 1/512) |
+| Item | Now | From the Late-Game Rebalance |
+|---|---|---|
+| Subjugation hood, garb, gown, gloves, boots, ward | 1 in 512 each | 1 in 320 each |
+| Zamorakian spear | 1 in 512 | 1 in 384 |
+| Steam battlestaff | 1 in 512 | 1 in 64 |
+| Hilt | about 1 in 520 (63/64 x 1/512) | 1 in 384 |
+
+The rebalance doesn't say if the shields count as armor, or if a kill can still give
+only one table item; both are assumed yes.
 
 ## How kills are counted
 

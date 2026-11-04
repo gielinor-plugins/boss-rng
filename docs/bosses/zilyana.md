@@ -1,6 +1,6 @@
 # Commander Zilyana
 
-Source: [RuneScape Wiki](https://runescape.wiki/w/Commander_Zilyana) (CC BY-NC-SA 3.0), checked 27 October 2026.
+Source: [RuneScape Wiki](https://runescape.wiki/w/Commander_Zilyana) (CC BY-NC-SA 3.0), checked 27 October 2026; changes from Jagex's [Late-Game Rebalance](https://secure.runescape.com/m=news/late-game-rebalance-design-preview).
 
 ## Drop rates
 
@@ -8,11 +8,13 @@ Each kill has a 1 in 64 roll at the unique table, which gives one entry at
 random. Only if that misses is there a 1 in 512 hilt roll, so a kill gives at
 most one. Hard mode has the same rates.
 
-| Item | Per kill |
-|---|---|
-| Saradomin sword; Saradomin's whisper, hiss, murmur | 1 in 320 each |
-| Armadyl crossbow, main hand or off-hand (one entry split evenly) | 1 in 640 each |
-| Hilt | about 1 in 520 (63/64 x 1/512) |
+| Item | Now | From the Late-Game Rebalance |
+|---|---|---|
+| Saradomin sword; Saradomin's whisper, hiss, murmur | 1 in 320 each | 1 in 320 each |
+| Armadyl crossbow, main hand or off-hand | 1 in 640 each (one entry split evenly) | 1 in 320 each |
+| Hilt | about 1 in 520 (63/64 x 1/512) | 1 in 384 |
+
+The rebalance doesn't say if a kill can still give only one table item; assumed yes.
 
 ## How kills are counted
 

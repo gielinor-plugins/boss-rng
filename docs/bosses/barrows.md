@@ -11,7 +11,7 @@ A hit picks a killed brother evenly, then one of his items evenly.
 |---|---|
 | Each brother roll | 1 in max(450 - 58n, 73) |
 | Linza (if killed), one of her five items | 1 in 96 (1 in 192 before the 20 July 2026 update) |
-| Amulet of the forsaken, every chest | 1 in 480 (1 in 240 from the late November 2026 update) |
+| Amulet of the forsaken, every chest | 1 in 480 (1 in 240 from the Late-Game Rebalance) |
 
 The preview doesn't say if partial chests can give the amulet; assumed yes (the
 Info tab says so).
