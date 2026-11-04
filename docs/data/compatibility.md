@@ -69,12 +69,10 @@ working rates out from them by day, so most changes need none of it.
   Barrows kill. Whether a mode is in the kill count (`partial`) is fixed by its key
   today; `stats.lua` would need to pass each kill's day to it, as it already does for
   rates. The saved chest keys record who died, so they'd still be right.
-- **The saved shape changes,** needing `VERSION` in `src/core/tracker.lua` raised.
-  Today a record of any other version is replaced with an empty one at the next
-  save, so raising `VERSION` alone would wipe every player's data. The same change
-  must add a converter from every older version, with a spec, and leave any record
-  it can't read untouched.
-- **One boss's saved facts change format,** such as saving per kill something now
-  saved per run. That would need a data version per boss, with a converter from the
-  old format. Today there's one version for the whole record (see
-  [Saved data](saved-data.md)).
+- **The saved shape changes,** for every boss or for one, such as saving per kill
+  something now saved per run. That needs `VERSION` in `src/core/tracker.lua`
+  raised. Today an entry of any other version reads as empty and is replaced at its
+  next save, so raising `VERSION` alone would wipe every player's data. The same
+  change must add a converter from every older version, with a spec, and leave any
+  entry it can't read untouched. Bosses whose format didn't change only need their
+  version raised ([Saved data](saved-data.md)).

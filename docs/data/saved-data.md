@@ -1,27 +1,33 @@
 # Saved data
 
 Boss RNG saves with `PersistentDB`, on this computer only. Every character on the
-computer shares it, so each key ends in the display name (a new name starts a new
-entry). All-time kill and log counts are read from the game, never saved.
+computer shares it, so each key starts with the character's display name (a new name
+starts anew). All-time kill and log counts are read from the game, never saved.
 
 | Key | Holds | Code |
 |---|---|---|
-| `char:<name>` | Tracked kills, drops and dry streaks | `src/core/tracker.lua`, `src/core/tallies.lua` |
+| `char:<name>` | `{ version, lastBoss }` | `src/core/tracker.lua` |
+| `char:<name>:<boss key>` | `{ version, kills, sums, dryFrom, items }`: that boss's tracked kills, drops and dry streaks | `src/core/tracker.lua`, `src/core/tallies.lua` |
 
-The record has a `version`. A record with any other version is replaced with an
-empty one ([Compatibility](compatibility.md#not-built-yet)).
+Each boss has its own entry, so entries stay small ([Size](#size)). A kill or drop
+saves only that boss's entry, and the character's when `lastBoss` changes.
+
+Every entry has a `version`. An entry of any other version reads as empty and is
+replaced at its next save ([Compatibility](compatibility.md#not-built-yet)).
 
 Keys are always text (item ids, days), and numbers come back as decimals (`13.0`).
-A sample record is in [`saved-data.example.json`](saved-data.example.json).
+A sample character's entries are in [`saved-data.example.json`](saved-data.example.json).
 
 ## `char:<name>`
 
-`{ version, lastBoss = <boss key>, bosses = { [boss key] = tallies } }`
-
 `lastBoss`, the boss killed last, gets any pooled unique (one log count shared by
-two bosses). Data Controls on the settings page clears one boss's tallies
-(`tracker.Reset`) or every boss's (`tracker.ResetAll`), after a confirmation.
-Each boss's tallies:
+two bosses).
+
+## `char:<name>:<boss key>`
+
+Created when the boss's first kill or drop is tracked. Data Controls on the settings page deletes
+one boss's entry (`tracker.Reset`) or every boss's (`tracker.ResetAll`), after a
+confirmation. The fields:
 
 | Field | Saved as |
 |---|---|
@@ -59,13 +65,14 @@ kill.
 
 ### Example
 
-[`saved-data.example.json`](saved-data.example.json) is a full record, taken from a
-real character with the name changed. Its Vorkath entry: 7 hard mode chests on day
-20760, with two spike drops (56079), the last at the 3rd chest. No codex (56068) or
-scale (56321) yet.
+[`saved-data.example.json`](saved-data.example.json) is a character's entries, taken
+from a real character with the name changed. Its Vorkath entry: 7 hard mode chests
+on day 20760, with two spike drops (56079), the last at the 3rd chest. No codex
+(56068) or scale (56321) yet.
 
 ```json
-"vorkath": {
+"char:ExampleName:vorkath": {
+  "version": 1,
   "kills": { "h": "20760:7" },
   "dryFrom": {
     "56079": { "day": 20760, "at": { "h": { "20760": 3 } } },
@@ -80,20 +87,30 @@ the first chest: 7. A new chest changes only `kills`.
 
 ## On disk
 
-The example shows the record as Lua sees it. The game stores it in its plugin
-database as JSON, writing every table as a list of `{ "key": ..., "value": ... }`
-pairs and every number as a decimal:
+The example shows the entries as Lua sees them. The game stores each in its plugin
+database as indented JSON, writing every table as a list of `{ "key", "value" }`
+pairs and every number as a decimal. The character entry above, on disk:
 
 ```json
 [
-  { "key": "version", "value": 1.0 },
-  { "key": "lastBoss", "value": "barrows" },
-  { "key": "bosses", "value": [ { "key": "vorkath", "value": [ ... ] } ] }
+	{
+		"key" : "version",
+		"value" : 1.0
+	},
+	{
+		"key" : "lastBoss",
+		"value" : "barrows"
+	}
 ]
 ```
 
 ## Size
 
-A saved table entry costs about 100 bytes on disk, and a day of kills adds about 10
-characters to a mode's text. One boss with ten uniques played daily for a year is
-about 10 KB.
+The game can't save every size of entry: in the beta client on 4 November 2026, an
+entry of 104,350 bytes on disk saved, and one of about 131,000 failed. A failed save
+returns false, and the entry already saved stays as it was.
+
+In a boss's entry on disk, each collected unique adds about 50 bytes, each dry streak
+start about 340, and each day of kills about 9 per mode. One boss with ten uniques
+played daily for a year is about 8 KB. A heavy player's largest entry is about 58 KB
+after 5 years ([Caching](../technical/caching.md#cost)).

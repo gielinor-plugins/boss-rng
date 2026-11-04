@@ -1,43 +1,43 @@
 {
-  "char:ExampleName": {
+  "char:ExampleName": { "version": 1, "lastBoss": "barrows" },
+  "char:ExampleName:kreearra": {
     "version": 1,
-    "lastBoss": "barrows",
-    "bosses": {
-      "kreearra": {
-        "kills": { "n": "20760:6" },
-        "dryFrom": {},
-        "items": {}
-      },
-      "vorkath": {
-        "kills": { "h": "20760:7" },
-        "dryFrom": {
-          "56079": { "day": 20760, "at": { "h": { "20760": 3 } } },
-          "any": { "day": 20760, "at": { "h": { "20760": 3 } } }
-        },
-        "items": { "56079": 2 }
-      },
-      "archglacor": {
-        "kills": { "h": "20760:9" },
-        "sums": {
-          "enrage": { "h": "20760:23712" },
-          "streak": { "h": "20760:61" }
-        },
-        "dryFrom": {
-          "52115": { "day": 20760, "at": { "h": { "20760": 9 } } },
-          "any": { "day": 20760, "at": { "h": { "20760": 9 } } }
-        },
-        "items": { "52115": 1 }
-      },
-      "kerapac": {
-        "kills": { "n3": "20760:2", "h3": "20759:1" },
-        "dryFrom": {},
-        "items": {}
-      },
-      "barrows": {
-        "kills": { "c3f": "20761:1", "c6b": "20761:1" },
-        "dryFrom": {},
-        "items": {}
-      }
-    }
+    "kills": { "n": "20760:6" },
+    "dryFrom": {},
+    "items": {}
+  },
+  "char:ExampleName:vorkath": {
+    "version": 1,
+    "kills": { "h": "20760:7" },
+    "dryFrom": {
+      "56079": { "day": 20760, "at": { "h": { "20760": 3 } } },
+      "any": { "day": 20760, "at": { "h": { "20760": 3 } } }
+    },
+    "items": { "56079": 2 }
+  },
+  "char:ExampleName:archglacor": {
+    "version": 1,
+    "kills": { "h": "20760:9" },
+    "sums": {
+      "enrage": { "h": "20760:23712" },
+      "streak": { "h": "20760:61" }
+    },
+    "dryFrom": {
+      "52115": { "day": 20760, "at": { "h": { "20760": 9 } } },
+      "any": { "day": 20760, "at": { "h": { "20760": 9 } } }
+    },
+    "items": { "52115": 1 }
+  },
+  "char:ExampleName:kerapac": {
+    "version": 1,
+    "kills": { "n3": "20760:2", "h3": "20759:1" },
+    "dryFrom": {},
+    "items": {}
+  },
+  "char:ExampleName:barrows": {
+    "version": 1,
+    "kills": { "c3f": "20761:1", "c6b": "20761:1" },
+    "dryFrom": {},
+    "items": {}
   }
 }

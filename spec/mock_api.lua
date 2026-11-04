@@ -74,6 +74,22 @@ function mock.Reset(keepSaved)
             saved[key] = copy(value)
             return true
         end,
+        Delete = function(_, key)
+            saved[key] = nil
+            return true
+        end,
+        -- Calls callback(key, value) for each entry until it returns true; returns the
+        -- number of entries it was called for.
+        IterateEntries = function(_, callback)
+            local count = 0
+            for key, value in pairs(saved) do
+                count = count + 1
+                if callback(key, copy(value)) then
+                    break
+                end
+            end
+            return count
+        end,
     }
 end
 

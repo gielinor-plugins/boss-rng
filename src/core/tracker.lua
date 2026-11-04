@@ -7,41 +7,58 @@ local tallies = require("src/core/tallies")
 
 local tracker = {}
 
--- Saved under PREFIX and the character's display name, since every character on the
--- computer shares the plugin's saved data. A name change starts a new entry.
+-- Every character on the computer shares the plugin's saved data, so each entry's key
+-- starts with PREFIX and the character's display name: "char:<name>" holds the boss
+-- killed last, and "char:<name>:<boss key>" each boss's tallies. One entry per boss
+-- keeps each entry small: the game failed to save an entry of 128 KB in testing (see
+-- docs/data/saved-data.md). A name change starts anew.
 local PREFIX = "char:"
 
--- The saved shape's version (see src/core/tallies.lua). A record of any other version is
--- replaced with an empty one, so raising this needs a converter first (see "Not built
--- yet" in docs/data/compatibility.md).
+-- Every entry's version (see src/core/tallies.lua). An entry of any other version reads
+-- as empty and is replaced at its next save, so raising this needs a converter first
+-- (see "Not built yet" in docs/data/compatibility.md).
 local VERSION = 1
 
-local encoded = {} -- each boss's encoded tallies, kept until they change (see talliesFor)
+local name = nil -- the logged in character's, once loaded
+local lastBoss = nil -- the key of the boss the character killed last
+local bossTallies = {} -- [boss key] = tallies, or false if none; read when first needed
+local listeners = {}
+local switches = 0 -- counts character switches and resets of every boss
+local changes = {} -- [boss key] = changes to its tallies
 
-local function eachBoss(from, convert)
-    local to = { version = VERSION, lastBoss = from.lastBoss, bosses = {} }
-    for key, t in pairs(from.bosses or {}) do
-        to.bosses[key] = convert(t, key)
-    end
-    return to
+local function characterEntry()
+    return PREFIX .. name
 end
 
--- The record as saved. A boss's encoded tallies are reused until talliesFor clears
--- them, and share dryFrom and items with its tallies (only kills and sums are
--- converted), so tallies change only through talliesFor.
-local function encode(record)
-    return eachBoss(record, function(t, key)
-        encoded[key] = encoded[key] or tallies.Encode(t)
-        return encoded[key]
-    end)
+-- The start of the character's boss entries' keys.
+local function bossPrefix()
+    return characterEntry() .. ":"
 end
 
--- The saved record as tallies, or a fresh one if there's none or it's another version.
-local function decode(stored)
-    if stored == nil or stored.version ~= VERSION then
-        return { version = VERSION, bosses = {} }
+local function bossEntry(boss)
+    return bossPrefix() .. boss.key
+end
+
+-- An entry as saved, or nil if there's none or it's another version.
+local function read(key)
+    local saved = PersistentDB:GetStructuredData(key)
+    if saved == nil or saved.version ~= VERSION then
+        return nil
     end
-    return eachBoss(stored, tallies.Decode)
+    return saved
+end
+
+local function write(key, entry)
+    entry.version = VERSION
+    if not PersistentDB:SetStructuredData(key, entry) then
+        print("[Boss RNG] Could not save data for " .. name)
+    end
+end
+
+local function delete(key)
+    if not PersistentDB:Delete(key) then
+        print("[Boss RNG] Could not delete data for " .. name)
+    end
 end
 
 local function characterName()
@@ -55,12 +72,8 @@ local function characterName()
     return entity.displayName
 end
 
-local name, record = nil, nil -- the logged in character's, once loaded
-local listeners = {}
-local switches = 0 -- counts character switches and resets of every boss
-local changes = {} -- [boss key] = changes to its tallies
-
--- Loads the logged in character's record if needed; false if nobody is logged in.
+-- Loads the logged in character's entry if needed; false if nobody is logged in. Bosses'
+-- entries are read when first needed (see stored).
 local function load()
     local current = characterName()
     if current == nil then
@@ -68,33 +81,48 @@ local function load()
     end
     if current ~= name then
         name = current
-        record, encoded = decode(PersistentDB:GetStructuredData(PREFIX .. name)), {}
+        local saved = read(characterEntry())
+        lastBoss = saved and saved.lastBoss
+        bossTallies = {}
         switches = switches + 1
     end
     return true
 end
 
-local function save()
-    if not PersistentDB:SetStructuredData(PREFIX .. name, encode(record)) then
-        print("[Boss RNG] Could not save data for " .. name)
+-- The boss's tallies, read from its entry the first time; nil if it has none.
+local function stored(boss)
+    if bossTallies[boss.key] == nil then
+        local saved = read(bossEntry(boss))
+        bossTallies[boss.key] = saved and tallies.Decode(saved) or false
     end
+    return bossTallies[boss.key] or nil
+end
+
+local function saveBoss(boss)
+    write(bossEntry(boss), tallies.Encode(bossTallies[boss.key]))
+end
+
+local function saveCharacter()
+    write(characterEntry(), { lastBoss = lastBoss })
+end
+
+local function notify()
     for _, listener in ipairs(listeners) do
         safe.Call("updating after a change", listener)
     end
 end
 
 local function changed(boss)
-    encoded[boss.key] = nil
     changes[boss.key] = (changes[boss.key] or 0) + 1
 end
 
--- A boss's tallies to change, created if needed; re-encoded at the next save.
+-- A boss's tallies to change, created if needed.
 local function talliesFor(boss)
     changed(boss)
-    local t = record.bosses[boss.key]
+    local t = stored(boss)
     if t == nil then
         t = tallies.Empty()
-        record.bosses[boss.key] = t
+        bossTallies[boss.key] = t
     end
     return t
 end
@@ -106,8 +134,12 @@ function tracker.AddKills(boss, mode, count, day, sums)
         return
     end
     tallies.AddKills(talliesFor(boss), mode.key, day, count, sums)
-    record.lastBoss = boss.key
-    save()
+    saveBoss(boss)
+    if lastBoss ~= boss.key then
+        lastBoss = boss.key
+        saveCharacter()
+    end
+    notify()
 end
 
 -- Adds drops, ending the boss's and the item's dry streaks. game_vars reports a tick's
@@ -119,7 +151,7 @@ function tracker.AddDrops(boss, itemID, count)
     if not load() then
         return
     end
-    if boss.items[itemID].pooledBy ~= nil and record.lastBoss ~= boss.key then
+    if boss.items[itemID].pooledBy ~= nil and lastBoss ~= boss.key then
         return
     end
     local t = talliesFor(boss)
@@ -127,7 +159,8 @@ function tracker.AddDrops(boss, itemID, count)
     t.items[key] = (t.items[key] or 0) + count
     t.dryFrom[key] = tallies.StartNow(t.kills)
     t.dryFrom[tallies.ANY] = tallies.StartNow(t.kills)
-    save()
+    saveBoss(boss)
+    notify()
 end
 
 -- Clears the character's tallies for a boss.
@@ -135,22 +168,38 @@ function tracker.Reset(boss)
     if not load() then
         return
     end
-    record.bosses[boss.key] = nil
-    changed(boss)
-    if record.lastBoss == boss.key then
-        record.lastBoss = nil
+    if stored(boss) then
+        delete(bossEntry(boss))
     end
-    save()
+    bossTallies[boss.key] = false
+    changed(boss)
+    if lastBoss == boss.key then
+        lastBoss = nil
+        saveCharacter()
+    end
+    notify()
 end
 
--- Clears the character's tallies for every boss.
+-- Clears the character's tallies for every boss, including any whose entry the plugin no
+-- longer reads.
 function tracker.ResetAll()
     if not load() then
         return
     end
-    record.bosses, record.lastBoss, encoded = {}, nil, {}
+    local prefix, keys = bossPrefix(), {}
+    PersistentDB:IterateEntries(function(key)
+        if key:sub(1, #prefix) == prefix then
+            table.insert(keys, key)
+        end
+        return false -- keep going
+    end)
+    for _, key in ipairs(keys) do
+        delete(key)
+    end
+    bossTallies, lastBoss = {}, nil
+    saveCharacter()
     switches = switches + 1
-    save()
+    notify()
 end
 
 -- The character's tallies for a boss (empty if none yet), or nil if nobody's logged in.
@@ -158,14 +207,14 @@ function tracker.Tallies(boss)
     if not load() then
         return nil
     end
-    return record.bosses[boss.key] or tallies.Empty()
+    return stored(boss) or tallies.Empty()
 end
 
 function tracker.LastBossKey()
     if not load() then
         return nil
     end
-    return record.lastBoss
+    return lastBoss
 end
 
 -- A value that changes whenever the boss's tallies might have, so a caller knows to

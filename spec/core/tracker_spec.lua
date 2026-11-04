@@ -36,10 +36,10 @@ describe("tracker", function()
         local t = tracker.Tallies(BOSS)
         assert.are.same({ n = { ["20756"] = 1, ["20757"] = 1 }, h = { ["20756"] = 2 } }, t.kills)
         assert.are.equal(4, tallies.Total(t.kills))
-        -- Saved as text per mode, days in order.
-        local saved = mock.Saved("char:Tester")
+        -- Saved in the boss's own entry, as text per mode, days in order.
+        local saved = mock.Saved("char:Tester:testboss")
         assert.are.equal(1, saved.version)
-        assert.are.same({ n = "20756:1,20757:1", h = "20756:2" }, saved.bosses.testboss.kills)
+        assert.are.same({ n = "20756:1,20757:1", h = "20756:2" }, saved.kills)
     end)
 
     it("adds up a kill's sums per mode and day, and averages them", function()
@@ -49,7 +49,7 @@ describe("tracker", function()
         local t = tracker.Tallies(BOSS)
         assert.are.same({ enrage = 5, streak = 1.5 }, tallies.Means(t, "h", DAY))
         assert.is_nil(tallies.Means(t, "n", DAY))
-        assert.are.same({ h = "20756:10" }, mock.Saved("char:Tester").bosses.testboss.sums.enrage)
+        assert.are.same({ h = "20756:10" }, mock.Saved("char:Tester:testboss").sums.enrage)
     end)
 
     it("counts a dry streak for the boss and for each unique", function()
@@ -147,10 +147,12 @@ describe("tracker", function()
         end
     end)
 
-    it("starts again from another version", function()
-        mock.SetSaved("char:Tester", { version = 3, bosses = { testboss = { kills = { n = 4 } } } })
+    it("reads an entry of another version as empty", function()
+        mock.SetSaved("char:Tester", { version = 3, lastBoss = "testboss" })
+        mock.SetSaved("char:Tester:testboss", { version = 3, kills = { n = "20756:4" } })
         reload()
         assert.are.same(EMPTY, tracker.Tallies(BOSS))
+        assert.is_nil(tracker.LastBossKey())
     end)
 
     it("tells when a boss's tallies may have changed, or another character loaded", function()
@@ -179,14 +181,16 @@ describe("tracker", function()
         assert.is_false(changesAfter(function() end))
     end)
 
-    it("saves every boss's kills when one changes", function()
+    it("saves each boss in its own entry, writing only the boss that changed", function()
         local other = { key = "other", modes = { n = NORMAL }, items = {} }
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         tracker.AddKills(other, NORMAL, 2, DAY)
+        assert.are.equal("20756:2", mock.Saved("char:Tester:other").kills.n)
+        mock.SetSaved("char:Tester:other", { version = 1, kills = { n = "marked" } })
         tracker.AddKills(BOSS, NORMAL, 1, NEXT_DAY)
-        local saved = mock.Saved("char:Tester").bosses
-        assert.are.equal("20756:1,20757:1", saved.testboss.kills.n)
-        assert.are.equal("20756:2", saved.other.kills.n)
+        assert.are.equal("20756:1,20757:1", mock.Saved("char:Tester:testboss").kills.n)
+        assert.are.equal("marked", mock.Saved("char:Tester:other").kills.n) -- not rewritten
+        assert.are.same({ version = 1, lastBoss = "testboss" }, mock.Saved("char:Tester"))
     end)
 
     it("resets one boss, keeping the others, and starts it fresh", function()
@@ -195,6 +199,7 @@ describe("tracker", function()
         tracker.AddKills(BOSS, NORMAL, 3, DAY)
         tracker.AddDrops(BOSS, 101, 1)
         tracker.Reset(BOSS)
+        assert.is_nil(mock.Saved("char:Tester:testboss"))
         tracker.AddKills(BOSS, NORMAL, 1, NEXT_DAY)
         mock.Reset(true) -- reload, to go through saving
         mock.inGame = true
@@ -209,6 +214,10 @@ describe("tracker", function()
     it("resets every boss and tells listeners", function()
         local calls = 0
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
+        -- A boss the plugin no longer has, and other characters' entries.
+        mock.SetSaved("char:Tester:gone", { version = 1, kills = { n = "20756:1" } })
+        mock.SetSaved("char:Other:testboss", { version = 1, kills = { n = "20756:1" } })
+        mock.SetSaved("char:Tester2:testboss", { version = 1, kills = { n = "20756:1" } })
         tracker.OnChange(function()
             calls = calls + 1
         end)
@@ -219,6 +228,9 @@ describe("tracker", function()
         reload()
         assert.are.same(EMPTY, tracker.Tallies(BOSS))
         assert.is_nil(tracker.LastBossKey())
+        assert.is_nil(mock.Saved("char:Tester:gone"))
+        assert.are.equal("20756:1", mock.Saved("char:Other:testboss").kills.n)
+        assert.are.equal("20756:1", mock.Saved("char:Tester2:testboss").kills.n)
     end)
 
     it("keeps its data after a reload", function()
@@ -242,6 +254,7 @@ describe("tracker", function()
         mock.inGame = false
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         assert.is_nil(mock.Saved("char:Tester"))
+        assert.is_nil(mock.Saved("char:Tester:testboss"))
     end)
 
     it("keeps saving and telling other listeners when one fails", function()
@@ -254,7 +267,7 @@ describe("tracker", function()
         end)
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         assert.are.equal(1, calls)
-        assert.are.equal("20756:1", mock.Saved("char:Tester").bosses.testboss.kills.n)
+        assert.are.equal("20756:1", mock.Saved("char:Tester:testboss").kills.n)
     end)
 
     it("tells listeners about each change", function()

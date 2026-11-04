@@ -27,11 +27,12 @@ picked boss's stats are worked out. The key is also the entry's `inputs`.
 The panel and window also skip a redraw when what they'd show is unchanged: see
 [UI](ui.md#when-views-draw).
 
-## Encoded tallies
+## Loaded tallies
 
-`encoded` in `src/core/tracker.lua` keeps each boss's saved form, so a save encodes
-only bosses without one. Cleared for one boss by `talliesFor` (before its tallies
-change) and for all when another character loads or every boss is reset.
+`bossTallies` in `src/core/tracker.lua` keeps each boss's tallies once read, so its
+saved entry is read once per character. The first draw after login reads every
+supported boss's, since the dropdown lists each boss with kills. Cleared when another
+character loads or every boss is reset.
 
 ## Within one stats calculation
 
@@ -64,19 +65,19 @@ about a fifth between runs:
 | Arch-Glacor | about 25 ms | 11 ms |
 | Vorkath (hard) | about 9 ms | 1 ms |
 
-A heavy player's whole record: 10 kills a day at 5 bosses and 10 a week at 10 more,
-with a unique about every 20 days at each:
+A heavy player: 10 kills a day at 5 bosses and 10 a week at 10 more, with a unique
+about every 20 days at each. Sizes are as the game stores them:
 
-| Played for | Saved record | Encoding every boss | Slowest boss's stats |
+| Played for | Saved, every entry | Largest entry | Slowest boss's stats |
 |---|---|---|---|
-| 4 weeks | about 11 KB | under 1 ms | about 2 ms (Barrows) |
-| 1 year | about 50 KB | about 5 ms | about 3 ms (Barrows) |
-| 5 years | about 220 KB | about 25 ms | about 11 ms (Arch-Glacor) |
+| About a month | about 25 KB | about 3 KB (Arch-Glacor) | about 2 ms (Barrows) |
+| 1 year | about 84 KB | about 14 KB (Arch-Glacor) | about 3 ms (Barrows) |
+| 5 years | about 270 KB | about 58 KB (Arch-Glacor) | about 11 ms (Arch-Glacor) |
 
 So stats take milliseconds even after years, and rerun only when their inputs
-change (above). After a kill only that boss is re-encoded. How long the game takes
-to write the record wasn't measured. [Saved data](../data/saved-data.md) describes
-the record and its size.
+change (above). A kill saves only that boss's entry. How long the game takes to save
+an entry wasn't measured. [Saved data](../data/saved-data.md#size) describes the
+entries and their size limit.
 
 ## Rules
 
