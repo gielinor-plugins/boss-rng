@@ -61,7 +61,7 @@ function format.LuckShort(result)
         if result.kills == 0 then
             return "no kills"
         elseif result.dryShare and result.expected > 0 then
-            return format.Percent(1 - result.dryShare) .. " still dry"
+            return format.Percent(1 - result.dryShare) .. " are still dry"
         end
         return "no chance yet"
     elseif result.luck > AVERAGE_HIGH then

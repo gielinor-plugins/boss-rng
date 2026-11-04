@@ -56,7 +56,7 @@ describe("format", function()
         assert.are.equal("bottom 12%", format.LuckShort({ luck = 0.12 }))
         assert.are.equal("no kills", format.LuckShort({ kills = 0 }))
         -- Before luck shows: the share still dry, or no chance yet when no kill could drop it.
-        assert.are.equal("91% still dry", format.LuckShort({ expected = 0.1, dryShare = 0.09 }))
+        assert.are.equal("91% are still dry", format.LuckShort({ expected = 0.1, dryShare = 0.09 }))
         assert.are.equal("no chance yet", format.LuckShort({ expected = 0, dryShare = 0 }))
     end)
 

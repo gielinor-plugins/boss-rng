@@ -52,7 +52,7 @@ The **Luck** tab lists each unique, unluckiest first:
 
 - **Item:** hover over the icon for the average player's drops of it. The number
   on the icon is how many you got while tracked; it's dimmed until you get one.
-- **Luck:** as above, or "91% still dry" before it can be rated, or "no chance
+- **Luck:** as above, or "91% are still dry" before it can be rated, or "no chance
   yet" if none of your tracked kills could drop it.
 - **Dry:** kills (or chests or piles, as above) since your last one of that unique.
 
