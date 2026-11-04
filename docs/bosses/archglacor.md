@@ -39,10 +39,10 @@ The wiki doesn't say it raises dark nilas, so they're left as they are.
   aren't counted here.
 - Dark nilas aren't on the wiki's unique table, but they count as a unique here:
   they're on the collection log, rare (1 in 100) and needed for the Leng weapons.
-- Dark nilas count like Vorkath's spikes: a claim's are one drop, and the collection
-  log count (items) shows apart ("All-time: 233 kills · 7 dark nilas · 5 other
-  uniques"). A long streak can hold two drops, which the plugin counts as one. The
-  Info tab says so.
+- Dark nilas count like Vorkath's spikes: all of a claim's dark nilas are one drop,
+  and their collection log count, which counts items, is shown separately
+  ("All-time: 233 kills · 7 dark nilas · 5 other uniques"). A long streak can hold
+  two drops, which the plugin counts as one. The Info tab says so.
 - A death keeps part of the streak's loot (5% per streak kill, up to 75%), claimed
   later at the chest outside. Kills whose loot was lost count as dry. Uniques kept
   count at that claim.
@@ -73,7 +73,7 @@ A dev probe logged, with the logic tick (50 per second):
   collection log count, every var named with ENRAGE or STREAK, and the pontifex
   ring's vars;
 - names only, at most once a second: every other `EGWD_WEN` or `GLACOR` var;
-- names only: each inventory the game added or updated, but the backpack and worn
+- names only: each inventory the game added or updated, except the backpack and worn
   gear.
 
 Names with REWARD, LOOT, DROP, SEED, UNIQUE, CHEST, RARE, PIECE or OWED were never

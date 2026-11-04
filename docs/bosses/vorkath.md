@@ -22,7 +22,7 @@ Each chest rolls once for a rare, in its first slot:
 - So saving chests never looks unlucky, and a chest opened with Boss RNG off
   isn't tracked, nor its loot.
 - Spikes drop in stacks and the collection log counts spikes. Each stack is one drop
-  for luck; the spike count shows apart ("All-time: 400 kills · 184
+  for luck; the spike count is shown separately ("All-time: 400 kills · 184
   spikes · 6 other uniques").
 - Spikes drive most of the headline luck and dry streak; the codex and scale rows
   show their own.

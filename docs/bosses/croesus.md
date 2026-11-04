@@ -19,9 +19,9 @@ rebalance doesn't say if its rates are per kill or per roll; assumed per unique 
 
 ## How kills are counted
 
-- At each kill, the kill counts at the unique rolls for your last contribution
-  before it. A kill with no contribution seen (say, Boss RNG turned on as the
-  kill ended) isn't counted.
+- Each kill gets the unique rolls earned by your last contribution seen before it. A
+  kill with no contribution seen (say, Boss RNG turned on as the kill ended) isn't
+  counted.
 - Loot can stack in the chest, but rolls are known at each kill, so kills stay
   the unit.
 - Kills are saved by unique rolls, as day and count

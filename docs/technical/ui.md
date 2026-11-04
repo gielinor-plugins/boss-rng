@@ -13,7 +13,7 @@ every view says the same thing the same way. `src/ui.lua` decides when they draw
 
 ## When views draw
 
-- **After a change,** on the next logic tick, once however many changes the tick
+- **After a change,** on the next logic tick, once however many changes that tick
   had (a kill and its drop are two).
 - **Only if what they show changed.** The panel and window compare the boss list
   and the shown boss's inputs with what they last drew, so a kill at another boss

@@ -15,13 +15,13 @@ game events -> game_vars -> tracker -> saved data
 ```
 
 1. **Reading the game.** `game_vars` watches each boss's kill counts and collection
-   log counts. It's the only code that reads the game, with its helpers. It reports
+   log counts. It and its helpers are the only code that reads the game. It reports
    each kill (with its mode, see below) and each drop.
 2. **Keeping tallies.** `tracker` adds each kill and drop to the logged-in
    character's tallies, by day, and saves them. Nothing else writes saved data.
 3. **Working out luck.** When a view draws, `stats` turns the tallies into luck, dry
-   streaks and expected drops, rating each kill at its day's drop rates. The game's
-   all-time totals are shown beside them, never used for luck.
+   streaks and expected drops, rating each kill at the drop rates in effect that
+   day. The game's all-time totals are shown beside them, never used for luck.
 4. **Drawing.** `ui` redraws the open views after a change, using the plugin's UI
    library (declared in `plugin.json`).
 
@@ -47,8 +47,8 @@ How a kill finds its mode depends on the boss:
 | A chest opened from the backpack | Zemouregal & Vorkath | The container (`src/core/containers.lua`) |
 
 Drop rates live apart from the boss files, in `src/core/rates/`: one file per game
-update, each with the day it went live. A kill is rated at the rates of its own
-day, so a later rate change never rewrites past luck.
+update, each with the day it takes effect, so a later rate change never rewrites
+past luck.
 
 ## Modules
 

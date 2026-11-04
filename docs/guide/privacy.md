@@ -12,7 +12,7 @@ Only information the game already shows you:
   value it reads.
 - **Your loot chests and loot piles,** for the bosses counted by them (Vorkath
   chests opened, Kerapac loot piles, Amascut and Sanctum of Rebirth claims).
-- **The game's date,** so each kill uses the drop rates of its day.
+- **The game's date,** so each kill uses the drop rates in effect that day.
 - **Your character's display name,** to keep each character's data apart.
 
 It never reads hidden values, such as bad luck mitigation or loot waiting before

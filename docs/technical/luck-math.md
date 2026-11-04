@@ -75,8 +75,8 @@ It's shown as:
 | 40% to 60% | "about average" |
 | Below 40% | "bottom N%", where N is luck, rounded up |
 
-"Spooned" and "cursed" mark the top and bottom 10%. Rounding up means you're never
-placed in a smaller group than you're in.
+"Spooned" and "cursed" mark the top and bottom 10%. Rounding up means the label
+never makes your result look rarer than it is.
 
 Luck shows once an average player would have one unique, or from your first unique.
 Before that, a dry run is normal, so the panel says how many kills until it will

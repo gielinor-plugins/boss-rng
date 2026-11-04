@@ -24,8 +24,8 @@ Info tab says so).
 - Each looted chest counts with exactly the chances of that run's brothers.
 - The kill count only rises for **6+ brothers**, Akrisae counting and Linza not
   (see Tests). Fewer makes a **partial chest**: it can still drop pieces (they
-  count in the collection log), is counted, and shows after the chests in the kill
-  count ("12 chests (+2 partial)").
+  count in the collection log), is counted, and appears in brackets after the counted
+  chests ("12 chests (+2 partial)").
 - Boss RNG counts chests, not kills, so luck and dry streaks say "chests". Partial
   chests count toward both, since they can drop uniques.
 - Akrisae has no var: he's the brother count less the six brothers' flags, less
@@ -59,11 +59,8 @@ those seven, and a partial chest otherwise. The bits follow the brothers' order 
 `src/bosses/barrows.lua`, so that order must never change.
 
 The key saves who died, not whether the chest counted, so a change to the kill
-count rule needs no saved data change. If Akrisae stopped counting toward the 6,
-the rule would depend on the chest's day (before the change, he counts), and
-each saved key gives the same brothers either way. Today a chest's kill count is
-set from its key alone, so the rule would need each kill's day too
-(`stats.lua` already has it for rates).
+count rule, such as Akrisae no longer counting toward the 6, needs no saved data
+change ([Compatibility](../data/compatibility.md#not-built-yet)).
 
 For example, two runs on day 20757:
 

@@ -20,8 +20,8 @@ A sample character's entries are in [`saved-data.example.json`](saved-data.examp
 
 ## `char:<name>`
 
-`lastBoss`, the boss killed last, gets any pooled unique (one log count shared by
-two bosses).
+`lastBoss`, the boss killed last, gets any shared unique (one collection log count
+shared by two bosses).
 
 ## `char:<name>:<boss key>`
 
@@ -55,13 +55,13 @@ A streak is the kills since its start (`tallies.Dry`):
 
 | Saved | Streak |
 |---|---|
-| no entry | every kill |
+| no start saved | every kill |
 | `{ day, at }` | kills after `day`, plus kills on `day` and day `0` beyond `at` |
 
 `day` is the latest day with kills at the drop (`0` if none), and `at` is
 `{ [mode key] = { [day] = n } }` for that day and day `0`. This is exact because
-days only go forward. A unique added later has no entry, so it runs from the first
-kill.
+days only go forward. A unique added later has no start saved, so it runs from the
+first kill.
 
 ### Example
 
@@ -82,14 +82,14 @@ on day 20760, with two spike drops (56079), the last at the 3rd chest. No codex
 }
 ```
 
-`56079` and `any`: 4 kills dry. `56068` and `56321` have no entry, so they run from
-the first chest: 7. A new chest changes only `kills`.
+`56079` and `any`: 4 chests dry. `56068` and `56321` have no start saved, so they
+run from the first chest: 7. A new chest changes only `kills`.
 
 ## On disk
 
 The example shows the entries as Lua sees them. The game stores each in its plugin
 database as indented JSON, writing every table as a list of `{ "key", "value" }`
-pairs and every number as a decimal. The character entry above, on disk:
+pairs and every number as a decimal. The example file's character entry, on disk:
 
 ```json
 [

@@ -7,9 +7,10 @@ have after the same kills. It never shows drop rates, only how your luck compare
 
 - **Only kills it sees.** Counting starts the day you install Boss RNG, and only
   while it's on. Kills and drops while it's off aren't counted.
-- **Each kill at its own day's rates.** When Jagex changes a drop rate, kills
-  before the change keep the old rate, so your past luck isn't rewritten.
-- **The kill's real conditions,** where the game shows them: Croesus contribution,
+- **Each kill at the drop rates in effect that day.** When Jagex changes a drop
+  rate, kills before the change keep the old rate, so your past luck isn't
+  rewritten.
+- **What affects each kill's rates,** where the game shows it: Croesus contribution,
   Amascut's enrage, Barrows brothers killed, Kerapac's loot piles, and so on.
   Each boss's page in [Supported bosses](../bosses/README.md) lists what it reads.
 - **Uniques only:** the items on the boss's collection log page that are rare
@@ -48,7 +49,7 @@ The top shows the same luck and dry streak, then:
   claimed. Barrows also shows partial chests, from runs with too few brothers for
   the game's kill count.
 - **Average player:** how many uniques an average player would have.
-- **All-time:** the game's kill count and collection log uniques. Stacked items
+- **All-time:** your boss log kill count and collection log uniques. Stacked items
   such as Vorkath's spikes are counted on their own.
 
 The **Luck** tab lists each unique, unluckiest first:

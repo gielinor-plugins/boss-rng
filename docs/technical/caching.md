@@ -1,8 +1,8 @@
 # Caching
 
 What Boss RNG keeps in memory to avoid repeating work. Nothing here is saved.
-Each cache holds results worked out from saved data or the game, so a stale check
-only costs a recompute.
+Each cache holds results worked out from saved data or the game, so clearing one
+never loses data: it only costs working them out again.
 
 ## Picked boss's stats
 

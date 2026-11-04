@@ -29,9 +29,9 @@ the same kills, and shows how unusual your current dry streak is. It never shows
 drop rates.
 
 It tracks your kills from the day you install it, while it's on, and rates each kill
-at the drop rates of its day, so a later rate change won't rewrite your past luck.
-Your all-time kill counts and collection log counts are shown beside it, as the game
-keeps them.
+at the drop rates in effect that day, so a later rate change won't rewrite your past
+luck. Your all-time kill counts and collection log counts are shown beside it, as
+the game keeps them.
 
 **How to use it:** open Boss RNG from the Plugins window's ribbon, then kill a
 supported boss. The panel shows your luck and dry streak, and View details opens a

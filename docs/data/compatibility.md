@@ -14,7 +14,7 @@ and no conversion of saved data.
 |---|---|---|
 | A boss's `key` | Saved data is keyed by it | `spec/saved_keys_spec.lua` |
 | A mode key in a boss's `modes` | Saved kills are keyed by it | `spec/saved_keys_spec.lua` |
-| An item id in a boss's `items` | Saved drops and dry streaks are keyed by it | Item ids are the game's, so there's no reason to |
+| An item id in a boss's `items` | Saved drops and dry streaks are keyed by it | Nothing: item ids are the game's own, so they never need to |
 | Barrows' chest key format (`c` and hex bits, in the brothers' order) | Every saved Barrows chest is keyed by it | `spec/saved_keys_spec.lua`, for a sample of keys |
 | A rate's name in `src/core/rates/base.lua` | Update files override rates by name | `spec/core/rates_spec.lua` fails if an update names a rate the base lacks; a rate looked up that no file has raises an error |
 
@@ -26,7 +26,7 @@ and no conversion of saved data.
 | A boss gains a unique | Add the item to `items` and a roll using a new rate name. Give the rate 0 in `base.lua` and its real value in the update's file. | Couldn't have dropped it, so it adds nothing to their expected drops or its dry streak. |
 | Jagex removes a unique from a boss's drops | Set its rate to 0 in the update's file. Keep the item. | Keep it: past drops and expected drops stay, and from the update's day it stops adding up. |
 | Boss RNG starts counting an item the boss always dropped | Add it to `items` and its roll, with its rate in `base.lua`, and move it out of the boss page's Not counted list. | All count toward its expected drops, though drops before this change weren't tracked. To avoid that, use 0 in `base.lua` and its rate from the plugin update's day instead. |
-| Boss RNG stops counting an item | Remove it from `items` and its roll, and add it to the boss page's Not counted list. | Lose it on every day, as if it never counted. Its saved drops and dry streak stay but are never read. |
+| Boss RNG stops counting an item | Remove it from `items` and its roll, and add it to the boss page's Not counted list. | It drops out of their luck on every day, as if it never counted. Its saved drops and dry streak stay but are never read. |
 | A boss gains a mode, such as a hard mode | Add a key to `modes` and its kill count to `killCounts` (`common.NormalAndHard` for a normal and hard pair), and list the key in `spec/saved_keys_spec.lua`. First confirm in game that the new mode has its own kill count var: if it shares one, tell the modes apart with a kill event instead. | Unchanged. Dry streaks span every mode, so they carry on. |
 | A kill's rate depends on a value read at the kill (such as Arch-Glacor's enrage) | Save the value as one of the kill event's `sums`, not the rate, and work the rate out from it in `rolls`. | A later rate change still applies to them, since the facts are saved, not the rate. |
 | A new boss | Follow [Adding a boss](../development/adding-a-boss.md). | None yet. |
@@ -74,5 +74,5 @@ working rates out from them by day, so most changes need none of it.
   raised. Today an entry of any other version reads as empty and is replaced at its
   next save, so raising `VERSION` alone would wipe every player's data. The same
   change must add a converter from every older version, with a spec, and leave any
-  entry it can't read untouched. Bosses whose format didn't change only need their
-  version raised ([Saved data](saved-data.md)).
+  entry it can't read untouched. Entries whose format didn't change only need their
+  version updated ([Saved data](saved-data.md)).

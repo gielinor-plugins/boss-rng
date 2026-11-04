@@ -23,8 +23,8 @@ and, in enrage only, the Shard of Genesis Essence.
 
 - **Piles claimed** are counted, not kills ("piles" in the panel). Piles wait in
   your chest across kills; no new instance starts until you claim.
-- At a claim, the chest's pile count just before it falls to 0 is the claim's
-  piles, counted at that chest's rates with any unique in it.
+- When you claim, the number of piles the chest held is the number counted, at that
+  chest's rates, with any unique in it.
 - **Only fully seen claims count:** every kill since the count was last 0 must
   have raised it, and the rises must add up to the claim. Otherwise the whole
   claim is skipped, so it never skews luck. This catches loot from before Boss

@@ -24,7 +24,7 @@ For reviewers and developers.
 ## Data
 
 - [Saved data](data/saved-data.md): what's saved and its format, with a
-  [sample record](data/saved-data.example.json)
+  [sample](data/saved-data.example.json)
 - [Compatibility](data/compatibility.md): changing rates, modes, items or bosses
   without breaking players' saved data
 

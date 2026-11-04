@@ -15,7 +15,7 @@ subscribes when the plugin starts and unsubscribes everything in `PluginShutdown
 | `ObjStackEntityAdded`, `ObjStackEntityChanged` | `game_vars` | Kerapac: the player's own loot piles that land with a kill. Piles the game marks as another player's are ignored. |
 | `ContentLayerReady` | `ui` (`bossrng_ui`) | The game gave the ribbon panel a fresh layer (opened, restored or resized): the panel draws. |
 | `SettingsLayerReady` | `ui` | The settings page opened: it draws. |
-| `Logic`, for one tick | `ui` (`bossrng_ui_redraw`) | A redraw asked for during a change happens on the next tick, once however many changes asked, then unsubscribes. |
+| `Logic`, for one tick | `ui` (`bossrng_ui_redraw`) | A redraw asked for during a change happens on the next tick, once however many changes asked for it, then unsubscribes. |
 
 Changes are reported a tick late on purpose: a kill and its drop can arrive in
 either order within a tick, so waiting lets kills always be counted before the
@@ -46,16 +46,16 @@ A collection log count rising is a drop only:
   counts long after login, so a rise with no kill isn't a drop.
 - **within 10 seconds of a claim,** for bosses whose loot waits until you claim it
   (Arch-Glacor's hard mode streak).
-- **for the boss killed last,** for a unique two bosses share one count for
-  (the Shard of Genesis Essence: Amascut and Nakatra).
+- **for the boss killed last,** for a unique whose collection log count two bosses
+  share (the Shard of Genesis Essence: Amascut and Nakatra).
 
 ## Other refreshes
 
 Without any tally changing, the views also redraw:
 
 - once vars can be trusted after login, so the all-time totals appear;
-- when a kill count rises at a boss counted later, at a chest or claim (Amascut,
-  Sanctum of Rebirth, Vorkath), so its all-time kills update at the kill.
+- when a kill count rises at a boss whose kills are counted at a chest or claim
+  (Amascut, Sanctum of Rebirth, Vorkath), so its all-time kills update right away.
 
 ## UI callbacks
 

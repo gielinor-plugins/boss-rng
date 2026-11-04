@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Instructions for AI coding agents working on Boss RNG. People can start from
-[docs/README.md](docs/README.md), which covers the same ground.
+[docs/README.md](docs/README.md).
 
 ## The project
 
