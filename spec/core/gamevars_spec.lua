@@ -53,7 +53,11 @@ describe("gamevars", function()
         mock.AddVarbit("LOG_ARMOR", -4, logVar, 0xFF00)
         mock.AddVarbit("LOG_SHARED", -5, logVar, 0xFF0000)
 
-        package.loaded["src/core/gamevars"] = nil
+        -- Fresh copies of gamevars and the modules that keep game state for it.
+        local stateful = { "gamevars", "vars", "killevents", "claims", "containers", "piles" }
+        for _, name in ipairs(stateful) do
+            package.loaded["src/core/" .. name] = nil
+        end
         gamevars = require("src/core/gamevars")
         reports, tick = {}, 1000
         mock.inGame = true
