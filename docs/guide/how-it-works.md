@@ -62,9 +62,8 @@ The **Luck** tab lists each unique, unluckiest first:
 
 ![The Luck tab for Kerapac: four uniques not rated yet, each with the share of players still dry and a dry streak.](../images/window-luck-kerapac.png)
 
-The **Info** tab lists what Boss RNG assumes for this boss (for example, that
-kills were solo when the game doesn't say), and tips for playing so kills are
-counted.
+The **Info** tab lists what Boss RNG assumes for this boss where it can't know for
+sure, such as that kills were solo, and tips for playing so kills are counted.
 
 ![The Info tab for Arch-Glacor's hard mode: one assumption and one tip.](../images/window-info-archglacor.png)
 

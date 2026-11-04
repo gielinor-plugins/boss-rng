@@ -1,9 +1,8 @@
 -- Connects every boss to the game: reports each kill and drop as it happens, and reads
 -- the all-time totals. It saves nothing. It and its helpers (var_watch, kill_events,
 -- claims, containers and piles) are the only code that reads the game. Kill counts and
--- collection log counts aren't hidden: the boss log and collection log show them, and
--- Jagex confirmed they may be read without either open. Hidden values, such as bad
--- luck mitigation, are never read.
+-- collection log counts aren't hidden: the boss log and collection log show them.
+-- Hidden values, such as bad luck mitigation, are never read.
 
 local claims = require("src/core/claims")
 local containers = require("src/core/containers")

@@ -35,9 +35,9 @@ the game, and what was tested in game.
 | [Vindicta & Gorvek](vindicta.md) | Each kill | Normal or hard mode |
 | [Zemouregal & Vorkath](vorkath.md) | Each chest opened from your backpack | Normal or hard mode |
 
-Kills are counted only while Boss RNG is on. Where the game doesn't show something a
+Kills are counted only while Boss RNG is on. Where Boss RNG can't know something a
 kill's rates depend on, such as who was in your group, the boss's Info tab lists
-what Boss RNG assumes.
+what it assumes.
 
 ## How to read a boss page
 

@@ -5,7 +5,7 @@
 Only information the game already shows you:
 
 - **Kill counts and collection log counts,** as the boss log and collection log
-  show them, without either being open. Jagex confirmed these may be read this way.
+  show them, without either being open.
 - **What sets a kill's drop rates,** read as it happens, such as Amascut's enrage,
   Croesus contribution, the Barrows brothers killed or the players in an elite
   dungeon. Each boss's page in [Supported bosses](../bosses/README.md) lists every
