@@ -1,5 +1,5 @@
--- Loot piles on the ground (see killEvents' piles in src/bosses.lua): the tiles where
--- ground stacks the player owns gained a watched item this tick. Only the owner's
+-- Loot piles on the ground (killEvents' piles in src/bosses.lua): the tiles where ground
+-- stacks the player owns gained a watched item this tick. Only the owner's
 -- piles are reported as owned, so a teammate's are never counted.
 
 local piles = {}

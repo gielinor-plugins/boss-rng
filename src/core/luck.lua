@@ -1,7 +1,7 @@
 -- Luck math for Boss RNG. Terms:
 --   chance    of something on one kill, from 0 to 1
 --   expected  drops an average player would have after the same kills
---   received  drops the player actually has (their boss log count)
+--   received  drops the player actually got while tracked
 
 local luck = {}
 
@@ -59,7 +59,8 @@ function luck.Percentile(expected, received)
     return below + 0.5 * math.exp(logTerm)
 end
 
--- Share of players with at least one drop within kills kills at chance per kill.
+-- Share of players who'd have at least one drop in the given number of kills, at
+-- chance per kill.
 function luck.DryPercentile(chance, kills)
     return 1 - (1 - chance) ^ kills
 end

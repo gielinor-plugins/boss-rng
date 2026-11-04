@@ -6,8 +6,9 @@
 --   dryFrom  { [streak key] = start } for each dry streak (the boss's, and each
 --            unique's), read as the kills since its start (tallies.Dry):
 --              (no entry)        from the first tracked kill
---              { day, at }       from a drop: day, the latest day with kills then
---                                (0 if none), and at, the kills then on that day and 0
+--              { day, at }       from a drop: day is the latest day with kills at the
+--                                time (0 if none), and at is that day's and day 0's
+--                                kills at the time, by mode
 --   items    { [item id] = drops }
 -- Days only go forward, so kills after a start are on its day or later (or 0).
 
@@ -152,7 +153,7 @@ local function eachMode(byMode, code)
     return result
 end
 
--- Each sum's modes coded with code.
+-- Each sum's modes, encoded or decoded with code.
 local function eachSum(sums, code)
     local result = {}
     for name, byMode in pairs(sums) do

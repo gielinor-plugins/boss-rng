@@ -1,6 +1,6 @@
--- Loot kept in an item to open later (see containers in src/bosses.lua): each one
--- opened is a kill, seen as its backpack count falling in the tick a reward window
--- opens. Banking one lowers the count too, but opens no reward window.
+-- Loot kept in an item to open later (containers in src/bosses.lua). Each one opened is
+-- a kill, seen as its backpack count falling in the tick a reward window opens.
+-- Banking one lowers the count too, but opens no reward window.
 
 local containers = {}
 
@@ -27,6 +27,8 @@ local function readHeld()
     return counts
 end
 
+-- Notes a container's backpack count falling, or any other inventory opening (a reward
+-- window).
 function containers.OnInventory(event)
     if event.inv.id == config.Inv.INV.id then
         for itemID, count in pairs(readHeld() or {}) do

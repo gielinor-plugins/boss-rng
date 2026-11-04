@@ -1,5 +1,5 @@
--- Loot that waits in a chest until claimed (see claims in src/bosses.lua): when
--- its bits fall to 0, their old value is the claim. A claim counts only if all of
+-- Loot that waits in a chest until claimed (claims in src/bosses.lua). When its bits
+-- fall to 0, their old value is the claim. A claim counts only if all of
 -- it was seen arriving with kills; loot waiting from before, or a kill that didn't
 -- raise it, leaves that claim uncounted.
 
@@ -7,7 +7,8 @@ local bits = require("src/utils/bits")
 
 local claims = {}
 
--- seen: loot seen since the bits were last 0; kills, rises: this tick's counts.
+-- Each claim keeps seen, the loot seen arriving since its bits were last 0, and this
+-- tick's kills and rises of its bits.
 local byVar, list = {}, {}
 
 -- Watches mask bits of var base; report(old, held) gets each counted claim.
@@ -48,6 +49,8 @@ function claims.OnVar(id, old, new, queue)
     end
 end
 
+-- A kill that didn't raise its claim's bits means loot arrived unseen, so that claim
+-- isn't trusted until the chest is empty again.
 function claims.EndTick()
     for _, claim in ipairs(list) do
         if claim.kills > claim.rises then

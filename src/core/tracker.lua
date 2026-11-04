@@ -1,5 +1,5 @@
--- Keeps each character's boss tallies, saved on this computer only: every kill and
--- drop gameVars reports, by day, since Boss RNG was installed. Luck comes only from
+-- Keeps each character's tallies for every boss, saved on this computer only: every kill
+-- and drop game_vars reports, by day, since Boss RNG was installed. Luck comes only from
 -- these; the game's all-time totals are shown as facts.
 
 local safe = require("src/utils/safe")
@@ -94,8 +94,8 @@ local function talliesFor(boss)
     return t
 end
 
--- Adds kills, and their sums (or nil). Dry streaks are read as the kills since their
--- start, so they need no change.
+-- Adds kills, and their sums (or nil). Dry streaks are worked out as the kills since
+-- their start, so adding kills doesn't touch them.
 function tracker.AddKills(boss, mode, count, day, sums)
     if not load() then
         return
@@ -105,10 +105,11 @@ function tracker.AddKills(boss, mode, count, day, sums)
     save()
 end
 
--- Ends the boss's and the item's dry streaks. gameVars reports a tick's kills first,
--- so a drop ends the streak after the kill it landed with. A pooled unique's log
--- count rises for every boss listing it, so it's tracked only for the boss killed
--- last: the one it came from, unless its loot was left until after another kill.
+-- Adds drops, ending the boss's and the item's dry streaks. game_vars reports a tick's
+-- kills first, so a drop ends the streak after the kill it came with. A shared
+-- unique's collection log count rises for every boss that lists it, so the drop is
+-- tracked only for the boss killed last: the one it came from, unless its loot was
+-- left until after another kill.
 function tracker.AddDrops(boss, itemID, count)
     if not load() then
         return
@@ -162,7 +163,8 @@ function tracker.LastBossKey()
     return record.lastBoss
 end
 
--- Changes whenever the boss's tallies given out might have.
+-- A value that changes whenever the boss's tallies might have, so a caller knows to
+-- work its stats out again.
 function tracker.Changes(boss)
     load()
     return switches .. ":" .. (changes[boss.key] or 0)

@@ -1,9 +1,9 @@
--- Reads boss kill counts and boss log counts: all-time totals, and each kill and
--- drop as a count goes up. It stores nothing; it and its helpers (var_watch, and the
--- containers, claims, kill events and piles modules) are the only code that reads
--- the game. These counts aren't hidden (the Beasts tab and boss log show them, and
--- Jagex confirmed they may be read without either open); hidden values such as bad
--- luck mitigation are never read.
+-- Connects every boss to the game: reports each kill and drop as it happens, and reads
+-- the all-time totals. It saves nothing. It and its helpers (var_watch, kill_events,
+-- claims, containers and piles) are the only code that reads the game. Kill counts and
+-- collection log counts aren't hidden: the boss log and collection log show them, and
+-- Jagex confirmed they may be read without either open. Hidden values, such as bad
+-- luck mitigation, are never read.
 
 local claims = require("src/core/claims")
 local containers = require("src/core/containers")
@@ -17,8 +17,8 @@ local gameVars = {}
 
 local REF = "bossrng_game_vars"
 
--- Uniques waiting for a claim (dropsAtClaim in src/bosses.lua) reach the boss log with it;
--- allow this long after the claim.
+-- Uniques waiting for a claim (dropsAtClaim in src/bosses.lua) reach the collection log
+-- just after it, so a rise counts as a drop for this long after the claim.
 local CLAIM_TICKS = 10 * 50
 
 local onRefresh = nil -- called when all-time totals may change without a tally changing
@@ -98,7 +98,7 @@ function gameVars.AllTimeKills(boss)
 end
 
 -- A boss's all-time totals, nil as above: { kills = { [kill count var] = n },
--- items = { [unique's id text] = n }, values = { [reads key] = n } }.
+-- items = { [item id as text] = n }, values = { [reads key] = n } }.
 function gameVars.AllTime(boss)
     if not varWatch.IsReady() then
         return nil
@@ -151,8 +151,9 @@ local function killed(boss, mode, count, sums)
     onKills(boss, mode, count, today(), sums)
 end
 
--- Kills counted by a kill count rising, for kill counts naming their mode. A kill
--- counted later, at a chest or claim, still changes the all-time kills shown.
+-- Watches a boss's kill counts: a rise of one that names a mode is a kill of that mode.
+-- At a boss counted later, at a chest or claim, a rise still asks for a redraw, so its
+-- all-time kills update at the kill.
 local function watchKillCounts(boss)
     local countedLater = boss.containers ~= nil or boss.claims ~= nil
     for _, killCount in ipairs(boss.killCounts) do
@@ -205,8 +206,8 @@ local function watchContainers(boss)
     end
 end
 
--- Drops: each unique's log count rising, after a kill or, for loot that waits for a
--- claim, after the claim.
+-- Watches a boss's collection log counts: a rise is a drop after a kill this session or,
+-- for loot that waits for a claim, just after the claim.
 local function watchDrops(boss)
     if boss.dropsAtClaim then
         local held = 0
@@ -237,14 +238,15 @@ local HANDLERS = {
     ObjStackEntityChanged = onPileChanged,
 }
 
--- Reports changes for every boss in bosses on the logic tick after they happen:
---   kills(boss, mode, count, day, sums)  a KC rise, kill event, opened container or
---                                        claim; sums: a kill event's (or nil)
---   drops(boss, itemID, count)           a unique's log count rose (a stack's rise is one)
--- and calls refresh() each time vars can be trusted, and when a kill counted later (at
--- a chest or claim) raises a kill count. The game can resend log counts long
--- after login as jumps from 0, so only bosses killed this session, or just claimed,
--- can have drops.
+-- Watches every boss in bosses, and reports on the logic tick after each change:
+--   kills(boss, mode, count, day, sums)  kills of mode, from a kill count rise, kill
+--                                        event, claim or chest opened; sums are a kill
+--                                        event's values to add up (or nil)
+--   drops(boss, itemID, count)           drops of a unique (a stack's rise is one)
+-- refresh() is called once vars can be trusted after entering the game, and when a
+-- kill counted later, at a chest or claim, raises a kill count. The game can resend
+-- collection log counts long after login, as jumps from 0, so only a boss killed this
+-- session, or just claimed, can have drops.
 function gameVars.Start(bosses, kills, drops, refresh)
     onKills, onDrops, onRefresh = kills, drops, refresh
     for _, boss in ipairs(bosses) do

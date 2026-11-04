@@ -1,5 +1,6 @@
--- Turns a boss's tracked tallies into the numbers Boss RNG shows, each kill at its
--- day's rates. The game's all-time totals are passed through, never used for luck.
+-- Turns a boss's tracked tallies into the numbers Boss RNG shows, rating each kill at
+-- the drop rates in effect on its day. The game's all-time totals are passed through,
+-- never used for luck.
 
 local luck = require("src/core/luck")
 local rates = require("src/core/rates")
@@ -13,14 +14,15 @@ local MIN_EXPECTED = 1
 
 local NO_RATES = {} -- the rate values of a boss without any
 
--- A boss's rate values on a day, from boss.rates (a test boss's history) or its key's.
+-- A boss's rates on a day: from boss.rates (a test boss's own history), or from the rate
+-- files by its key.
 local function valuesOn(boss, day)
     local history = boss.rates or rates.For(boss.key)
     return history and history:On(day) or NO_RATES
 end
 
--- A mode's rolls on a day (nil or 0: today); mode.rolls may be a function of (values,
--- readings, means), means being the day's averages of its kills' sums (or nil).
+-- A mode's rolls on a day (nil or 0: today). mode.rolls can be a function of that day's
+-- rates, the readings, and the averages of that day's sums (or nil).
 function stats.Rolls(boss, mode, readings, day, means)
     local rolls = mode.rolls or {}
     if type(rolls) == "function" then
@@ -89,7 +91,8 @@ local function killsThatCanDrop(modes, lookup, byMode, itemID)
     return total
 end
 
--- Share of players who would have had one of counted (item ids) within byMode's kills.
+-- Share of players who'd have got at least one of counted (a set of item ids) within
+-- byMode's kills.
 local function dryShare(modes, lookup, byMode, counted)
     local missAll = 1
     eachKill(modes, byMode, function(mode, day, kills)
@@ -107,17 +110,19 @@ local function luckOf(expected, received)
     return nil
 end
 
--- Kills until expected reaches MIN_EXPECTED at rate uniques a kill; nil without a rate.
+-- Kills until expected reaches MIN_EXPECTED, at rate expected uniques per kill; nil
+-- without a rate.
 local function killsToLuck(expected, rate)
     if rate <= 0 then
         return nil
     end
-    -- Less a hair, so float error doesn't round up a whole kill.
+    -- Subtract a tiny amount so float error can't round up to an extra kill.
     return math.max(1, math.ceil((MIN_EXPECTED - expected) / rate - 1e-9))
 end
 
--- Uniques sharing a group become one row under its lowest item id: counts add up,
--- and its dry streak is its items' shortest. shareOf(itemID, ids) gives a dry share.
+-- Uniques sharing a group become one row under the group's lowest item id: their counts
+-- add up, and the row's dry streak is its shortest member's. shareOf(itemID, ids) gives
+-- a dry share.
 local function grouped(boss, items, shareOf)
     local members = {} -- [group] = item ids
     for itemID in pairs(items) do
@@ -160,7 +165,8 @@ local function sum(values)
     return total
 end
 
--- A stacked unique's log count is items, not drops, so it goes in stacks.
+-- A stacked unique's collection log count counts items, not drops, so it's shown apart
+-- in stacks.
 local function allTimeTotals(boss, allTime)
     local totals = { kills = sum(allTime.kills), received = 0, stacks = {} }
     for key, count in pairs(allTime.items) do
@@ -181,7 +187,8 @@ end
 -- Stats from { boss, tallies, readings, allTime }, or nil without tallies:
 --   kills, extraKills   tracked kills in the kill counts, and outside them (partial
 --                       Barrows chests, called extraLabel)
---   piles               loot piles over tracked kills, for modes that count them (Kerapac), or nil
+--   piles               loot piles over tracked kills, for modes that count them
+--                       (Kerapac), or nil
 --   expected, received  uniques an average player would have, and uniques tracked
 --   luck, killsToLuck   share of players with fewer uniques (or nil, see luckOf),
 --                       and kills until it shows

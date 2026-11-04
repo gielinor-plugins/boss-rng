@@ -1,7 +1,7 @@
--- Watches game vars for gameVars: each rise of a watched count, reported on the
--- logic tick after it arrives, and varbits followed as their base var changes.
--- Counts are varbits, slices of a base var whose old and new value VarTransmit
--- sends. Vars are trusted only a few seconds after entering the game.
+-- Watches game vars for game_vars: reports each rise of a watched count on the logic
+-- tick after it arrives, and calls followers when a followed varbit's base var
+-- changes. Counts are varbits: slices of a base var, whose old and new values
+-- VarTransmit sends. Vars are only trusted a few seconds after entering the game.
 
 local bits = require("src/utils/bits")
 local safe = require("src/utils/safe")
@@ -12,8 +12,8 @@ local varWatch = {}
 -- vars, so those sent at login aren't taken for kills or drops or read too early.
 local SETTLE_TICKS = 5 * 50
 
--- A KC rises by 1 per kill, a log count by a little per drop (more for a stack).
--- Bigger jumps (like a login sync) and any decrease are ignored.
+-- A kill count rises by 1 per kill, and a collection log count by a little per drop
+-- (more for a stack). Bigger jumps (like a login sync) and any decrease are ignored.
 local MAX_CHANGE = 3
 
 -- A tick's kill and drop can arrive in either order (at Kree'arra the drop came
@@ -36,7 +36,7 @@ function varWatch.Tick()
     return tick
 end
 
--- Whether vars can be trusted: in the game, and past the settle after entering it.
+-- Whether vars can be trusted: in the game, and past the wait after entering it.
 function varWatch.IsReady()
     return readyAtTick ~= nil and tick >= readyAtTick
 end
@@ -99,6 +99,7 @@ local function rise(slice, old, new)
     return to - from
 end
 
+-- Checks the slices and followers of the var that changed.
 function varWatch.OnTransmit(event)
     local old, new = event.oldValue, event.newValue
     for _, slice in ipairs(watched[event.var.id] or {}) do
@@ -115,8 +116,9 @@ function varWatch.OnTransmit(event)
     end
 end
 
--- Entering the game starts the settle; leaving it stops trusting vars. Maybe another
--- character comes next, so the highest counts seen are forgotten.
+-- Entering the game starts the wait before vars are trusted, and leaving it stops
+-- trusting them. The next character may be another, so the highest counts seen are
+-- forgotten.
 function varWatch.OnGameState(state)
     readyAtTick = state == GameState.GAME and tick + SETTLE_TICKS or nil
     eachCount(function(slice)

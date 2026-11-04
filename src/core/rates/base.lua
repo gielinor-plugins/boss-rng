@@ -8,7 +8,8 @@ local tables = require("src/utils/tables")
 -- A God Wars general's hilt: 1/512, rolled only when its 1/64 unique table misses.
 local GWD_HILT = (1 - 1 / 64) / 512
 
--- A God Wars 2 boss's table item, crest and essence rates by mode, with own over them.
+-- A God Wars 2 boss's table item, crest and essence rates in each mode, with own
+-- replacing any of them.
 local function godWars2(own)
     local values = tables.Merge(
         { normal = 1 / 256, normalEssence = 1 / 64, hard = 1 / 179, hardEssence = 1 / 44 },

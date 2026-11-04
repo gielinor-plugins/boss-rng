@@ -1,7 +1,8 @@
--- Kills told apart by what the game shows around them (killEvents in src/bosses.lua):
--- values read at the kill, a value's last before the game resets it (lasts), whether
--- a count rose in the kill's tick (rises), the player's loot piles (piles) and values
--- added up by day (sums). gameVars wires each boss's kill events in.
+-- Kill events (killEvents in src/bosses.lua): kills told apart by what the game shows
+-- around them. A kill event can read values at the kill (reads), a value's last before
+-- the game resets it (lasts), whether a count rose in the kill's tick (rises), the
+-- player's loot piles (piles), and values to add up by day (sums). game_vars wires
+-- each boss's kill events in.
 
 local piles = require("src/core/piles")
 local varWatch = require("src/core/var_watch")
@@ -10,8 +11,8 @@ local killEvents = {}
 
 local risen = {} -- each kill event's rises seen this tick
 
--- The mode a kill event or claim says the kill was, and the values it read, given a
--- claim var's old value; nil if a value can't be read or it gives none.
+-- The mode a kill event or claim gives the kill, and the values it read. old is a claim
+-- var's old value. Nil if a value can't be read, or the event gives no mode.
 function killEvents.Mode(boss, event, old, kept, rose)
     local values = {}
     for key, name in pairs(event.reads or {}) do

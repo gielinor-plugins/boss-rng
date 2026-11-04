@@ -1,8 +1,9 @@
 -- Drop rates over time, as named values in src/core/rates/, one file per game
 -- update, oldest first (UPDATES). base.lua has each boss's published rates when it
 -- was added; each later file has the day its update went live and only the values
--- it changed, by boss key. Each tracked kill uses its day's values, worked out when
--- shown, so a plugin update after a game update re-rates every kill since.
+-- it changed, by boss key. Each tracked kill uses the values in effect on its day,
+-- looked up when stats are shown, so a plugin update released after a game update still
+-- rates every kill since at the new values.
 
 local rates = {}
 
@@ -19,7 +20,8 @@ local STRICT = setmetatable({}, {
 })
 
 -- A history from versions, oldest first, each { since, values }: since is the day it
--- went live (nil for the first; false if not live yet). Missing values come from the last.
+-- went live (nil for the first; false if not live yet). Missing values come from the
+-- version before.
 function rates.History(versions)
     local history, previous = setmetatable({ versions = {} }, History), STRICT
     for _, version in ipairs(versions) do
@@ -35,8 +37,9 @@ function rates.History(versions)
     return history
 end
 
--- The values of the newest version live on day (0 or nil: the newest). Each version
--- returns the same table every day, so rolls built from it can be reused.
+-- The values in effect on day: the newest version live by then (0 or nil: the newest of
+-- all). A version returns the same table every day, so rolls built from it can be
+-- reused.
 function History:On(day)
     for i = #self.versions, 1, -1 do
         local version = self.versions[i]
