@@ -20,7 +20,7 @@ function panel.Draw(state)
     local result = state.list[state.selected].stats
     host:AddTitle({ text = format.Luck(result) })
     if format.IsTracked(result) then
-        for _, line in ipairs({ format.TrackedShort(result), format.Dry(result) }) do
+        for _, line in ipairs({ format.TrackedCounts(result), format.Dry(result) }) do
             if line ~= "" then
                 host:AddText({ text = line })
             end

@@ -112,11 +112,15 @@ function format.Dry(result)
     return kills .. " dry · " .. format.Percent(1 - result.dryShare) .. " go this long"
 end
 
--- "212 kills (+4 partial) · 2 uniques".
--- Kills, then (with details) partial kills and loot piles, then uniques.
-local function trackedCounts(result, word, details)
-    local text = count(result.kills, word)
-    if details and (result.extraKills or 0) > 0 then
+-- The tracked kills, any partial kills or loot piles, and uniques, for the panel:
+-- "212 kills · 2 uniques", "12 chests (+2 partial) · 0 uniques" or "40 kills (97
+-- piles) · 2 uniques". "" when nothing is tracked.
+function format.TrackedCounts(result)
+    if not format.IsTracked(result) then
+        return ""
+    end
+    local text = count(result.kills, unit(result))
+    if (result.extraKills or 0) > 0 then
         text = text
             .. " (+"
             .. format.Number(result.extraKills)
@@ -124,23 +128,16 @@ local function trackedCounts(result, word, details)
             .. (result.extraLabel or "other")
             .. ")"
     end
-    if details and result.piles then
+    if result.piles then
         text = text .. " (" .. count(result.piles, "pile") .. ")"
     end
     return text .. " · " .. count(result.received, "unique")
 end
 
--- "Tracked: 212 kills (+4 partial) · 2 uniques", with any loot piles ("40 kills (97
--- piles)"), or "" with none.
+-- The same, labeled for the details window: "Tracked: 212 kills · 2 uniques".
 function format.Tracked(result)
-    return format.IsTracked(result) and ("Tracked: " .. trackedCounts(result, unit(result), true))
-        or ""
-end
-
--- The same in a few words, for the panel, without partial kills or piles: "212 tracked
--- kills · 2 uniques".
-function format.TrackedShort(result)
-    return not format.IsTracked(result) and "" or trackedCounts(result, "tracked " .. unit(result))
+    local counts = format.TrackedCounts(result)
+    return counts ~= "" and "Tracked: " .. counts or ""
 end
 
 -- The game's own totals, shown as facts but never used for luck. A stacked unique's

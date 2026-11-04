@@ -24,8 +24,10 @@ Info tab says so).
 - Each looted chest counts with exactly the chances of that run's brothers.
 - The kill count only rises for **6+ brothers**, Akrisae counting and Linza not
   (see Tests). Fewer makes a **partial chest**: it can still drop pieces (they
-  count in the collection log), is counted, and shows after the kill count ("12 kills
-  (+2 partial)").
+  count in the collection log), is counted, and shows after the chests in the kill
+  count ("12 chests (+2 partial)").
+- Boss RNG counts chests, not kills, so luck and dry streaks say "chests". Partial
+  chests count toward both, since they can drop uniques.
 - Akrisae has no var: he's the brother count less the six brothers' flags, less
   Linza.
 - **Dry streaks:** an item's dry count only counts chests where its brother died.

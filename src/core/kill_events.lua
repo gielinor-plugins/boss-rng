@@ -1,7 +1,7 @@
 -- Kill events (killEvents in src/bosses.lua): kills told apart by what the game shows
 -- around them. A kill event can read values at the kill (reads), a value's last before
 -- the game resets it (lasts), whether a count rose in the kill's tick (rises), the
--- player's loot piles (piles), and values to add up by day (sums). game_vars wires
+-- player's loot piles (pileItems), and values to add up by day (sums). game_vars wires
 -- each boss's kill events in.
 
 local piles = require("src/core/piles")
@@ -27,7 +27,7 @@ function killEvents.Mode(boss, event, old, kept, rose)
     for key in pairs(event.rises or {}) do
         values[key] = rose[key] == true
     end
-    if event.piles then
+    if event.pileItems then
         values.piles = piles.Count()
     end
     local key = event.mode(values, old)
@@ -48,7 +48,7 @@ end
 
 -- Watches a boss's kill event; report(mode, sums) gets each kill it gives a mode.
 function killEvents.Add(boss, event, report)
-    piles.Watch(event.piles or {})
+    piles.Watch(event.pileItems or {})
     local kept = {} -- each of event.lasts' last value above 0 since the last kill
     for key, name in pairs(event.lasts or {}) do
         varWatch.Follow(name, function(now)

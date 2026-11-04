@@ -187,6 +187,7 @@ return {
     killCounts = { { var = VARS.kc } }, -- counted per chest looted, through its kill event
     modes = MODES,
     killEvents = { { var = VARS.run, mask = LOOTED, reads = lootReads(), mode = chestLooted } },
+    unit = "chest", -- luck counts chests looted, not kills
     extraKills = "partial", -- what tracked chests outside the kill count are called
 
     items = logItems(),

@@ -32,6 +32,7 @@ one you killed last.
 | **Luck: next unique or 40 kills** | It's too early to rate. Luck shows once an average player would have one unique, or as soon as you get your first. |
 | **12 kills dry · 4% go this long** | 12 kills since your last unique, and only 4% of players would go 12 kills without one. |
 | **12+ kills dry** | The streak may be longer: you had kills before Boss RNG was tracking. |
+| **212 kills · 2 uniques** | What Boss RNG has tracked for this boss. Barrows adds partial chests ("12 chests (+2 partial)") and Kerapac your loot piles ("40 kills (97 piles)"). |
 
 **View details** opens the details window.
 
@@ -39,10 +40,10 @@ one you killed last.
 
 The top shows the same luck and dry streak, then:
 
-- **Tracked:** the kills and uniques Boss RNG counted. Some bosses count something
-  other than kills, such as Vorkath chests opened or Amascut piles claimed.
-  Barrows also shows partial chests, from runs with too few brothers for the
-  game's kill count.
+- **Tracked:** the kills and uniques Boss RNG counted, as on the panel. Some bosses
+  count something other than kills: Vorkath and Barrows chests, or Amascut piles
+  claimed. Barrows also shows partial chests, from runs with too few brothers for
+  the game's kill count.
 - **Average player:** how many uniques an average player would have.
 - **All-time:** the game's kill count and collection log uniques. Stacked items
   such as Vorkath's spikes are counted on their own.

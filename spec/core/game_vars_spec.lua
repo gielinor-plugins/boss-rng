@@ -204,7 +204,7 @@ describe("gameVars", function()
                 killEvents = {
                     {
                         var = "KC_NORMAL",
-                        piles = { 501, 502 },
+                        pileItems = { 501, 502 },
                         mode = function(values)
                             return "Piles " .. values.piles
                         end,
