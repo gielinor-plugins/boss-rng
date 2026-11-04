@@ -20,8 +20,8 @@ local STRICT = setmetatable({}, {
 })
 
 -- A history from versions, oldest first, each { since, values }: since is the day it
--- went live (nil for the first; false if not live yet). Missing values come from the
--- version before.
+-- went live (nil for the first; false if its date isn't known yet). Missing values come
+-- from the version before.
 function rates.History(versions)
     local history, previous = setmetatable({ versions = {} }, History), STRICT
     for _, version in ipairs(versions) do
