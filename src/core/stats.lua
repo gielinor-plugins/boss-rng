@@ -163,8 +163,8 @@ local function sum(values)
     return total
 end
 
--- A stacked unique's collection log count counts items, not drops, so it's shown apart
--- in stacks.
+-- A stacked unique's collection log count counts items, not drops, so it's shown
+-- separately, as stacks.
 local function allTimeTotals(boss, allTime)
     local totals = { kills = sum(allTime.kills), received = 0, stacks = {} }
     for key, count in pairs(allTime.items) do

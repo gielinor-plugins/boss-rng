@@ -9,8 +9,8 @@ eliteDungeon.ASSUMPTION = "Teammates who sit out a boss still affect its drop ra
 local PLAYERS = "DUNGEON_PLAYERS_AT_BOSS_KILL" -- players in the dungeon at the kill
 local TEAMS = { "solo", "duo", "trio" } -- rate names by players (see src/core/rates/base.lua)
 
--- A boss's group mode by players ("a2" for 2 at boss a): 0 (not read yet) leaves the
--- kill uncounted, and over 3 counts as 3.
+-- A boss's group mode key for the players at the kill, such as "a2" for 2 at boss a. 0
+-- players (not read yet) leaves the kill uncounted, and more than 3 count as 3.
 local function playersMode(id, players)
     if players < 1 then
         return nil
@@ -22,7 +22,7 @@ end
 function eliteDungeon.New()
     local dungeon = { killCounts = {}, modes = {}, killEvents = {} }
 
-    -- A boss by id, the start of its mode keys. Its solo kill count is kc .. "_SOLO",
+    -- Adds a boss. id starts its mode keys: its solo kill count is kc .. "_SOLO",
     -- saved as mode id .. "s"; its group kills are counted by the players at the kill.
     -- rolls(team)(r) gives a team's rolls.
     function dungeon.Add(id, kc, rolls)

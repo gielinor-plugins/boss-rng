@@ -1,5 +1,5 @@
--- Zemouregal & Vorkath. Rates: Jagex's 8 January 2024 post, raised 14 July 2025, via the
--- RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-30.
+-- Zemouregal & Vorkath. Rates: Jagex's 8 January 2024 post, with rates raised on 14 July
+-- 2025, via the RuneScape Wiki (CC BY-NC-SA 3.0), checked 2026-10-30.
 -- Each damager gets their own chest, with one rare slot, so each mode's rares are one
 -- roll. The chest is kept as an item to open later, so chests opened are counted.
 
@@ -14,7 +14,7 @@ local VARS = {
 }
 
 local SPIKE, SCALE, CODEX = 56079, 56321, 56068
-local CHEST, CHEST_HARD = 56071, 56072 -- Zemouregal & Vorkath loot (normal), (hard)
+local CHEST, CHEST_HARD = 56071, 56072 -- the normal and hard mode loot chests
 local REWARD_WINDOW = "DROP_CASKET_REWARDINV" -- the inventory a chest opens into
 
 return {

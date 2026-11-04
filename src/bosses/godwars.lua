@@ -1,6 +1,8 @@
 -- Shared by the God Wars Dungeon generals. Not a boss file. Rates: RuneScape Wiki
 -- (CC BY-NC-SA 3.0), checked 2026-10-27: a unique table roll and, only if it misses, a
--- hilt roll, so a kill gives at most one. Hard mode has the same rates.
+-- hilt roll, so a kill gives at most one. Hard mode has the same rates. The wiki doesn't
+-- say how Kree'arra's or K'ril's hilt rolls; the generals share one drop system, so
+-- theirs are assumed to work the same.
 
 local common = require("src/bosses/common")
 

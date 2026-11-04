@@ -1,6 +1,6 @@
 -- Jagex's Late-Game Rebalance (design preview: "late November 2026"), the rates
 -- it changed for supported bosses, by boss key (see src/core/rates.lua).
--- Decided where the post doesn't say: God Wars 1 armor includes the shields,
+-- Assumed where the post doesn't say: God Wars 1 armor includes the shields,
 -- and a kill still gives at most one table item; God Wars 2 hard mode crests
 -- change like normal mode's; Croesus's rates are per unique roll.
 
@@ -10,7 +10,8 @@ local CREST = 1 / 128
 local HILT = 1 / 384
 
 return {
-    day = days.FromDate(2026, 11, 30), -- assumed the last Monday until the patch notes confirm it
+    -- Assumed to be the last Monday in November, until the patch notes confirm it.
+    day = days.FromDate(2026, 11, 30),
     rates = {
         barrows = { amulet = 1 / 240 },
         croesus = { armor = 1 / 3000, other = 1 / 2500 },

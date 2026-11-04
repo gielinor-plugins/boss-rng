@@ -150,9 +150,9 @@ local function killed(boss, mode, count, sums)
     onKills(boss, mode, count, today(), sums)
 end
 
--- Watches a boss's kill counts: a rise of one that names a mode is a kill of that mode.
--- At a boss counted later, at a chest or claim, a rise still asks for a redraw, so its
--- all-time kills update at the kill.
+-- Watches a boss's kill counts: when one with a mode rises, that's a kill of that mode.
+-- For a boss whose kills are counted when a chest is opened or loot is claimed, a rise
+-- still asks for a redraw, so its all-time kills update right away.
 local function watchKillCounts(boss)
     local countedLater = boss.containers ~= nil or boss.claims ~= nil
     for _, killCount in ipairs(boss.killCounts) do
@@ -243,9 +243,9 @@ local HANDLERS = {
 --                                        event's values to add up (or nil)
 --   drops(boss, itemID, count)           drops of a unique (a stack's rise is one)
 -- refresh() is called once vars can be trusted after entering the game, and when a
--- kill counted later, at a chest or claim, raises a kill count. The game can resend
--- collection log counts long after login, as jumps from 0, so only a boss killed this
--- session, or just claimed, can have drops.
+-- kill count rises at a boss whose kills are counted at a chest or claim. The game can
+-- resend collection log counts long after login, as jumps from 0, so only a boss killed
+-- this session, or just claimed, can have drops.
 function gameVars.Start(bosses, kills, drops, refresh)
     onKills, onDrops, onRefresh = kills, drops, refresh
     for _, boss in ipairs(bosses) do

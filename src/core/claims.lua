@@ -1,6 +1,6 @@
 -- Loot that waits in a chest until claimed (claims in src/bosses.lua). When its bits
--- fall to 0, their old value is the claim. A claim counts only if all of
--- it was seen arriving with kills; loot waiting from before, or a kill that didn't
+-- fall to 0, the value they fell from is what was claimed. A claim counts only if all
+-- of it was seen arriving with kills; loot waiting from before, or a kill that didn't
 -- raise it, leaves that claim uncounted.
 
 local bits = require("src/utils/bits")
@@ -11,7 +11,8 @@ local claims = {}
 -- tick's kills and rises of its bits.
 local byVar, list = {}, {}
 
--- Watches mask bits of var base; report(old, held) gets each counted claim.
+-- Watches mask bits of var base; report(old, count) gets each counted claim: the var's
+-- value before the claim, and how much was claimed.
 -- Returns a function to call with each kill's count.
 function claims.Add(base, mask, report)
     local claim = {
@@ -32,7 +33,7 @@ function claims.Add(base, mask, report)
     end
 end
 
--- Passes a counted claim to queue(report, held).
+-- Passes each counted claim's report, and how much was claimed, to queue.
 function claims.OnVar(id, old, new, queue)
     for _, claim in ipairs(byVar[id] or {}) do
         local from, to = (old & claim.mask) >> claim.shift, (new & claim.mask) >> claim.shift

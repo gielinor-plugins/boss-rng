@@ -68,8 +68,9 @@ local function addResetButton(host, onClick)
     })
 end
 
--- Reset every boss, then one boss (at first the one the views show). The dropdown
--- is added last so its open list draws over everything else.
+-- A Reset row for every boss, then one for a single boss, picked in a dropdown that
+-- starts on the boss the views show. The dropdown is added last so its open list draws
+-- over everything else.
 local function addDataControls(host, state)
     host:AddTitle({ text = "Data Controls" })
     host:AddText({

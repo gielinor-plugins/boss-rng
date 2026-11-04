@@ -1,5 +1,4 @@
--- K'ril Tsutsaroth, God Wars Dungeon. Rates: see src/bosses/godwars.lua. The wiki doesn't
--- say how his hilt rolls, so it's assumed to work as the other generals' do.
+-- K'ril Tsutsaroth, God Wars Dungeon. Rates: see src/bosses/godwars.lua.
 
 local common = require("src/bosses/common")
 local godwars = require("src/bosses/godwars")

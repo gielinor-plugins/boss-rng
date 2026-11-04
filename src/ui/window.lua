@@ -15,8 +15,7 @@ local TABS_Y = 220 -- fixed, so the summary's length never moves the tabs
 
 local DIVIDER = common.Divider(PAD)
 
--- The Luck tab: a fixed header, then a framed panel whose rows scroll. A row is a
--- 40 px item slot, then inline columns at these x positions in the panel.
+-- The Luck tab: a fixed header, then a framed panel whose rows scroll.
 local ROWS, ROW_GAP = 4, 4 -- rows shown before the panel scrolls
 -- The panel: 2 px padding around the rows, inside its 4 px frame.
 local PANEL_HEIGHT = ROWS * 40 + (ROWS - 1) * ROW_GAP + 2 * 2 + 2 * 4
@@ -24,7 +23,8 @@ local PAGE_HEIGHT = 28 + PANEL_HEIGHT + 6 -- the header's 28 px above, 6 px belo
 -- The window's height: the title bar (32 px), the content down to the tabs, the tab
 -- strip (42 px), the page and the bottom frame (8 px).
 local HEIGHT = 32 + TABS_Y + 42 + PAGE_HEIGHT + 8
--- Luck and Dry are as wide as their widest text in the rows' font, measured in game:
+-- A row is a 40 px item slot, then columns at these x positions in the panel. Luck and
+-- Dry are as wide as their widest text in the rows' font, measured in game:
 -- the bar, a 6 px gap and "bottom 40%" (86 px) for Luck, then an 8 px gap; "99,999+"
 -- (53 px) for Dry. Names get the rest, and are shortened to fit.
 local NAME_X, NAME_WIDTH, VALUE_X, DRY_X, DRY_WIDTH = 50, 135, 193, 333, 53

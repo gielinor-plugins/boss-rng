@@ -1,5 +1,4 @@
--- Kree'arra, God Wars Dungeon. Rates: see src/bosses/godwars.lua. The wiki doesn't say
--- how its hilt rolls; the generals share one drop system, so it's assumed the same.
+-- Kree'arra, God Wars Dungeon. Rates: see src/bosses/godwars.lua.
 
 local common = require("src/bosses/common")
 local godwars = require("src/bosses/godwars")

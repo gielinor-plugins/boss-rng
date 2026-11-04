@@ -2,7 +2,7 @@
 
 local format = {}
 
--- Sums of many floats can land on either side of a value they equal exactly (0.29
+-- Float sums and products can land on either side of a value they equal exactly (0.29
 -- * 100 is 28.999999999999996), so rounding and thresholds allow this much, as in
 -- src/core/stats.lua: far more than float error, far less than any real difference.
 local FLOAT_ERROR = 1e-9

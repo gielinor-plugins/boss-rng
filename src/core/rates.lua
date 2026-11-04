@@ -2,8 +2,8 @@
 -- update, oldest first (UPDATES). base.lua has each boss's published rates when it
 -- was added; each later file has the day its update went live and only the values
 -- it changed, by boss key. Each tracked kill uses the values in effect on its day,
--- looked up when stats are shown, so a plugin update released after a game update still
--- rates every kill since at the new values.
+-- looked up when stats are shown, so if a plugin update ships after a game update, kills
+-- made between the two still get the new rates.
 
 local rates = {}
 
@@ -37,9 +37,9 @@ function rates.History(versions)
     return history
 end
 
--- The values in effect on day: the newest version live by then (0 or nil: the newest of
--- all). A version returns the same table every day, so rolls built from it can be
--- reused.
+-- The values in effect on day: the newest version live by then. Day 0 (the clock
+-- couldn't be read) or nil gets the newest of all. A version returns the same table
+-- every day, so rolls built from it can be reused.
 function History:On(day)
     for i = #self.versions, 1, -1 do
         local version = self.versions[i]

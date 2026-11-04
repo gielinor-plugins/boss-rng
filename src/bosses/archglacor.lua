@@ -3,8 +3,9 @@
 -- kill's place in the streak. Both are read at the kill and saved as daily totals, and
 -- each day's kills are rated at their averages. Uniques reach the collection log only
 -- when the streak's loot is claimed, even after a death, so drops count only just after
--- a claim (tests: docs/bosses/archglacor.md). Dark nilas come in stacks: a claim's
--- count as one drop, and their collection log count is shown on its own, like
+-- a claim (tests: docs/bosses/archglacor.md). Dark nilas come in stacks: all of a
+-- claim's dark nilas count as one drop, and their collection log count is shown on its
+-- own, like
 -- Vorkath's spikes. The pontifex shadow ring raises every unique (src/bosses/egwd.lua).
 
 local egwd = require("src/bosses/egwd")

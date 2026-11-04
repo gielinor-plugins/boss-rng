@@ -9,11 +9,11 @@ local TICK = Vector4.new(1.0, 1.0, 1.0, 0.9) -- marks average luck on a bar
 -- The filled part: a plain gold sprite that stretches cleanly.
 local BAR_FILL = "TIMERBAR_120_S_1"
 
-local function rect(parent, x, y, width, colour)
+local function rect(parent, x, y, width, color)
     local bar = ui.Rectangle.new(parent)
     bar:SetPos(x, y)
     bar:SetSize(width, luckBar.HEIGHT)
-    bar.colour, bar.fill = colour, true
+    bar.colour, bar.fill = color, true
 end
 
 -- On host (a window, page or panel) at x, y in its content layer.

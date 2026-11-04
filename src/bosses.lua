@@ -10,14 +10,16 @@
 --   name         the name players see
 --   assumptions  lines for the Info tab, or a function(readings) returning them
 --   killCounts   { var, mode } for each of its kill count varbits, which add up to its
---                all-time kills. A rise of one that names a mode is a kill of that
---                mode; the others are counted by killEvents, claims or containers.
+--                all-time kills. When one with a mode rises, each kill it rose by is a
+--                kill of that mode. Kills of one without a mode are counted by
+--                killEvents, claims or containers.
 --   modes        { [key] = mode }: each kind of kill, by the key its kills are saved
 --                under. Loading sets mode.key. A mode has:
 --                  rolls    its unique rolls: a list, or a function(r, readings,
---                           means) of the rates on the kill's day (r, from
---                           src/core/rates/), the values read from the game, and that
---                           day's averages of its kills' sums (nil without)
+--                           means) returning one. r is the rates in effect on the
+--                           kill's day (src/core/rates/), readings the values read
+--                           from the game (reads), and means that day's averages of
+--                           its kills' sums (nil if it has none)
 --                  piles    loot piles each kill gives (Kerapac)
 --                  partial  true if its kills aren't in the kill count (Barrows)
 --   items        { [item id] = item }: the uniques counted. Collection log items left

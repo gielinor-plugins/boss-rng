@@ -12,8 +12,9 @@ local varWatch = {}
 -- vars, so those sent at login aren't taken for kills or drops or read too early.
 local SETTLE_TICKS = 5 * 50
 
--- A kill count rises by 1 per kill, and a collection log count by a little per drop
--- (more for a stack). Bigger jumps (like a login sync) and any decrease are ignored.
+-- A kill count rises by 1 per kill and a collection log count by 1 per item, so a rise
+-- of up to 3 at once is taken as real (a stack sets its own limit). Bigger jumps, such
+-- as the login sync, and any fall are ignored.
 local MAX_CHANGE = 3
 
 -- A tick's kill and drop can arrive in either order (at Kree'arra the drop came
@@ -126,7 +127,8 @@ function varWatch.OnGameState(state)
     end)
 end
 
--- Started in the game: no state change arrives, and login vars are already in.
+-- If the plugin starts while already in the game, no state change arrives and the login
+-- vars are already in, so vars are trusted at once.
 function varWatch.Start(inGame)
     readyAtTick = inGame and 0 or nil
 end

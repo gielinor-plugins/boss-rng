@@ -1,8 +1,9 @@
 -- Shared by the Elder God Wars Dungeon bosses. Not a boss file. The enriched pontifex
--- shadow ring raises every unique 2%: a unique roll is out of 98% of its usual range
--- (a Jagex moderator, quoted on the RuneScape Wiki, checked 2026-11-03; the game rounds
--- that range down, a difference under 0.3%). Worn, it can't be seen; overcharged, it
--- works unworn and the game shows it. So only an overcharged ring raises rates here.
+-- shadow ring raises every unique by 2%: each unique roll is out of 98% of its usual
+-- range. Source: a Jagex moderator, quoted on the RuneScape Wiki, checked 2026-11-03.
+-- The game rounds that range down, which changes rates by under 0.3%. A ring that's only
+-- worn can't be seen; an overcharged one works without being worn, and the game shows
+-- it. So only an overcharged ring raises rates here.
 
 local tables = require("src/utils/tables")
 
