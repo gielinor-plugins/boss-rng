@@ -18,9 +18,8 @@ The rebalance doesn't say if a kill can still give only one table item; assumed 
 
 ## How kills are counted
 
-- Assumed solo (the Info tab says so): the kill count doesn't say who you killed
-  with, and group kills share drops, so group killers' luck reads low.
-- Normal and hard mode kill counts are both counted.
+- Normal and hard mode kills are both counted, and assumed solo
+  ([Shared assumptions](README.md#shared-assumptions)).
 
 ## Vars read
 

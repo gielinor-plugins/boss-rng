@@ -11,8 +11,7 @@ random.
 
 ## How kills are counted
 
-- Assumed solo (the Info tab says so): the kill count doesn't say who you killed
-  with, and group kills share drops, so group killers' luck reads low.
+- Kills are assumed solo ([Shared assumptions](README.md#shared-assumptions)).
 
 ## Vars read
 

@@ -36,9 +36,8 @@ rebalance doesn't say if its rates are per kill or per roll; assumed per unique 
 }
 ```
 
-- The overcharged pontifex shadow ring raises every unique 2%
-  (`src/bosses/egwd.lua`). If it isn't overcharged, the plugin can't see it, so it's
-  assumed not worn.
+- An overcharged pontifex shadow ring raises every unique 2%
+  ([Shared assumptions](README.md#shared-assumptions)).
 
 ## Vars read
 

@@ -19,9 +19,8 @@ Pieces drop in order (a random one, then the other two), so they're one row.
   tick. Each hard mode kill is saved as `h` (no checkpoints) if the stone's log
   count rose in its tick, or `hc` (checkpoints) if not. Normal mode is `n`: its
   rates don't depend on checkpoints.
-- The overcharged pontifex shadow ring raises every unique 2%
-  (`src/bosses/egwd.lua`). If it isn't overcharged, the plugin can't see it, so it's
-  assumed not worn.
+- An overcharged pontifex shadow ring raises every unique 2%
+  ([Shared assumptions](README.md#shared-assumptions)).
 - The collection log counts at most 250 stones. After that a kill can't show one, so
   it counts as `h`: those players have mastered the fight. The Info tab says so.
 

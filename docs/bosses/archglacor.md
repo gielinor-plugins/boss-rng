@@ -20,8 +20,9 @@ wiki notes players worked the formula out; it matches the published drop rates.
 Dark nilas: 1 in 100 per kill on their own roll, whatever the enrage and streak, in
 a stack of 2 plus 1 per 5 streak kills (up to 42).
 
-The overcharged pontifex shadow ring raises every unique 2% (`src/bosses/egwd.lua`).
-The wiki doesn't say it raises dark nilas, so they're left as they are.
+An overcharged pontifex shadow ring raises every unique 2%
+([Shared assumptions](README.md#shared-assumptions)), except dark nilas: the wiki
+doesn't say it raises them.
 
 ## How kills are counted
 
@@ -48,8 +49,6 @@ The wiki doesn't say it raises dark nilas, so they're left as they are.
   count at that claim.
 - The all-time unique count is the collection log's, so it includes normal mode
   drops.
-- If the ring isn't overcharged, the plugin can't see it, so it's assumed not
-  worn.
 
 ## Vars read
 

@@ -39,6 +39,17 @@ Kills are counted only while Boss RNG is on. Where Boss RNG can't know something
 kill's rates depend on, such as who was in your group, the boss's Info tab lists
 what it assumes.
 
+## Shared assumptions
+
+- **Solo kills.** A kill count doesn't say who you killed with, and in a group you
+  get a smaller share of the drops. So at the Corporeal Beast, the God Wars Dungeon
+  bosses, Nex and the Gate of Elidinis, every kill is assumed solo. If you kill in a
+  group, your luck will read lower than it really is.
+- **The pontifex shadow ring.** At the Elder God Wars Dungeon bosses (Arch-Glacor,
+  Croesus, Kerapac and TzKal-Zuk), an overcharged pontifex shadow ring raises every
+  unique's chance by 2%. Boss RNG can only see the ring once it's overcharged, so a
+  ring that isn't is treated as not worn.
+
 ## How to read a boss page
 
 Every page has these sections, in this order:

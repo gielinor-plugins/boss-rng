@@ -19,8 +19,8 @@ The rebalance doesn't say if the rares still share one roll; assumed yes.
 
 ## How kills are counted
 
-- Nearly every kill is solo, and the kill count doesn't say who you killed with,
-  so every kill is assumed solo (the Info tab says so).
+- Nearly every kill is solo, so every kill is assumed solo
+  ([Shared assumptions](README.md#shared-assumptions)).
 - Latent Offerings, by far the most common unique, drive most of the headline
   luck and dry streak.
 

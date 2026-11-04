@@ -26,9 +26,8 @@ Staff pieces drop in order (shaft, gem, then symbol), so they're one row.
 - Away at the kill (teleported, left or died), your piles aren't seen until you
   come back, so the kill counts as 1 pile: you were most likely not the top
   damager. The Info tab says so.
-- The overcharged pontifex shadow ring raises every unique 2%
-  (`src/bosses/egwd.lua`). If it isn't overcharged, the plugin can't see it, so it's
-  assumed not worn.
+- An overcharged pontifex shadow ring raises every unique 2%
+  ([Shared assumptions](README.md#shared-assumptions)).
 
 ## Vars read
 

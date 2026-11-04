@@ -18,8 +18,8 @@ Holy elixir: 3 in 512 (about 1 in 171).
 
 - Boss RNG came out after the July 2026 change, so every tracked kill uses
   today's rates.
-- Assumed solo (the Info tab says so): a drop goes to one player and the kill
-  count doesn't say who you killed with, so group killers' luck reads low.
+- Kills are assumed solo, since each drop goes to one player
+  ([Shared assumptions](README.md#shared-assumptions)).
 - The holy elixir also drops elsewhere, but players don't hunt it there, so it's
   counted.
 
