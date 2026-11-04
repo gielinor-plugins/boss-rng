@@ -20,13 +20,13 @@ Each kill makes two rolls at the same time, so a kill can rarely give two:
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_RASIAL_BOSS` | Kill count. |
-| `ITEMLOG_ITEM_NECRO_RASIAL_<PIECE>_T95` | Boss log count each: `ARMGUARD` (Omni guard), `LANTERN`, `HEAD`, `BODY`, `LEGS`, `HANDS`, `FEET`. |
+| `ITEMLOG_ITEM_NECRO_RASIAL_<PIECE>_T95` | Collection log count each: `ARMGUARD` (Omni guard), `LANTERN`, `HEAD`, `BODY`, `LEGS`, `HANDS`, `FEET`. |
 
 ## Not counted
 
 - **Miso** (pet): pets aren't counted.
 - **Rasial's crown** (boss trophy, 1 in 500): not on the collection log.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Miso | 55672 |

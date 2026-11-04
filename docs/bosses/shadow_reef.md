@@ -32,7 +32,7 @@ limb, mechanism and stock are one row.
 | `BSLAY_KILLS_DUNGEON_ULTHVEN3_SOLO` | Solo Ambassador kill count. |
 | `BSLAY_KILLS_DUNGEON_ULTHVEN3` | Group Ambassador kill count. |
 | `DUNGEON_PLAYERS_AT_BOSS_KILL` | Players in the dungeon at the kill, read at each group kill. |
-| `ITEMLOG_ITEM_DUNGEON_2H_RANGED_<PIECE>` | Boss log count per piece: `LIMB`, `MECHANISM`, `STOCK`. |
+| `ITEMLOG_ITEM_DUNGEON_2H_RANGED_<PIECE>` | Collection log count per piece: `LIMB`, `MECHANISM`, `STOCK`. |
 
 ## Not counted
 
@@ -41,7 +41,7 @@ limb, mechanism and stock are one row.
   (pet): lore and pets aren't counted.
 - **Head of the Ambassador** (boss trophy, 1 in 50): not on the collection log.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Black stone heart | 47506 |
 | The Last Offering | 47468 |

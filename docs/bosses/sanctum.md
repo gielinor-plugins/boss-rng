@@ -20,15 +20,15 @@ Nakatra's weapons 1 in 50 (hard mode 1 in 40), Shard 1 in 80.
 
 ## How kills are counted
 
-- Each boss's loot waits in a chest until you claim it, and the run can't be
-  entered again until you do. So each claim is one kill, counted when you claim,
-  at that boss's difficulty (normal or hard mode). Uniques reach the boss log at
-  the claim (assumed, as at Amascut), so they're counted with it.
+- Each boss's loot waits in a chest until you claim it, and the run can't be entered
+  again until you do. So each claim is one kill, counted when you claim, at that
+  boss's difficulty (normal or hard mode). Uniques reach the collection log at the
+  claim (assumed, as at Amascut), so they're counted with it.
 - A claim counts only if Boss RNG saw its kill: loot left waiting from before
   Boss RNG was on isn't counted.
 - Boss RNG came out after the March 2026 update, so every tracked kill uses
   today's rates.
-- The Shard of Genesis Essence has one boss log count shared with Amascut. A
+- The Shard of Genesis Essence has one collection log count shared with Amascut. A
   tracked Shard counts for whichever of the two you killed last.
 
 ## Vars read
@@ -37,7 +37,7 @@ Nakatra's weapons 1 in 50 (hard mode 1 in 40), Shard 1 in 80.
 |---|---|
 | `BSLAY_KILLS_RAID_REBIRTH1_<BOSS>` | Kill count per boss: `WYRM_BOSS` (Vermyx), `BEAST_BOSS` (Kezalam), `SLAYER_MASTER_BOSS` (Nakatra), each also with `_HARDMODE`. |
 | `RAID_REBIRTH1_VARP_1` | Each boss's waiting loot and its difficulty (0 normal, 1 hard): Vermyx bit `0x1`, difficulty `0x300`; Kezalam `0x4`, `0xC00`; Nakatra `0x10`, `0x3000`. Its rare fields (`0x2`, `0x8`, `0x20`, and the run's `0x40`, `0x80`) would reveal a reward before it's claimed, so they're never read. |
-| `ITEMLOG_ITEM_<ITEM>` | Boss log count each: `COMBATV2_PRAYER_CODEX_DIVINE_RAGE`, `RAID_REBIRTH1_AMASCUT_BOOK_UNLOCK_TOKEN` (scripture), `MAGIC_DEVOURER_WAND_T95` (Roar), `MAGIC_DEVOURER_ORB_T95` (Ode) and the Shard's. |
+| `ITEMLOG_ITEM_<ITEM>` | Collection log count each: `COMBATV2_PRAYER_CODEX_DIVINE_RAGE`, `RAID_REBIRTH1_AMASCUT_BOOK_UNLOCK_TOKEN` (scripture), `MAGIC_DEVOURER_WAND_T95` (Roar), `MAGIC_DEVOURER_ORB_T95` (Ode) and the Shard's. |
 
 ## Tests
 
@@ -62,7 +62,7 @@ two run rare fields; they add no rolls beyond the rates above.
 - **The Brood Mother**, **The Beast of Darkness** and **Death and Devourers**
   (lore) and **Neffie** (pet): lore and pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | The Brood Mother | 57121 |
 | The Beast of Darkness | 57122 |

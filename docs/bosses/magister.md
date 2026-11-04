@@ -22,14 +22,15 @@ On top of its main drop, each kill rolls for two uniques on their own:
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_MENAPHOS_SLAYER_BOSS` | Kill count. |
-| `ITEMLOG_ITEM_MAGISTER_<ITEM>` | Boss log count each: `PHYLACTERY`, `HANDS` (gloves). |
+| `ITEMLOG_ITEM_MAGISTER_<ITEM>` | Collection log count each: `PHYLACTERY`, `HANDS` (gloves). |
 
 ## Not counted
 
-- **The Minister** (pet) and **The Magister's Journal #1 to #5** (lore): lore and pets aren't counted.
+- **The Minister** (pet) and **The Magister's Journal #1 to #5** (lore): lore and
+  pets aren't counted.
 - **Soul obelisk** (boss trophy, 1 in 500): not on the collection log.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | The Minister | 40670 |
 | The Magister's Journal #1 | 40663 |

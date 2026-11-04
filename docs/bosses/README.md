@@ -39,12 +39,15 @@ what Boss RNG assumes.
 
 ## How to read a boss page
 
-Every page has the same sections:
+Every page has these sections, in this order:
 
 | Section | Says |
 |---|---|
 | **Drop rates** | Each unique's rate, with the wiki page and the date it was checked. |
 | **How kills are counted** | What counts as one kill, how its mode is decided, and what Boss RNG assumes. |
 | **Vars read** | Every game value read, and what it holds. Reviewers can check none is hidden. |
-| **Tests** | What was checked in game, when, and what it showed. |
+| **Tests** | What was checked in game, when, and what it showed. Only for bosses that needed more than their kill count and collection log counts. |
 | **Not counted** | Collection log items left out of luck, why, and their item ids. |
+
+A page can add a section for something only that boss has, such as how Barrows
+chests are saved.

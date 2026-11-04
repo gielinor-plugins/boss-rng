@@ -25,17 +25,17 @@ misses is there a roll for Zamorakian essence.
 |---|---|
 | `BSLAY_KILLS_TWINDEMONS` | Normal mode kill count. |
 | `BSLAY_KILLS_TWINDEMONS_HARDMODE` | Hard mode kill count. |
-| `ITEMLOG_ITEM_GWD2_ZAMORAK_<ITEM>` | Boss log count each: `CREST`, `WEAPON` (Nymora), `WEAPON_OFFHAND` (Avaryss), `ESSENCE`. |
+| `ITEMLOG_ITEM_GWD2_ZAMORAK_<ITEM>` | Collection log count each: `CREST`, `WEAPON` (Nymora), `WEAPON_OFFHAND` (Avaryss), `ESSENCE`. |
 
 ## Not counted
 
 - **Wings of the Twin Furies** (boss trophy, 1 in 500): not on the collection
   log.
-- **Dormant anima core pieces** (helm, body, legs): one boss log count shared by
-  all four God Wars Dungeon 2 bosses. They still take table share above.
+- **Dormant anima core pieces** (helm, body, legs): one collection log count shared
+  by all four God Wars Dungeon 2 bosses. They still take table share above.
 - **Nylessa** and **Ava** (pets): pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Dormant anima core helm | 37009 |
 | Dormant anima core body | 37012 |

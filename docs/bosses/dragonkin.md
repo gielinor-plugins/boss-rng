@@ -29,7 +29,7 @@ Fury, Black stone dragon: Barge). Teams are at most three.
 | `BSLAY_KILLS_DUNGEON_DRAGONFORT<N>_SOLO` | Solo kill count per boss: 1 Astellarn, 2 Verak Lith, 3 the Black stone dragon. |
 | `BSLAY_KILLS_DUNGEON_DRAGONFORT<N>` | Group kill count per boss. |
 | `DUNGEON_PLAYERS_AT_BOSS_KILL` | Players in the dungeon at the kill, read at each group kill. |
-| `ITEMLOG_ITEM_DUNGEON_MELEE_CODEX_<NAME>` | Boss log count per codex: `FLURRY`, `FURY`, `BARGE`. |
+| `ITEMLOG_ITEM_DUNGEON_MELEE_CODEX_<NAME>` | Collection log count per codex: `FLURRY`, `FURY`, `BARGE`. |
 
 ## Not counted
 
@@ -39,7 +39,7 @@ Fury, Black stone dragon: Barge). Teams are at most three.
 - **Redacted Dragonkin Research** and **Diary of an Overzealous Gnome** (lore)
   and **Bisdi** (pet): lore and pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Redacted Dragonkin Research | 43373 |
 | Diary of an Overzealous Gnome | 43374 |

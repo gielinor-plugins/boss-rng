@@ -18,11 +18,11 @@ each.
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_BARROWSROTS` | Kill count. |
-| `ITEMLOG_ITEM_ROTS_SHIELD_<STYLE>` | Boss log count per kiteshield: `MAGIC` (Malevolent), `MELEE` (Merciless), `RANGED` (Vengeful). |
+| `ITEMLOG_ITEM_ROTS_SHIELD_<STYLE>` | Collection log count per kiteshield: `MAGIC` (Malevolent), `MELEE` (Merciless), `RANGED` (Vengeful). |
 
 ## Tests
 
-In game on 2 November 2026 by the developer, logging the kill count, boss log
+In game on 2 November 2026 by the developer, logging the kill count, collection log
 counts and var changes with their game tick.
 
 | Test | Seen |
@@ -39,7 +39,6 @@ Conclusions:
   assumed looted.
 - Energy's log count rises only after looting, at the escape rather than the
   loot.
-- No unique dropped, so when one reaches the boss log wasn't seen.
 
 ## Not counted
 
@@ -47,7 +46,7 @@ Conclusions:
 - **Malevolent energy:** every chest gives it, so it's not a rare drop.
 - **The brothers' bobbleheads:** cosmetic unlocks.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Malevolent energy | 30027 |
 | Ahrim bobblehead | 38935 |

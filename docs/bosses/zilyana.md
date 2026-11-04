@@ -26,7 +26,7 @@ most one. Hard mode has the same rates.
 |---|---|
 | `BSLAY_KILLS_GWD_ZILYANA` | Normal mode kill count. |
 | `BSLAY_KILLS_GWD_ZILYANA_HARDMODE` | Hard mode kill count. |
-| `ITEMLOG_ITEM_GWD_SARA_<ITEM>` | Boss log count each: `SWORD`, `CROSSBOW`, `CROSSBOW_OFFHAND`, `AMULET_MELEE` (whisper), `AMULET_MAGIC` (hiss), `AMULET_RANGED` (murmur), `HILT`. |
+| `ITEMLOG_ITEM_GWD_SARA_<ITEM>` | Collection log count each: `SWORD`, `CROSSBOW`, `CROSSBOW_OFFHAND`, `AMULET_MELEE` (whisper), `AMULET_MAGIC` (hiss), `AMULET_RANGED` (murmur), `HILT`. |
 
 ## Not counted
 
@@ -38,7 +38,7 @@ most one. Hard mode has the same rates.
 - **Zilyana's Notes** (lore) and **Commander Miniana** (pet): lore and pets are
   never counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Saradomin's hum (log count `ITEMLOG_ITEM_GWD_SARA_AMULET_NECROMANCY`) | 61117 |
 | Godsword shard 1 | 11710 |

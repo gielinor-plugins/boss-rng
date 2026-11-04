@@ -30,23 +30,24 @@ The wiki doesn't say it raises dark nilas, so they're left as they are.
   (`sums` in the saved data). A day's kills use its average enrage and streak. The
   formula is a straight line in both, so the averages give the same expected
   uniques as each kill on its own (dry streak chances differ slightly).
-- Loot waits in a chest until claimed, and uniques reach the boss log about a
-  second later. A claim resets the streak to 0, so a boss log rise counts as a drop
-  only in the 10 seconds after a claim. A claim can bring several of one unique:
-  each is a drop. The streak stops rising at 200, but kills can go on unclaimed,
-  so a claim's rise has no tight limit (up to 10,000). Normal mode never resets the
-  streak, so its drops (the scripture, the artefact and dark nilas) aren't counted
-  here.
+- Loot waits in a chest until claimed, and uniques reach the collection log about a
+  second later. A claim resets the streak to 0, so a collection log rise counts as a
+  drop only in the 10 seconds after a claim. A claim can bring several of one
+  unique: each is a drop. The streak stops rising at 200, but kills can go on
+  unclaimed, so a claim's rise has no tight limit (up to 10,000). Normal mode never
+  resets the streak, so its drops (the scripture, the artefact and dark nilas)
+  aren't counted here.
 - Dark nilas aren't on the wiki's unique table, but they count as a unique here:
-  they're on the boss log, rare (1 in 100) and needed for the Leng weapons.
-- Dark nilas count like Vorkath's spikes: a claim's are one drop, and the boss log
-  count (items) shows apart ("All-time: 233 kills · 7 dark nilas · 5 other
-  uniques"). A long streak can hold two drops, which the plugin counts as one. 
-  The Info tab says so.
+  they're on the collection log, rare (1 in 100) and needed for the Leng weapons.
+- Dark nilas count like Vorkath's spikes: a claim's are one drop, and the collection
+  log count (items) shows apart ("All-time: 233 kills · 7 dark nilas · 5 other
+  uniques"). A long streak can hold two drops, which the plugin counts as one. The
+  Info tab says so.
 - A death keeps part of the streak's loot (5% per streak kill, up to 75%), claimed
   later at the chest outside. Kills whose loot was lost count as dry. Uniques kept
   count at that claim.
-- The all-time unique count is the boss log's, so it includes normal mode drops.
+- The all-time unique count is the collection log's, so it includes normal mode
+  drops.
 - If the ring isn't overcharged, the plugin can't see it, so it's assumed not
   worn.
 
@@ -57,7 +58,7 @@ The wiki doesn't say it raises dark nilas, so they're left as they are.
 | `BSLAY_KILLS_EGWD_WEN_BOSS_HARDMODE` | Hard mode kill count. |
 | `EGWD_WEN_BOSS_CURRENT_ENRAGE` | The fight's enrage, read at the kill. It rises only when the player continues the streak. |
 | `EGWD_WEN_BOSS_CURRENT_STREAK` | Kills in the streak, this one included, read at the kill. 0 once claimed. |
-| `ITEMLOG_ITEM_EGWD_WEN_<ITEM>` | Boss log count each: `BOSS_INGREDIENT_HARDMODE` (Frozen core of Leng), `BOOK_UNLOCK_TOKEN` (scripture), `BOSS_GLOVES_UPGRADE` (Leng artefact), `BOSS_INGREDIENT_RARE_NEW` (dark nilas). |
+| `ITEMLOG_ITEM_EGWD_WEN_<ITEM>` | Collection log count each: `BOSS_INGREDIENT_HARDMODE` (Frozen core of Leng), `BOOK_UNLOCK_TOKEN` (scripture), `BOSS_GLOVES_UPGRADE` (Leng artefact), `BOSS_INGREDIENT_RARE_NEW` (dark nilas). |
 | `EGWD_PONTIFEX_RING_PASSIVE_UNLOCKED` | 1 once the pontifex shadow ring is overcharged. |
 
 ## Tests
@@ -68,35 +69,30 @@ In game on 3 November 2026 by the developer, solo, overcharged pontifex shadow r
 
 A dev probe logged, with the logic tick (50 per second):
 
-- values, on every change: both kill counts, every `ITEMLOG_ITEM_EGWD_WEN_` boss log
-  count, every var named with ENRAGE or STREAK, and the pontifex ring's vars;
+- values, on every change: both kill counts, every `ITEMLOG_ITEM_EGWD_WEN_`
+  collection log count, every var named with ENRAGE or STREAK, and the pontifex
+  ring's vars;
 - names only, at most once a second: every other `EGWD_WEN` or `GLACOR` var;
 - names only: each inventory the game added or updated, but the backpack and worn
   gear.
 
 Names with REWARD, LOOT, DROP, SEED, UNIQUE, CHEST, RARE, PIECE or OWED were never
-read, except boss log counts, so loot waiting in the chest stayed unread.
+read, except collection log counts, so loot waiting in the chest stayed unread.
 
 ### Runs
 
-| Run | Ticks | Seen |
-|---|---|---|
-| 1. Three kills from 0%, then a claim | 638480, 640344, 659002 | Kill count 218 to 221. At each kill, in the same tick: streak 0 to 1, 1 to 2, 2 to 3. Enrage at each kill: 0, 10, 20. |
-| | 638869, 640759 | Continuing: enrage 0 to 10, 10 to 20, about 8 s after each kill. |
-| | 659334 | Claim: streak 3 to 0, enrage 20 to 0, `MONEY_POUCH` updated, `EGWD_WEN_BOSS_LOOT_*` changed. No unique, no boss log change. |
-| 2. Two kills, a death in the third fight, a claim outside | 681059, 683485 | Kill count 221 to 223, streak 0 to 1, 1 to 2. Enrage 0 to 16, 16 to 24 on continuing. |
-| | 685105 to about 688300 | Third fight and death: no kill count or streak change. |
-| | 691946 | Claim at the chest outside, about 70 s after the death: streak 2 to 0, enrage 24 to 0, `MONEY_POUCH` updated. |
-| 3. Five kills from 3,000%, a Scripture of Wen, a claim | 5767 to 27132 | Kill count 236 to 241, streak 1 to 5 at each kill. Enrage at each kill: 3,000, 3,013, 3,026, 3,038, 3,053. |
-| | 28510 | Claim: streak 5 to 0, enrage 3,053 to 3,000 (the next streak's start). |
-| | 28570 | 60 ticks (1.2 s) after the claim: `BOOK_UNLOCK_TOKEN` 4 to 5, `BOSS_INGREDIENT_COMMON_NEW` (Glacor remnants) 16,618 to 17,083. |
+| Run | Seen |
+|---|---|
+| 1. Three kills from 0%, then a claim | At each kill, the kill count and the streak rose in the same tick (streak 1, 2, 3), with enrage 0, 10 and 20. Enrage rose only on continuing, about 8 seconds after each kill. The claim reset the streak and enrage to 0. No unique. |
+| 2. Two kills, a death in the third fight, a claim outside | The kills as in run 1 (enrage 0, 16, 24). The death changed neither the kill count nor the streak. The claim at the chest outside, about 70 seconds later, reset the streak to 0. |
+| 3. Five kills from 3,000%, a Scripture of Wen, a claim | Streak 1 to 5, and enrage 3,000, 3,013, 3,026, 3,038 and 3,053 at the kills. The claim reset the streak to 0 and enrage to 3,000, the next streak's start. 60 ticks (1.2 seconds) after the claim, the scripture's collection log count rose from 4 to 5. |
 
-Each loot chest update (`EGWD_WEN_BOSS_LOOT_INV`) came 150 to 270 ticks after its kill.
+The loot chest updated 3 to 5 seconds after each kill.
 
-Boss log counts read at rest matched the player's boss log: Scripture of Wen 4,
-Frozen core of Leng 0, Leng artefact 1 (`BOSS_GLOVES_UPGRADE`), dark nilas 7
-(`BOSS_INGREDIENT_RARE_NEW`). Ring: `EGWD_PONTIFEX_RING_PASSIVE_UNLOCKED` 1, and per
-boss `_UPGRADE` 1 and `_CHARGE` 1,000 (BIK, FUL, JAS, WEN).
+Collection log counts read at rest matched the player's collection log: Scripture
+of Wen 4, Frozen core of Leng 0, Leng artefact 1, dark nilas 7. The ring's vars read
+`EGWD_PONTIFEX_RING_PASSIVE_UNLOCKED` 1, and `_UPGRADE` 1 and `_CHARGE` 1,000 for
+each Elder God Wars Dungeon boss.
 
 ### Conclusions
 
@@ -108,9 +104,9 @@ boss `_UPGRADE` 1 and `_CHARGE` 1,000 (BIK, FUL, JAS, WEN).
   every kill, never predicted.
 - **The claim is the streak falling to 0.** A death leaves the streak as it was
   until the claim outside, so one rule covers both.
-- **Uniques reach the boss log after the claim's tick** (60 ticks in run 3), so a
-  rise counts within 10 seconds of a claim. Counting only the claim's tick would
-  have missed it.
+- **Uniques reach the collection log after the claim's tick** (60 ticks in run 3),
+  so a rise counts within 10 seconds of a claim. Counting only the claim's tick
+  would have missed it.
 - **Normal mode drops stay out:** normal mode has no streak, so no claim.
 
 ### Tracking checks
@@ -130,12 +126,14 @@ Run 3's saved tallies and window, against values worked out by hand:
 A world reset ended the earlier streak unclaimed: its 4 kills count as dry, and the
 next kill saved streak 1 at 3,000%.
 
-The boss log page (`COLLECTION_BOSS_EGWD_WEN_BOSS`, row 4493) lists 13 items, with
-the same ids as the boss file and "Boss log ids" below.
+The collection log page (`COLLECTION_BOSS_EGWD_WEN_BOSS`, row 4493) lists 13 items,
+with the same ids as the boss file and the Not counted table below.
 
-### Not yet checked
+### Assumed, not yet confirmed in game
 
-- Several of one unique in one claim, and dark nilas at a claim.
+- A claim with several of one unique raises its collection log count by that many,
+  each counted as a drop.
+- A claim's dark nilas raise their count once, counted as one drop.
 
 ## Not counted
 
@@ -145,7 +143,7 @@ the same ids as the boss file and "Boss log ids" below.
   Adornments:** made, not dropped.
 - **Gladys** (pet): pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Glacor remnants | 52018 |
 | Dark ice shard | 52041 |

@@ -24,11 +24,11 @@ Scripture of Bik. Each player gets their own rolls, by contribution:
   ([saved data](../data/saved-data.md)). Here, 30 full contribution kills and 2
   at 345 to 359 one day, then 5 full the next:
 
-```lua
-croesus = {
-    kills = { r12 = "20757:30,20758:5", r8 = "20757:2" },
-    dryFrom = {},
-    items = {},
+```json
+"croesus": {
+  "kills": { "r12": "20757:30,20758:5", "r8": "20757:2" },
+  "dryFrom": {},
+  "items": {}
 }
 ```
 
@@ -43,7 +43,7 @@ croesus = {
 | `BSLAY_KILLS_EGWD_BIK_BOSS` | Kill count. |
 | `EGWD_PONTIFEX_RING_PASSIVE_UNLOCKED` | 1 once the pontifex shadow ring is overcharged. |
 | `EGWD_BIK_BOSS_PERSONAL_CONTRIBUTION` | Your contribution, rising through the fight (11 bits of `EGWD_BIK_BOSS_TEMP_1`). |
-| `ITEMLOG_ITEM_EGWD_BIK_<ITEM>` | Boss log count each, e.g. `BOSS_MAGIC_HELM`, `BOSS_OFFHAND_MINING` (Sporehammer), `BOSS_SEED_STORAGE_UNIQUE` (Spore sack), `BOOK_UNLOCK_TOKEN` (scripture). |
+| `ITEMLOG_ITEM_EGWD_BIK_<ITEM>` | Collection log count each, e.g. `BOSS_MAGIC_HELM`, `BOSS_OFFHAND_MINING` (Sporehammer), `BOSS_SEED_STORAGE_UNIQUE` (Spore sack), `BOOK_UNLOCK_TOKEN` (scripture). |
 
 ## Tests
 
@@ -55,13 +55,12 @@ with its game tick:
 - It read 0 at the chest about 2 minutes later, so it resets after the kill
   (exact time not seen). Using its last value above 0 before the kill makes that
   timing irrelevant.
-- No unique dropped, so when one reaches the boss log wasn't seen.
 
 ## Not counted
 
 - **Croesus' head** (boss trophy, 1 in 500): not on the collection log.
 - **Little Sus** (pet): pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Little Sus | 52459 |

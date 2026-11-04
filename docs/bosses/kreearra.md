@@ -27,7 +27,7 @@ Hard mode has the same rates.
 |---|---|
 | `BSLAY_KILLS_GWD_KREEARRA` | Normal mode kill count. |
 | `BSLAY_KILLS_GWD_KREEARRA_HARDMODE` | Hard mode kill count. |
-| `ITEMLOG_ITEM_GWD_ARMADYL_<PIECE>` | Boss log count each: `HEAD`, `BODY`, `LEGS`, `HANDS`, `FEET`, `SHIELD`, `HILT`. |
+| `ITEMLOG_ITEM_GWD_ARMADYL_<PIECE>` | Collection log count each: `HEAD`, `BODY`, `LEGS`, `HANDS`, `FEET`, `SHIELD`, `HILT`. |
 
 ## Not counted
 
@@ -36,7 +36,7 @@ Hard mode has the same rates.
 - **Warpriest set:** also drops from the bodyguards and the god's other monsters.
 - **Armadyl lore book** and **Chick'arra** (pet): lore and pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Godsword shard 1 | 11710 |
 | Godsword shard 2 | 11712 |

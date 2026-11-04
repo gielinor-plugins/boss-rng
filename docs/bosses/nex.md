@@ -19,16 +19,17 @@ random.
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_GWD_NEX` | Kill count. |
-| `ITEMLOG_ITEM_GWD_NEX_<PIECE>` | Boss log count each, by piece and style, e.g. `HEAD_MELEE` (Torva full helm), `BODY_RANGED` (Pernix body), `FEET_MAGIC` (Virtus boots), then `BOOK`, `WAND`, `BOW`. |
+| `ITEMLOG_ITEM_GWD_NEX_<PIECE>` | Collection log count each, by piece and style, e.g. `HEAD_MELEE` (Torva full helm), `BODY_RANGED` (Pernix body), `FEET_MAGIC` (Virtus boots), then `BOOK`, `WAND`, `BOW`. |
 
 ## Not counted
 
 - **Nex's wings** (boss trophy, 1 in 500): not on the collection log.
 - **Ancient emblem:** only drops to players carrying a tier 70 or better
   defender, so not every kill can drop it.
-- **Nex's Followers** (lore) and **Nexterminator** (pet): lore and pets aren't counted.
+- **Nex's Followers** (lore) and **Nexterminator** (pet): lore and pets aren't
+  counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Ancient emblem | 36159 |
 | Nex's Followers | 25044 |

@@ -28,7 +28,7 @@ Holy elixir: 3 in 512 (about 1 in 171).
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_CORPBEAST` | Kill count. |
-| `ITEMLOG_ITEM_CORP_<ITEM>` | Boss log count each: `SIGIL_SPECTRAL`, `SIGIL_ARCANE`, `SIGIL_ELYSIAN`, `SIGIL_DIVINE`, `HOLY_ELIXIR`. |
+| `ITEMLOG_ITEM_CORP_<ITEM>` | Collection log count each: `SIGIL_SPECTRAL`, `SIGIL_ARCANE`, `SIGIL_ELYSIAN`, `SIGIL_DIVINE`, `HOLY_ELIXIR`. |
 
 ## Not counted
 
@@ -36,7 +36,7 @@ Holy elixir: 3 in 512 (about 1 in 171).
 - **Spirit shield:** a common drop from other monsters too.
 - **Corporeal puppy** (pet): pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Spirit shield | 13734 |
 | Corporeal puppy | 33812 |

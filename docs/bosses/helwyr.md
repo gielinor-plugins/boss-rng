@@ -25,16 +25,16 @@ Only if that misses is there a roll for Serenic essence.
 |---|---|
 | `BSLAY_KILLS_HELWYR` | Normal mode kill count. |
 | `BSLAY_KILLS_HELWYR_HARDMODE` | Hard mode kill count. |
-| `ITEMLOG_ITEM_GWD2_SEREN_<ITEM>` | Boss log count each: `CREST`, `WEAPON` (wand), `WEAPON_OFFHAND` (orb), `ESSENCE`. |
+| `ITEMLOG_ITEM_GWD2_SEREN_<ITEM>` | Collection log count each: `CREST`, `WEAPON` (wand), `WEAPON_OFFHAND` (orb), `ESSENCE`. |
 
 ## Not counted
 
 - **Helwyr's head** (boss trophy, 1 in 500): not on the collection log.
-- **Dormant anima core pieces** (helm, body, legs): one boss log count shared by
-  all four God Wars Dungeon 2 bosses. They still take table share above.
+- **Dormant anima core pieces** (helm, body, legs): one collection log count shared
+  by all four God Wars Dungeon 2 bosses. They still take table share above.
 - **Lilwyr** (pet): pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Dormant anima core helm | 37009 |
 | Dormant anima core body | 37012 |

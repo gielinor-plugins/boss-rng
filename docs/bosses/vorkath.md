@@ -21,7 +21,7 @@ Each chest rolls once for a rare, in its first slot:
   count.
 - So saving chests never looks unlucky, and a chest opened with Boss RNG off
   isn't tracked, nor its loot.
-- Spikes drop in stacks and the boss log counts spikes. Each stack is one drop
+- Spikes drop in stacks and the collection log counts spikes. Each stack is one drop
   for luck; the spike count shows apart ("All-time: 400 kills · 184
   spikes · 6 other uniques").
 - Spikes drive most of the headline luck and dry streak; the codex and scale rows
@@ -33,19 +33,20 @@ Each chest rolls once for a rare, in its first slot:
 |---|---|
 | `BSLAY_KILLS_FORT_BOSS_ZEMO_VORKATH` | Normal mode kill count. |
 | `BSLAY_KILLS_FORT_BOSS_ZEMO_VORKATH_HARD` | Hard mode kill count. |
-| `ITEMLOG_ITEM_VORKATH_DRAGONHIDE_UPGRADE_MATERIAL` | Boss log count of spikes. |
-| `ITEMLOG_ITEM_VORKATH_DRACOLICH_UPGRADE_MATERIAL` | Boss log count of scales. |
-| `ITEMLOG_ITEM_NECROMANCY_INCANTATION_CODEX_INVOKE_LORD_OF_BONES` | Boss log count of the codex. |
+| `ITEMLOG_ITEM_VORKATH_DRAGONHIDE_UPGRADE_MATERIAL` | Collection log count of spikes. |
+| `ITEMLOG_ITEM_VORKATH_DRACOLICH_UPGRADE_MATERIAL` | Collection log count of scales. |
+| `ITEMLOG_ITEM_NECROMANCY_INCANTATION_CODEX_INVOKE_LORD_OF_BONES` | Collection log count of the codex. |
 | Your backpack | Chests held, normal and hard, to see one opened. |
+| The reward window (`DROP_CASKET_REWARDINV`) | Opening, in the same tick a chest leaves the backpack: a chest opened, not banked. |
 
 ## Not counted
 
 - **Zemouregal's nexus:** given at 100 kills, not dropped.
 - **Vorki** (pet): pets aren't counted.
 - **Vorkath's claw, Vorkath's head, weapon override token:** go straight to your
-  backpack at the kill; not on this boss log page.
+  backpack at the kill; not on this collection log page.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Zemouregal's nexus | 56143 |
 | Vorki | 56145 |

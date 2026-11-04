@@ -22,7 +22,7 @@ Pieces drop in order (a random one, then the other two), so they're one row.
 - The overcharged pontifex shadow ring raises every unique 2%
   (`src/bosses/egwd.lua`). If it isn't overcharged, the plugin can't see it, so it's
   assumed not worn.
-- The boss log counts at most 250 stones. After that a kill can't show one, so
+- The collection log counts at most 250 stones. After that a kill can't show one, so
   it counts as `h`: those players have mastered the fight. The Info tab says so.
 
 ## Vars read
@@ -33,12 +33,12 @@ Pieces drop in order (a random one, then the other two), so they're one row.
 | `BSLAY_KILLS_EGWD_FUL_BOSS_HARDMODE` | Hard mode kill count. |
 | `ITEMLOG_ITEM_EGWD_FUL_BOSS_INFERNAL_STONE` | Igneous stones: a rise in a hard mode kill's tick means no checkpoints. |
 | `EGWD_PONTIFEX_RING_PASSIVE_UNLOCKED` | 1 once the pontifex shadow ring is overcharged. |
-| `ITEMLOG_ITEM_EGWD_FUL_<ITEM>` | Boss log count each: `BOSS_MELEE_WEAPON_TOP`, `_MIDDLE`, `_BOTTOM` (Ek-ZekKil pieces), `BOOK_UNLOCK_TOKEN` (scripture). The codex's is `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_MAGMA_TEMPEST`. |
+| `ITEMLOG_ITEM_EGWD_FUL_<ITEM>` | Collection log count each: `BOSS_MELEE_WEAPON_TOP`, `_MIDDLE`, `_BOTTOM` (Ek-ZekKil pieces), `BOOK_UNLOCK_TOKEN` (scripture). The codex's is `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_MAGMA_TEMPEST`. |
 
 ## Tests
 
 In game on 2 November 2026 by the developer, logging each change to the kill
-counts, the boss log counts and the encounter progress, and the reward chest
+counts, the collection log counts and the encounter progress, and the reward chest
 updating, with the game tick.
 
 | Test | Seen |
@@ -51,7 +51,7 @@ updating, with the game tick.
 - **Igneous stone:** a reward for a run without checkpoints, not a drop.
 - **Little Zuk** (pet): pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Igneous stone | 52500 |
 | Little Zuk | 52546 |

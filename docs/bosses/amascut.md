@@ -4,11 +4,11 @@ Source: Jagex's "Drop Rates Revealed" via the [RuneScape Wiki](https://runescape
 
 ## Drop rates
 
-Each kill makes five loot piles, whatever the team size (in smaller teams the
-extra piles go to the base tank and top damagers). Each pile rolls separately for weapons and
-armor (armor 3 in 4, split over the five Tumeken's pieces, so 3/20 each;
-otherwise Tumeken's Light or the Devourer's Guard, 1/8 each), the Devourer's
-Nexus and, in enrage only, the Shard of Genesis Essence.
+Each kill makes five loot piles, whatever the team size (in smaller teams the extra
+piles go to the base tank and top damagers). Each pile rolls separately for weapons
+and armor (armor 3 in 4, split over the five Tumeken's pieces, so 3/20 each;
+otherwise Tumeken's Light or the Devourer's Guard, 1/8 each), the Devourer's Nexus
+and, in enrage only, the Shard of Genesis Essence.
 
 | Mode | Weapons and armor | Nexus | Shard |
 |---|---|---|---|
@@ -35,7 +35,7 @@ Nexus and, in enrage only, the Shard of Genesis Essence.
   piles always share one instance.
 - Waiting uniques are never read before the claim; the game only shows a green
   glow.
-- The Shard's boss log count is shared with Nakatra (Sanctum of Rebirth); a
+- The Shard's collection log count is shared with Nakatra (Sanctum of Rebirth); a
   tracked Shard counts for whichever you killed last.
 
 ## Vars read
@@ -46,7 +46,7 @@ Nexus and, in enrage only, the Shard of Genesis Essence.
 | `BSLAY_KILLS_AMASCUT_BOSS_HARDMODE` | Enrage kill count, all tiers (boss log line). |
 | `AMASCUT_BOSS_VARP_1` | Waiting loot: piles (`AMASCUT_BOSS_COMMON_LOOT_AVAILABLE`) and normal mode or not (`AMASCUT_BOSS_LOOT_DIFFICULTY`), read at the claim. |
 | `AMASCUT_BOSS_LAST_ENRAGE` | The instance's enrage, read when claiming enrage loot. |
-| `ITEMLOG_ITEM_<ITEM>` | Boss log count each, e.g. `MAGIC_DEVOURER_HEAD_T95` (mask), `MELEE_DEVOURER_HALBERD_T95` (Tumeken's Light), `NECRO_DEVOURER_ARMGUARD_T95` (Devourer's Guard), `NECRO_DEVOURER_NEXUS_T80`; Shard `COMBATV2_INNATE_MASTERY_UNLOCK_T95_WEAPON_STAT_UPGRADE_T1`. |
+| `ITEMLOG_ITEM_<ITEM>` | Collection log count each, e.g. `MAGIC_DEVOURER_HEAD_T95` (mask), `MELEE_DEVOURER_HALBERD_T95` (Tumeken's Light), `NECRO_DEVOURER_ARMGUARD_T95` (Devourer's Guard), `NECRO_DEVOURER_NEXUS_T80`; Shard `COMBATV2_INNATE_MASTERY_UNLOCK_T95_WEAPON_STAT_UPGRADE_T1`. |
 
 `AMASCUT_BOSS_VARP_1` bits, from the game's varbit definitions
 (`AMASCUT_BOSS_LOOT_AVAILABLE` is bits 16 to 27):
@@ -85,8 +85,8 @@ Conclusions:
 - The rare fields are the player's own and clear at the claim. Three fields fit
   the three unique rolls, so they likely count waiting rares (unconfirmed).
   Never read: they'd reveal the chest early.
-- Not yet seen: the developer's own unique. Assumed to reach the boss log at the
-  claim, the first time the game shows which unique it is.
+- Assumed, not yet confirmed in game: your own unique reaches the collection log
+  at the claim, the first time the game shows which unique it is.
 
 ## Not counted
 
@@ -94,7 +94,7 @@ Conclusions:
 - **Memoirs of the Devourer** (lore) and **Amaskitty** (pet): lore and pets
   aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Memoirs of the Devourer | 59321 |
 | Amaskitty | 59363 |

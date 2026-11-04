@@ -25,16 +25,17 @@ Hard mode has the same rates.
 |---|---|
 | `BSLAY_KILLS_GWD_GRAARDOR` | Normal mode kill count. |
 | `BSLAY_KILLS_GWD_GRAARDOR_HARDMODE` | Hard mode kill count. |
-| `ITEMLOG_ITEM_GWD_BANDOS_<PIECE>` | Boss log count each: `HEAD`, `BODY`, `LEGS`, `HANDS`, `FEET`, `SHIELD`, `HILT`. |
+| `ITEMLOG_ITEM_GWD_BANDOS_<PIECE>` | Collection log count each: `HEAD`, `BODY`, `LEGS`, `HANDS`, `FEET`, `SHIELD`, `HILT`. |
 
 ## Not counted
 
 - **General Graardor's head** (boss trophy, 1 in 500): not on the collection log.
 - **Godsword shards:** a table every God Wars boss shares.
 - **Warpriest set:** also drops from the bodyguards and the god's other monsters.
-- **The Glory of General Graardor** (lore) and **General Awwdor** (pet): lore and pets aren't counted.
+- **The Glory of General Graardor** (lore) and **General Awwdor** (pet): lore and
+  pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Godsword shard 1 | 11710 |
 | Godsword shard 2 | 11712 |

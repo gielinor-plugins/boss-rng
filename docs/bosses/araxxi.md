@@ -25,15 +25,16 @@ each is one row, independent of both.
 |---|---|
 | `BSLAY_KILLS_ARAXXI` | Kill count, solo and duo. |
 | `SB_DUO` | 1 in a duo fight (private or public), 0 solo. Read at each kill. |
-| `ITEMLOG_ITEM_SB_<ITEM>` | Boss log count each: `LEG_TOP`, `LEG_MIDDLE`, `LEG_BOTTOM`, `FANG`, `EYE`, `WEB`. |
+| `ITEMLOG_ITEM_SB_<ITEM>` | Collection log count each: `LEG_TOP`, `LEG_MIDDLE`, `LEG_BOTTOM`, `FANG`, `EYE`, `WEB`. |
 
 ## Not counted
 
 - **Araxxor's head** (boss trophy, 1 in 500): not on the collection log.
 - **Araxyte pheromone:** a common drop.
-- **Spider pets** (Bill, Lana, Pete, Dave, Steve, Gavin, Barry, Mallory): pets aren't counted.
+- **Spider pets** (Bill, Lana, Pete, Dave, Steve, Gavin, Barry, Mallory): pets
+  aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Araxyte pheromone | 35870 |
 | Bill | 31753 |

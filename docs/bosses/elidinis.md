@@ -29,14 +29,14 @@ The rebalance doesn't say if the rares still share one roll; assumed yes.
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_ELIDINIS_BOSS` | Kill count. |
-| `ITEMLOG_ITEM_ELIDINIS_BOSS_<ITEM>` | Boss log count each: `SKILLING_OFFHAND_RUNECRAFTING` (attuner), `SKILLING_OFFHAND_DIVINATION` (dowser), `ELIDINIS_BOOK_UNLOCK_TOKEN` (scripture), `OFFERINGS_AMULET_UPGRADE_MATERIAL` (Latent Offering). The codex's is `ITEMLOG_ITEM_COMBATV2_PRAYER_CODEX_ECLIPSED_SOUL`. |
+| `ITEMLOG_ITEM_ELIDINIS_BOSS_<ITEM>` | Collection log count each: `SKILLING_OFFHAND_RUNECRAFTING` (attuner), `SKILLING_OFFHAND_DIVINATION` (dowser), `ELIDINIS_BOOK_UNLOCK_TOKEN` (scripture), `OFFERINGS_AMULET_UPGRADE_MATERIAL` (Latent Offering). The codex's is `ITEMLOG_ITEM_COMBATV2_PRAYER_CODEX_ECLIPSED_SOUL`. |
 
 ## Not counted
 
 - **Edie** (pet) and **After The Flood** (lore): lore and pets aren't counted.
 - **The Gate of Elidinis** (boss trophy): not on the collection log.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | After The Flood | 57533 |
 | Edie | 57548 |

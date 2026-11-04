@@ -24,7 +24,7 @@ Info tab says so).
 - Each looted chest counts with exactly the chances of that run's brothers.
 - The kill count only rises for **6+ brothers**, Akrisae counting and Linza not
   (see Tests). Fewer makes a **partial chest**: it can still drop pieces (they
-  count in the boss log), is counted, and shows after the kill count ("12 kills
+  count in the collection log), is counted, and shows after the kill count ("12 kills
   (+2 partial)").
 - Akrisae has no var: he's the brother count less the six brothers' flags, less
   Linza.
@@ -70,11 +70,11 @@ For example, two runs on day 20757:
 - Ahrim, Dharok and Linza: `0x83`, so `c83`. Two brothers, so a partial chest,
   with 3 brother rolls, Linza's roll and the amulet roll.
 
-```lua
-barrows = {
-    kills = { c7b = "20757:1", c83 = "20757:1" },
-    dryFrom = {},
-    items = {},
+```json
+"barrows": {
+  "kills": { "c7b": "20757:1", "c83": "20757:1" },
+  "dryFrom": {},
+  "items": {}
 }
 ```
 
@@ -83,7 +83,7 @@ barrows = {
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_BARROWS` | Kill count. |
-| `ITEMLOG_ITEM_BARROWS_<BROTHER>_<PIECE>` | Boss log count each piece; Linza's use `SISTER`. |
+| `ITEMLOG_ITEM_BARROWS_<BROTHER>_<PIECE>` | Collection log count each piece; Linza's use `SISTER`. |
 | `BARROWS_KILLED_AHRIM` to `BARROWS_KILLED_VERAC` | Each of the six brothers dead this run. |
 | `BARROWS_KILLED_COUNT` | Brothers dead this run, Akrisae and Linza included. |
 | `SISTER_KILLED_LINZA` | Linza dead this run. |
@@ -107,6 +107,6 @@ The wiki says all six original brothers are needed for a kill count; in game:
 - **Corruption sigil:** needs a dragon defender or better, which isn't tracked.
 - **Barrows chest** (boss trophy, 1 in 500): not on the collection log.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Corruption sigil | 36156 |

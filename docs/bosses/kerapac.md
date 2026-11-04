@@ -37,7 +37,7 @@ Staff pieces drop in order (shaft, gem, then symbol), so they're one row.
 | `BSLAY_KILLS_EGWD_JAS_BOSS` | Normal mode kill count. |
 | `BSLAY_KILLS_EGWD_JAS_BOSS_HARDMODE` | Hard mode kill count. |
 | `EGWD_PONTIFEX_RING_PASSIVE_UNLOCKED` | 1 once the pontifex shadow ring is overcharged. |
-| `ITEMLOG_ITEM_EGWD_JAS_<ITEM>` | Boss log count each: `BOSS_MAGIC_WEAPON_TOP`, `_MIDDLE`, `_BOTTOM` (staff pieces), `BOSS_MAGIC_GLOVES` (wraps), `BOOK_UNLOCK_TOKEN` (scripture). The codex's is `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CONCENTRATED_BLAST`. |
+| `ITEMLOG_ITEM_EGWD_JAS_<ITEM>` | Collection log count each: `BOSS_MAGIC_WEAPON_TOP`, `_MIDDLE`, `_BOTTOM` (staff pieces), `BOSS_MAGIC_GLOVES` (wraps), `BOOK_UNLOCK_TOKEN` (scripture). The codex's is `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_MAGIC_GREATER_CONCENTRATED_BLAST`. |
 | Ground stacks you own (`ObjStackEntityAdded`, `ObjStackEntityChanged`) | Your loot piles: the tiles where Resonant anima of Jas (51804, or untradeable 51805) lands at a kill. |
 
 ## Tests
@@ -73,6 +73,6 @@ Conclusions:
   collection log.
 - **Kerry** (pet): pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Kerry | 51861 |

@@ -23,7 +23,7 @@ makes three rolls:
 | Var | Holds |
 |---|---|
 | `BSLAY_KILLS_SOLAK` | Kill count. |
-| `ITEMLOG_ITEM_SOLAK_<ITEM>` | Boss log count each: `PRAYER_BOOK` (grimoire), `CROSSBOW`, `OFFHAND_CROSSBOW`, `MERETHIELS_STAFF`, `BLIGHTBOUND_PET` (mushroom). |
+| `ITEMLOG_ITEM_SOLAK_<ITEM>` | Collection log count each: `PRAYER_BOOK` (grimoire), `CROSSBOW`, `OFFHAND_CROSSBOW`, `MERETHIELS_STAFF`, `BLIGHTBOUND_PET` (mushroom). |
 
 ## Not counted
 
@@ -31,7 +31,7 @@ makes three rolls:
 - **Torn grimoire pages:** a common drop.
 - **Solly** (pet): pets aren't counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Torn grimoire page | 43357 |
 | Solly | 42844 |

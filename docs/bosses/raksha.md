@@ -26,9 +26,9 @@ their own drop at the same rates.
 |---|---|
 | `BSLAY_KILLS_DINO_BOSS_SOLO` | Solo kill count. |
 | `BSLAY_KILLS_DINO_BOSS_DUO` | Duo kill count. |
-| `ITEMLOG_ITEM_DINO_SLAYER_RANGED_BOOTS` | Boss log count of Fleeting boots. |
-| `ITEMLOG_ITEM_DINO_BOSS_BOOTS_ATTACHMENT` | Boss log count of Shadow spikes. |
-| `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_<CODEX>` | Boss log count per codex: `RANGED_GREATER_RICOCHET`, `MAGIC_GREATER_CHAIN`, `DEFENCE_DIVERT`. |
+| `ITEMLOG_ITEM_DINO_SLAYER_RANGED_BOOTS` | Collection log count of Fleeting boots. |
+| `ITEMLOG_ITEM_DINO_BOSS_BOOTS_ATTACHMENT` | Collection log count of Shadow spikes. |
+| `ITEMLOG_ITEM_COMBATV2_ABILITY_CODEX_<CODEX>` | Collection log count per codex: `RANGED_GREATER_RICOCHET`, `MAGIC_GREATER_CHAIN`, `DEFENCE_DIVERT`. |
 
 ## Not counted
 
@@ -37,6 +37,6 @@ their own drop at the same rates.
   collection log.
 - **Raksha's head** (boss trophy, 1 in 500): not on the collection log.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Raklette | 51101 |

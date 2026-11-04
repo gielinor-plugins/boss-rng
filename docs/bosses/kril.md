@@ -27,7 +27,7 @@ Hard mode has the same rates.
 |---|---|
 | `BSLAY_KILLS_GWD_KRIL` | Normal mode kill count. |
 | `BSLAY_KILLS_GWD_KRIL_HARDMODE` | Hard mode kill count. |
-| `ITEMLOG_ITEM_GWD_ZAMORAK_<PIECE>` | Boss log count each: `HEAD`, `BODY`, `LEGS`, `HANDS`, `FEET`, `SHIELD`, `SPEAR`, `HILT`. The steam battlestaff's is `ITEMLOG_ITEM_GWD_STEAM_BATTLESTAFF`. |
+| `ITEMLOG_ITEM_GWD_ZAMORAK_<PIECE>` | Collection log count each: `HEAD`, `BODY`, `LEGS`, `HANDS`, `FEET`, `SHIELD`, `SPEAR`, `HILT`. The steam battlestaff's is `ITEMLOG_ITEM_GWD_STEAM_BATTLESTAFF`. |
 
 ## Not counted
 
@@ -35,9 +35,10 @@ Hard mode has the same rates.
   collection log.
 - **Godsword shards:** a table every God Wars boss shares.
 - **Warpriest set:** also drops from the bodyguards and the god's other monsters.
-- **Razulei's Tale** (lore) and **K'ril Tinyroth** (pet): lore and pets aren't counted.
+- **Razulei's Tale** (lore) and **K'ril Tinyroth** (pet): lore and pets aren't
+  counted.
 
-| Boss log item | Id |
+| Collection log item | Id |
 |---|---|
 | Godsword shard 1 | 11710 |
 | Godsword shard 2 | 11712 |
