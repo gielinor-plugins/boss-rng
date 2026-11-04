@@ -24,7 +24,10 @@ local PAGE_HEIGHT = 28 + PANEL_HEIGHT + 6 -- the header's 28 px above, 6 px belo
 -- The window's height: the title bar (32 px), the content down to the tabs, the tab
 -- strip (42 px), the page and the bottom frame (8 px).
 local HEIGHT = 32 + TABS_Y + 42 + PAGE_HEIGHT + 8
-local NAME_X, NAME_WIDTH, VALUE_X, DRY_X, DRY_WIDTH = 50, 132, 190, 330, 56
+-- Luck and Dry are as wide as their widest text in the rows' font, measured in game:
+-- the bar, a 6 px gap and "bottom 40%" (86 px) for Luck, then an 8 px gap; "99,999+"
+-- (53 px) for Dry. Names get the rest, and are shortened to fit.
+local NAME_X, NAME_WIDTH, VALUE_X, DRY_X, DRY_WIDTH = 50, 135, 193, 333, 53
 local BAR_WIDTH = 40
 local INSET = 10 -- the panel's x on the page (6 px padding and a 4 px frame), for the header
 local STRIPES = { 0xFFFFFF0D, 0xFFFFFF05 }
