@@ -98,8 +98,8 @@ each Elder God Wars Dungeon boss.
 
 - **Rate at the kill.** The kill count and the streak rise in the same tick, and the
   enrage still holds the fight's value: it changes only when the player chooses to
-  continue, always after the kill. So the kill event reads both at the kill: s is
-  the streak var (this kill included, the wiki's "streak + 1"), e the enrage var.
+  continue, always after the kill. So the kill event reads both at the kill. The
+  streak var already includes this kill (the wiki's "streak + 1").
 - **Enrage gain varies** (+10, +10, +16, +8, +13, +13, +12, +15), so it's read at
   every kill, never predicted.
 - **The claim is the streak falling to 0.** A death leaves the streak as it was

@@ -1,6 +1,6 @@
 # Sanctum of Rebirth
 
-Source: Jagex via the [RuneScape Wiki](https://runescape.wiki/w/Sanctum_of_Rebirth) boss pages (CC BY-NC-SA 3.0), checked 27 October 2026. Vermyx, Kezalam and Nakatra are one entry.
+Source: Jagex via the [RuneScape Wiki](https://runescape.wiki/w/Sanctum_of_Rebirth) boss pages (CC BY-NC-SA 3.0), checked 27 October 2026. Vermyx, Kezalam and Nakatra are tracked together.
 
 ## Drop rates
 

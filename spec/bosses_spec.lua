@@ -4,7 +4,7 @@ local bosses = require("src/bosses")
 local luck = require("src/core/luck")
 local stats = require("src/core/stats")
 
--- A day before the Late-Game Rebalance (30 Oct 2026), and the day it went live.
+-- A day before the Late-Game Rebalance (30 October 2026), and the day it's set to go live.
 local BEFORE, AFTER = 20756, require("src/core/rates/late_game_rebalance").day
 
 -- A boss's assumptions for readings (none read yet by default).

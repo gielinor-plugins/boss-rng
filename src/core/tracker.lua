@@ -10,13 +10,13 @@ local tracker = {}
 -- Every character on the computer shares the plugin's saved data, so each entry's key
 -- starts with PREFIX and the character's display name: "char:<name>" holds the boss
 -- killed last, and "char:<name>:<boss key>" each boss's tallies. One entry per boss
--- keeps each entry small: the game failed to save an entry of 128 KB in testing (see
--- docs/data/saved-data.md). A name change starts anew.
+-- keeps each entry small: the game failed to save an entry of about 131,000 bytes in
+-- testing (see docs/data/saved-data.md). A name change starts anew.
 local PREFIX = "char:"
 
--- Every entry's version (see src/core/tallies.lua). An entry of any other version reads
--- as empty and is replaced at its next save, so raising this needs a converter first
--- (see "Not built yet" in docs/data/compatibility.md).
+-- Every entry's version (see docs/data/saved-data.md). An entry of any other version
+-- reads as empty and is replaced at its next save, so raising this needs a converter
+-- first (see "Not built yet" in docs/data/compatibility.md).
 local VERSION = 1
 
 local name = nil -- the logged in character's, once loaded

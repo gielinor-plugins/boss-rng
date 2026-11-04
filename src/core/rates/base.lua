@@ -62,7 +62,7 @@ return {
             maxRolls = 7,
         },
         corp = { sigil = 1 / 256, elixir = 3 / 512 },
-        croesus = { armor = 1 / 5400, other = 1 / 5400 }, -- each item, per loot roll
+        croesus = { armor = 1 / 5400, other = 1 / 5400 }, -- each item, per unique roll
         dragonkin = { solo = 1 / 83, duo = 1 / 166, trio = 1 / 250 },
         elidinis = { rare = 1 / 480, offering = 1 / 71 }, -- each rare, on one roll
         furies = godWars2(),

@@ -2,7 +2,7 @@
 -- it changed for supported bosses, by boss key (see src/core/rates.lua).
 -- Decided where the post doesn't say: God Wars 1 armor includes the shields,
 -- and a kill still gives at most one table item; God Wars 2 hard mode crests
--- change like normal mode's; Croesus's rates are per loot roll.
+-- change like normal mode's; Croesus's rates are per unique roll.
 
 local days = require("src/utils/days")
 

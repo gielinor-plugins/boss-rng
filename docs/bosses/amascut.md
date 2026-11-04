@@ -29,7 +29,7 @@ and, in enrage only, the Shard of Genesis Essence.
   have raised it, and the rises must add up to the claim. Otherwise the whole
   claim is skipped, so it never skews luck. This catches loot from before Boss
   RNG was on or before login, and stacked kills that stop raising the count.
-  Claiming after each kill avoids both; the panel and details window say so.
+  Claiming after each kill avoids both, as the Info tab's tip says.
 - **Mode:** the chest says if it's normal mode; otherwise the instance's enrage
   picks the highest tier at or below it (4,000% counts as 2,000%+). A chest's
   piles always share one instance.

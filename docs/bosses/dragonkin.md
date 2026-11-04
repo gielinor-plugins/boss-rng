@@ -1,6 +1,6 @@
 # Dragonkin Laboratory
 
-Source: [RuneScape Wiki](https://runescape.wiki/w/Dragonkin_Laboratory) (CC BY-NC-SA 3.0), checked 28 October 2026. Astellarn, Verak Lith and the Black stone dragon are one entry.
+Source: [RuneScape Wiki](https://runescape.wiki/w/Dragonkin_Laboratory) (CC BY-NC-SA 3.0), checked 28 October 2026. Astellarn, Verak Lith and the Black stone dragon are tracked together.
 
 ## Drop rates
 
