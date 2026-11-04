@@ -26,8 +26,7 @@ function panel.Draw(state)
             end
         end
     end
-    -- Full width, rounded down to 8 px.
-    local width = (page.layer.width - 2 * PAD) // 8 * 8
+    local width = page.layer.width - 2 * PAD
     host:AddSimpleButton("View details", function()
         safe.Call("opening the window", state.onDetails)
     end, { marginTop = 8, width = width, height = 32 })
