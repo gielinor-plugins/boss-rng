@@ -8,8 +8,9 @@ Check that page for changes before each release.
 
 - [ ] Drop rates are current. For a game update, add its rates file in
       `src/core/rates/` with the day it went live ([Compatibility](../data/compatibility.md)).
-- [ ] `src/core/rates/late_game_rebalance.lua`: its day is assumed until the patch
-      notes are out. Confirm the day and rates against them.
+- [ ] `src/core/rates/late_game_rebalance.lua`: its day is from Jagex's November
+      schedule and its rates from the design preview. Confirm both against the
+      patch notes once they're out.
 - [ ] `busted`, `stylua --check .` and `luacheck .` pass.
 - [ ] Tried in the beta client: the panel, the details window, the settings page,
       and a kill at a boss.
