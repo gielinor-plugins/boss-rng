@@ -180,15 +180,15 @@ function tracker.Reset(boss)
     notify()
 end
 
--- Clears the character's tallies for every boss, including any whose entry the plugin no
--- longer reads.
+-- Deletes all of the character's saved data: its own entry and every boss's, including
+-- any whose entry the plugin no longer reads.
 function tracker.ResetAll()
     if not load() then
         return
     end
-    local prefix, keys = bossPrefix(), {}
+    local entry, prefix, keys = characterEntry(), bossPrefix(), {}
     PersistentDB:IterateEntries(function(key)
-        if key:sub(1, #prefix) == prefix then
+        if key == entry or key:sub(1, #prefix) == prefix then
             table.insert(keys, key)
         end
         return false -- keep going
@@ -197,7 +197,6 @@ function tracker.ResetAll()
         delete(key)
     end
     bossTallies, lastBoss = {}, nil
-    saveCharacter()
     switches = switches + 1
     notify()
 end
