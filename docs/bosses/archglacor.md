@@ -87,7 +87,7 @@ read, except collection log counts, so loot waiting in the chest stayed unread.
 | Run | Seen |
 |---|---|
 | 1. Three kills from 0%, then a claim | At each kill, the kill count and the streak rose in the same tick (streak 1, 2, 3), with enrage 0, 10 and 20. Enrage rose only on continuing, about 8 seconds after each kill. The claim reset the streak and enrage to 0. No unique. |
-| 2. Two kills, a death in the third fight, a claim outside | The kills as in run 1 (enrage 0, 16, 24). The death changed neither the kill count nor the streak. The claim at the chest outside, about 70 seconds later, reset the streak to 0. |
+| 2. Two kills, a death in the third fight, a claim outside | The kills as in run 1 (enrage 0, 16, 24). The death changed neither the kill count nor the streak. The claim at the chest outside, about 70 seconds later, reset the streak to 0. The chest opens a loot window, and the streak resets when the loot is claimed from it, not when the chest opens. |
 | 3. Five kills from 3,000%, a Scripture of Wen, a claim | Streak 1 to 5, and enrage 3,000, 3,013, 3,026, 3,038 and 3,053 at the kills. The claim reset the streak to 0 and enrage to 3,000, the next streak's start. 60 ticks (1.2 seconds) after the claim, the scripture's collection log count rose from 4 to 5. |
 
 The loot chest updated 3 to 5 seconds after each kill.

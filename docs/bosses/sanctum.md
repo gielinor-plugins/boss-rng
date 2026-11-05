@@ -22,8 +22,8 @@ Nakatra's weapons 1 in 50 (hard mode 1 in 40), Shard 1 in 80.
 
 - Each boss's loot waits in a chest until you claim it, and the run can't be entered
   again until you do. So each claim is one kill, counted when you claim, at that
-  boss's difficulty (normal or hard mode). Uniques reach the collection log at the
-  claim (assumed, as at Amascut), so they're counted with it.
+  boss's difficulty (normal or hard mode). Uniques reach the collection log when the
+  loot is taken from the reward chest after the claim, and count then.
 - A claim counts only if Boss RNG saw its kill: loot left waiting from before
   Boss RNG was on isn't counted.
 - Boss RNG came out after the March 2026 update, so every tracked kill uses
@@ -51,9 +51,17 @@ its game tick.
 | Vermyx, then Kezalam, normal mode | Each: kill count and loot bit up in the kill's tick, difficulty 0; bit cleared in the claim's tick. |
 | Nakatra normal mode, left before claiming | Re-entering was refused until claimed. The claim from the chest outside (another inventory) cleared the bit in its tick. |
 
-No unique dropped in these tests. Jagex's drop rates post says Nakatra's weapon
+No unique dropped in the first tests. Jagex's drop rates post says Nakatra's weapon
 and Shard rolls happen once per run, when Nakatra dies, which likely fills the
 two run rare fields; they add no rolls beyond the rates above.
+
+In game on 5 November 2026 by the developer, solo, logging each var change with its
+logic tick (50 a second).
+
+| Test | Seen |
+|---|---|
+| Two hard mode runs | Each kill: the kill count and that boss's loot bit, with difficulty 1, in one logic tick. Each claim: the bit and difficulty cleared in one logic tick. Boss RNG tracked 2 kills of each boss, in hard mode. |
+| A Scripture of Amascut from Nakatra, second run | Its collection log count went 1 to 2 when the loot was banked from the reward chest, about 3.6 seconds after the claim, with the drop log update. Boss RNG tracked it, and both its dry streak and the boss's restarted after the run's last kill. |
 
 ## Not counted
 

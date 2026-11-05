@@ -25,6 +25,19 @@ so waiting lets every kill be counted before its drop. It also lets a kill event
 read values that changed in the kill's tick, such as the players in an elite
 dungeon.
 
+Tests in game support this. One server update's events can be handled across two
+logic ticks, but in 75 kills at 8 bosses, everything a kill is counted from (kill
+counts, collection log counts, a chest's waiting loot, values read at the kill, and
+the player's loot piles) arrived in the same logic tick. Only inventory updates came
+a tick later. Reporting on `ServerLogic` instead, which the client fires as it
+finishes a server packet, was considered and dropped. It usually came in the same
+logic tick as an update's last event, but sometimes an event arrived after one and
+the next didn't come for about 30 logic ticks, a full 600 ms game tick. So it
+doesn't reliably mark the end of an event's update, and waiting for it would delay
+some reports by a game tick. A drop whose collection log count arrives a logic tick
+before its kill count hasn't been seen; it would be counted before its kill, or not
+at all if it's the boss's first kill since logging in.
+
 ## From a kill to the screen
 
 1. **The kill.** The boss's kill count rises (`VarTransmit`), and `var_watch` queues
