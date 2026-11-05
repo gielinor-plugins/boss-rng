@@ -14,8 +14,8 @@ Boss RNG
 
 10 to 150 ASCII characters, without repeating the name:
 
-> See how lucky you've been with boss uniques: luck and dry streaks for each unique,
-> against an average player with the same kills.
+> Spooned or cursed? Compare your boss uniques and dry streaks with an average player's
+> after the same kills, counted from the day you install it.
 
 ## Description
 
@@ -23,23 +23,27 @@ Copy everything between the lines.
 
 ---
 
-Boss RNG shows how lucky you've been with boss uniques. For each boss and each
-unique, it compares the drops you got with what an average player would have after
-the same kills, and shows how unusual your current dry streak is. It never shows
-drop rates.
+Boss RNG shows how lucky you really are with unique boss drops. Across 31 supported
+bosses, it compares your drops with an average player's after the same number of kills,
+both overall and unique by unique. It also shows how unusual your current dry streak is
+statistically. It never shows drop rates.
 
-It tracks your kills from the day you install it, while it's on, and rates each kill
-at the drop rates in effect that day, so a later rate change won't rewrite your past
-luck. Your all-time kill counts and collection log counts are shown beside it, as
-the game keeps them.
+It counts your kills from the day you install it, whenever it's turned on. Each kill is
+judged by the rates of the day you get it, so future drop rate changes don't rewrite
+your luck. Your all-time kill counts and collection log counts for each boss are shown
+too, straight from the game.
 
-**How to use it:** open Boss RNG from the Plugins window's ribbon, then kill a
-supported boss. The panel shows your luck and dry streak, and View details opens a
-window with every unique. Data Controls, in the plugin's settings, resets one boss or
-all of them.
+**How to use it:**
+
+Open Boss RNG from the ribbon in the Plugins window, then kill a supported boss. Kills
+and drops are tracked automatically, without any required configuration. The panel shows
+your luck and dry streak, and a "View details" button opens a window showing every
+unique tracked.
+
+To start over for one boss or all of them, use Data Controls in the plugin's settings.
 
 Supported bosses and how each is counted:
-https://github.com/<repository>/blob/main/docs/bosses/README.md
+https://github.com/gielinor-plugins/boss-rng/blob/main/docs/bosses/README.md
 
 ### Email
 
@@ -47,8 +51,8 @@ gielinorplugins@gmail.com
 
 ### Feedback and collaboration
 
-Feedback, bug reports and questions are welcome by email at the address above. I'm
-not accepting code contributions at the moment.
+Found a bug, or have a question or idea? Email me at the address above. I'm not
+accepting code contributions at the moment but may in the future.
 
 ### EULA
 
@@ -63,24 +67,26 @@ This plugin requests no permissions.
 
 ### Data Protection
 
-This plugin uses the following information: your character's display name, your
-boss kill counts and collection log counts, values the game shows during some boss
-fights (such as enrage, contribution or the brothers killed at Barrows), your loot
-chests and the loot piles you own, and the game's date.
+This plugin uses the following information:
+
+- your character's display name
+- your boss kill counts and collection log counts
+- values that set a kill's drop rates, such as a boss's enrage, Croesus contribution,
+  the Barrows brothers killed, or whether your pontifex shadow ring is overcharged
+- your loot chests and the loot piles you own
+- the game's date
 
 This information is not transmitted outside of the plugin under any circumstances.
 
-To show your luck over time, the plugin saves the kills and uniques it counts on your
-computer, under your character's display name. Other plugins can't read it, and you
-can delete it at any time with Data Controls in the plugin's settings.
+The plugin stores the following between sessions, in the game client's plugin data on
+your device, under your character's display name:
+
+- the kills it counts, and the day of each
+- the uniques it counts, and the kill each one last dropped on
+- some of the values that set a kill's drop rates
+- the boss you killed last
+
+Other plugins can't read this data. Data Controls in the plugin's settings deletes it,
+for one boss or for every boss.
 
 ---
-
-## Before publishing
-
-- Replace `<repository>` with the repository's address, or remove that line if the
-  repository isn't public.
-- Jagex's Case 1 example says game information isn't stored between sessions. Boss
-  RNG does store it, locally, so the last paragraph above says so instead. Confirm
-  this wording with Jagex (RuneScape Plugin Portal Discord) before the first
-  submission.

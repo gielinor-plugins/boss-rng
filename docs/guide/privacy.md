@@ -6,10 +6,10 @@ Only information the game already shows you:
 
 - **Kill counts and collection log counts,** as the boss log and collection log
   show them, without either being open.
-- **What sets a kill's drop rates,** read as it happens, such as Amascut's enrage,
-  Croesus contribution, the Barrows brothers killed or the players in an elite
-  dungeon. Each boss's page in [Supported bosses](../bosses/README.md) lists every
-  value it reads.
+- **What sets a kill's drop rates,** such as Amascut's enrage, Croesus contribution,
+  the Barrows brothers killed, the players in an elite dungeon, or whether your
+  pontifex shadow ring is overcharged. Each boss's page in
+  [Supported bosses](../bosses/README.md) lists every value it reads.
 - **Your loot chests and loot piles,** for the bosses counted by them (Vorkath
   chests opened, Kerapac loot piles, Amascut and Sanctum of Rebirth claims).
 - **The game's date,** so each kill uses the drop rates in effect that day.
@@ -20,10 +20,10 @@ you claim it, and never acts in the game for you.
 
 ## What it saves
 
-The kills, uniques and dry streaks it counts, saved on your computer under your
-character's display name. A name change starts a new entry. The game's own counts
-are read each time, never saved. [Saved data](../data/saved-data.md) describes the
-exact format.
+The kills, uniques and dry streaks it counts, and some of the values that set their
+drop rates, saved on your computer under your character's display name. A name
+change starts a new entry. The game's own counts are read each time, never saved.
+[Saved data](../data/saved-data.md) describes the exact format.
 
 ## What leaves your computer
 
