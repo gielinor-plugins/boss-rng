@@ -2,8 +2,8 @@
 -- Hard mode sword pieces are likelier in a run without checkpoints. Such a run, in
 -- either mode, gives an Igneous stone in the kill's tick, so each hard mode kill is
 -- rated by whether the stone's collection log count rose with it (tests:
--- docs/bosses/zuk.md).
--- The pontifex shadow ring raises every unique (src/bosses/egwd.lua).
+-- docs/bosses/zuk.md). The pontifex shadow ring raises every unique
+-- (src/bosses/egwd.lua).
 
 local common = require("src/bosses/common")
 local egwd = require("src/bosses/egwd")

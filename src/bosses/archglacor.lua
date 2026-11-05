@@ -5,8 +5,8 @@
 -- when the streak's loot is claimed, even after a death, so drops count only just after
 -- a claim (tests: docs/bosses/archglacor.md). Dark nilas come in stacks: all of a
 -- claim's dark nilas count as one drop, and their collection log count is shown on its
--- own, like
--- Vorkath's spikes. The pontifex shadow ring raises every unique (src/bosses/egwd.lua).
+-- own, like Vorkath's spikes. The pontifex shadow ring raises every unique
+-- (src/bosses/egwd.lua).
 
 local egwd = require("src/bosses/egwd")
 
