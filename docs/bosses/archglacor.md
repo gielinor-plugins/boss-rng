@@ -49,6 +49,10 @@ doesn't say it raises them.
   count at that claim.
 - The all-time unique count is the collection log's, so it includes normal mode
   drops.
+- A claim's uniques count even when some of the streak's kills weren't tracked: kills
+  made before installing Boss RNG or while it was off, or cleared by a reset before
+  the claim. Those uniques count without their kills, so luck reads higher than it
+  should. Claiming a streak before installing or resetting avoids it.
 
 ## Vars read
 
