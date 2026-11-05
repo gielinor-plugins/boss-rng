@@ -59,6 +59,10 @@ version before adding a feature. Where they differ, the current guidelines apply
 - **Use dependencies only through their public API.**
 - **Data stays on the device.** The plugin requests no permissions (no HTTP or
   chat access). Keep it that way.
+- **Everything saved can be deleted.** Resetting every boss deletes all of the
+  character's entries (see `docs/data/saved-data.md`), as the Data Protection
+  section promises. Save new data only under the character's keys, so the reset
+  finds it.
 
 ## Testing
 
