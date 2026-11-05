@@ -34,7 +34,8 @@ data.
 ## Deleting your data
 
 Data Controls in Boss RNG's settings (Plugin Hub, Manage tab) resets one boss or
-every boss for the character you're logged in as.
+every boss for the character you're logged in as. Resetting every boss deletes all
+of that character's saved data, including its display name.
 
 Since nothing is sent anywhere, the developer holds no data about you. Questions
 about your data are still welcome at gielinorplugins@gmail.com.
