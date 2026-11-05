@@ -258,8 +258,11 @@ function gameVars.Start(bosses, kills, drops, refresh)
 
     varWatch.Start(Player.IsAvailable())
 
+    -- An error in one event's handler is printed once and can't stop the others.
     for name, handler in pairs(HANDLERS) do
-        Event[name].Subscribe(REF, handler)
+        Event[name].Subscribe(REF, function(event)
+            safe.Call("handling " .. name, handler, event)
+        end)
     end
 end
 

@@ -131,6 +131,15 @@ describe("gameVars", function()
         printed = {} -- the one error expected
     end)
 
+    it("prints an event handler's error instead of passing it to the game", function()
+        mock.Fire("InventoryAdded", {}) -- no inventory: reading it fails
+        advance(1)
+        change(KC_VAR, 1, 2)
+        assert.are.same({ "kill n +1" }, reports) -- still reporting
+        assert.is_true(printed[1]:find("handling InventoryAdded", 1, true) ~= nil)
+        printed = {} -- the one error expected
+    end)
+
     it(
         "reports a kill event's kill for the mode its values say, not its kill count's own mode",
         function()

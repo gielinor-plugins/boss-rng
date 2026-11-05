@@ -2,7 +2,8 @@
 
 Every game event Boss RNG subscribes to, and what each one leads to. Boss RNG
 subscribes when the plugin starts and unsubscribes everything in `PluginShutdown`
-(`main.lua`).
+(`main.lua`). Each `game_vars` handler runs inside `safe.Call`
+(`src/utils/safe.lua`), so an error in one is printed once and can't stop the others.
 
 ## Subscriptions
 
