@@ -142,7 +142,7 @@ function tracker.AddKills(boss, mode, count, day, sums)
     notify()
 end
 
--- Adds drops, ending the boss's and the item's dry streaks. game_vars reports a tick's
+-- Adds drops, ending the boss's and the item's dry streaks. game_vars reports a batch's
 -- kills first, so a drop ends the streak after the kill it came with. A shared
 -- unique's collection log count rises for every boss that lists it, so the drop is
 -- tracked only for the boss killed last: the one it came from, unless its loot was

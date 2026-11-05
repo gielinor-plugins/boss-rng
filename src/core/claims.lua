@@ -2,13 +2,14 @@
 -- fall to 0, the value they fell from is what was claimed. A claim counts only if all
 -- of it was seen arriving with kills; loot waiting from before, or a kill that didn't
 -- raise it, leaves that claim uncounted.
+-- A batch is what game_vars reports at once (QUIET_TICKS in src/core/game_vars.lua).
 
 local bits = require("src/utils/bits")
 
 local claims = {}
 
 -- Each claim keeps seen, the loot seen arriving since its bits were last 0, and this
--- tick's kills and rises of its bits.
+-- batch's kills and rises of its bits.
 local byVar, list = {}, {}
 
 -- Watches mask bits of var base; report(old, count) gets each counted claim: the var's
@@ -33,6 +34,11 @@ function claims.Add(base, mask, report)
     end
 end
 
+-- Whether this var holds a claim's loot.
+function claims.Watches(id)
+    return byVar[id] ~= nil
+end
+
 -- Passes each counted claim's report, and how much was claimed, to queue.
 function claims.OnVar(id, old, new, queue)
     for _, claim in ipairs(byVar[id] or {}) do
@@ -52,7 +58,7 @@ end
 
 -- A kill that didn't raise its claim's bits means loot arrived unseen, so that claim
 -- isn't trusted until the chest is empty again.
-function claims.EndTick()
+function claims.EndBatch()
     for _, claim in ipairs(list) do
         if claim.kills > claim.rises then
             claim.trusted = false

@@ -20,22 +20,38 @@ local REF = "bossrng_game_vars"
 -- just after it, so a rise counts as a drop for this long after the claim.
 local CLAIM_TICKS = 10 * 50
 
+-- One server update's events can reach Boss RNG across two logic ticks, in any order
+-- (docs/technical/events.md). So changes are reported in batches, once this many logic
+-- ticks pass with no new event that matters: by then the whole update is in.
+local QUIET_TICKS = 2
+
 local onRefresh = nil -- called when all-time totals may change without a tally changing
 local announced = false -- whether onRefresh was called since entering the game
 local killedThisSession = {} -- [boss] = true once a kill is reported since entering the game
 local claimedAt = {} -- [boss] = tick its loot was last claimed (dropsAtClaim in src/bosses.lua)
+local quietTicks = nil -- logic ticks since the last event not yet reported
 
 local function queueKill(report, change)
     varWatch.Queue("kills", report, change)
+end
+
+-- Holds the next batch until it's quiet again.
+local function noted()
+    quietTicks = 0
 end
 
 local function onVarTransmit(event)
     if type(event.oldValue) ~= "number" or type(event.newValue) ~= "number" then
         return
     end
+    local id = event.var.id
+    -- Only vars Boss RNG uses count, so others changing can't hold a batch back.
+    if varWatch.Watches(id) or claims.Watches(id) then
+        noted()
+    end
     varWatch.OnTransmit(event)
     if varWatch.IsReady() then
-        claims.OnVar(event.var.id, event.oldValue, event.newValue, queueKill)
+        claims.OnVar(id, event.oldValue, event.newValue, queueKill)
     end
 end
 
@@ -48,29 +64,44 @@ end
 
 local function onInventory(event)
     if varWatch.IsReady() then
+        noted()
         containers.OnInventory(event)
     end
 end
 
 local function onPileAdded(event)
     if varWatch.IsReady() then
+        noted()
         piles.OnAdded(event)
     end
 end
 
 local function onPileChanged(event)
     if varWatch.IsReady() then
+        noted()
         piles.OnChanged(event)
     end
 end
 
+-- Reports a batch: rises, then kills (chests opened are queued as kills first), then
+-- drops. Kill events read the batch's rises and piles, so they're cleared after.
+local function report()
+    quietTicks = nil
+    containers.EndBatch(queueKill)
+    varWatch.Report()
+    killEvents.EndBatch()
+    claims.EndBatch()
+    piles.EndBatch()
+end
+
 local function onLogic(event)
-    containers.EndTick(queueKill)
-    varWatch.OnLogic(event.logicTick)
-    -- Kill events read this tick's rises and piles, so they're cleared after.
-    killEvents.EndTick()
-    claims.EndTick()
-    piles.EndTick()
+    varWatch.SetTick(event.logicTick)
+    if quietTicks then
+        quietTicks = quietTicks + 1
+        if quietTicks >= QUIET_TICKS then
+            report()
+        end
+    end
     if varWatch.IsReady() and not announced then
         announced = true
         varWatch.ReadCounts()
@@ -237,7 +268,7 @@ local HANDLERS = {
     ObjStackEntityChanged = onPileChanged,
 }
 
--- Watches every boss in bosses, and reports on the logic tick after each change:
+-- Watches every boss in bosses, and reports each batch of changes (see QUIET_TICKS):
 --   kills(boss, mode, count, day, sums)  kills of mode, from a kill count rise, kill
 --                                        event, claim or chest opened; sums are a kill
 --                                        event's values to add up (or nil)
@@ -277,6 +308,7 @@ function gameVars.Stop()
     containers.Clear()
     piles.Clear()
     onKills, onDrops, onRefresh, announced, killedThisSession = nil, nil, nil, false, {}
+    quietTicks = nil
 end
 
 return gameVars

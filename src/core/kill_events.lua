@@ -1,15 +1,16 @@
 -- Kill events (killEvents in src/bosses.lua): kills told apart by what the game shows
 -- around them. A kill event can read values at the kill (reads), a value's last before
--- the game resets it (lasts), whether a count rose in the kill's tick (rises), the
+-- the game resets it (lasts), whether a count rose with the kill (rises), the
 -- player's loot piles (pileItems), and values to add up by day (sums). game_vars wires
 -- each boss's kill events in.
+-- A batch is what game_vars reports at once (QUIET_TICKS in src/core/game_vars.lua).
 
 local piles = require("src/core/piles")
 local varWatch = require("src/core/var_watch")
 
 local killEvents = {}
 
-local risen = {} -- each kill event's rises seen this tick
+local risen = {} -- each kill event's rises seen this batch
 
 -- The mode a kill event or claim gives the kill, and the values it read. old is a claim
 -- var's old value. Nil if a value can't be read, or the event gives no mode.
@@ -57,7 +58,7 @@ function killEvents.Add(boss, event, report)
             end
         end)
     end
-    local rose = {} -- each of event.rises that rose this tick
+    local rose = {} -- each of event.rises that rose this batch
     table.insert(risen, rose)
     for key, name in pairs(event.rises or {}) do
         varWatch.Watch(name, "rises", function()
@@ -75,8 +76,8 @@ function killEvents.Add(boss, event, report)
     end, event.mask)
 end
 
--- Forgets this tick's rises, after its kills are reported.
-function killEvents.EndTick()
+-- Forgets this batch's rises, after its kills are reported.
+function killEvents.EndBatch()
     for _, rose in ipairs(risen) do
         for key in pairs(rose) do
             rose[key] = nil

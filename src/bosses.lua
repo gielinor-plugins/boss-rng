@@ -39,10 +39,9 @@
 --                   reads      { [key] = var }: read at the kill
 --                   lasts      { [key] = varbit }: its last value above 0 before the
 --                              kill, for values the game resets at the kill (Croesus)
---                   rises      { [key] = varbit }: true if it rose in the kill's tick
---                              (Zuk)
+--                   rises      { [key] = varbit }: true if it rose with the kill (Zuk)
 --                   pileItems  item ids marking a loot pile: values.piles is how many
---                              of the player's piles gained one in the kill's tick
+--                              of the player's piles gained one with the kill
 --                              (Kerapac)
 --                   sums       keys of values to add up by day and pass to rolls as
 --                              averages (Arch-Glacor's enrage and streak)

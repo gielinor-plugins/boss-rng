@@ -57,7 +57,7 @@ past luck.
 | `main.lua` | Starts the UI and `game_vars`; stops both in `PluginShutdown`. |
 | `src/bosses.lua`, `src/bosses/` | The supported bosses as data, and the format they follow. |
 | `src/core/game_vars.lua` | Wires every boss to the game; reports kills, drops and all-time totals. |
-| `src/core/var_watch.lua` | Watches var changes (`VarTransmit`), queues rises for the next tick, and waits out the login sync. |
+| `src/core/var_watch.lua` | Watches var changes (`VarTransmit`), queues rises for `game_vars` to report in batches, and waits out the login sync. |
 | `src/core/kill_events.lua` | Kills told apart by values read at the kill. |
 | `src/core/claims.lua` | Kills counted by loot claimed from a chest. |
 | `src/core/containers.lua` | Kills counted by loot chests opened from the backpack. |

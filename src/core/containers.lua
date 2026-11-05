@@ -1,15 +1,16 @@
 -- Loot kept in an item to open later (containers in src/bosses.lua). Each one opened is
--- a kill, seen as its backpack count falling in the tick a reward window opens.
+-- a kill, seen as its backpack count falling with a reward window opening.
 -- Banking one lowers the count too, but opens no reward window.
+-- A batch is what game_vars reports at once (QUIET_TICKS in src/core/game_vars.lua).
 
 local containers = {}
 
 local byItem = {} -- [item id] = { window, report }
 local held = {} -- the backpack's count of each, as last read
--- This tick's windows opened (by inventory name) and counts that fell (by item id)
+-- This batch's windows opened (by inventory name) and counts that fell (by item id)
 local opening = { windows = {}, fell = {} }
 
--- Watches itemID, opened with window (an inventory name); report(count) per tick.
+-- Watches itemID, opened with window (an inventory name); report(count) per batch.
 function containers.Add(itemID, window, report)
     byItem[itemID] = { window = window, report = report }
 end
@@ -44,8 +45,8 @@ function containers.OnInventory(event)
     end
 end
 
--- Passes this tick's openings to queue(report, count), one per window.
-function containers.EndTick(queue)
+-- Passes this batch's openings to queue(report, count), one per window.
+function containers.EndBatch(queue)
     for itemID, fell in pairs(opening.fell) do
         local container = byItem[itemID]
         local opened = math.min(fell, opening.windows[container.window] or 0)

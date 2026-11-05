@@ -1,7 +1,7 @@
--- Watches game vars for game_vars: reports each rise of a watched count on the logic
--- tick after it arrives, and calls followers when a followed varbit's base var
--- changes. Counts are varbits: slices of a base var, whose old and new values
--- VarTransmit sends. Vars are only trusted a few seconds after entering the game.
+-- Watches game vars for game_vars: queues each rise of a watched count for game_vars to
+-- report, and calls followers when a followed varbit's base var changes. Counts are
+-- varbits: slices of a base var, whose old and new values VarTransmit sends. Vars are
+-- only trusted a few seconds after entering the game.
 
 local bits = require("src/utils/bits")
 local safe = require("src/utils/safe")
@@ -17,14 +17,14 @@ local SETTLE_TICKS = 5 * 50
 -- as the login sync, and any fall are ignored.
 local MAX_CHANGE = 3
 
--- A tick's kill and drop can arrive in either order (at Kree'arra the drop came
--- first), so kills are reported first: a drop counts after the kill it landed with.
--- Rises come before both, so a kill event sees what rose in its tick.
+-- A kill and its drop can arrive in either order (at Kree'arra the drop came first), so
+-- kills are reported first: a drop counts after the kill it landed with. Rises come
+-- before both, so a kill event sees what rose with it.
 local GROUPS = { "rises", "kills", "drops" }
 
 local watched = {} -- [base var id] = slices to check when that var changes
 local followed = {} -- [base var id] = { name, update(value) } to call after it changes
-local pending = { rises = {}, kills = {}, drops = {} } -- reports waiting for the next tick
+local pending = { rises = {}, kills = {}, drops = {} } -- reports waiting for Report
 local tick = 0
 local readyAtTick = nil -- nil while not in the game
 
@@ -35,6 +35,11 @@ end
 
 function varWatch.Tick()
     return tick
+end
+
+-- Whether a slice of this base var is watched or followed.
+function varWatch.Watches(id)
+    return watched[id] ~= nil or followed[id] ~= nil
 end
 
 -- Whether vars can be trusted: in the game, and past the wait after entering it.
@@ -75,7 +80,7 @@ function varWatch.Watch(name, group, report, mask, most)
     })
 end
 
--- Queues report(change) for the next tick, in group's turn.
+-- Queues report(change) for the next Report, in group's turn.
 function varWatch.Queue(group, report, change)
     table.insert(pending[group], { report = report, change = change })
 end
@@ -133,9 +138,12 @@ function varWatch.Start(inGame)
     readyAtTick = inGame and 0 or nil
 end
 
--- On each logic tick: reports last tick's queued changes, group by group.
-function varWatch.OnLogic(logicTick)
+function varWatch.SetTick(logicTick)
     tick = logicTick
+end
+
+-- Reports the queued changes, group by group.
+function varWatch.Report()
     for _, group in ipairs(GROUPS) do
         for _, item in ipairs(pending[group]) do
             safe.Call("recording " .. group, item.report, item.change)

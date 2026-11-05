@@ -15,8 +15,9 @@ local BOSS = {
 local KC_VAR, LOG_VAR = 1, 2
 
 -- Logic ticks (50 a second): the wait after entering the game before vars are trusted
--- (src/core/var_watch.lua), and how long after a claim its drops count (game_vars).
-local SETTLE_TICKS, CLAIM_TICKS = 5 * 50, 10 * 50
+-- (src/core/var_watch.lua), how long after a claim its drops count, and the quiet
+-- before a batch is reported (game_vars).
+local SETTLE_TICKS, CLAIM_TICKS, QUIET_TICKS = 5 * 50, 10 * 50, 2
 
 -- Modes for any key a test's kill event or claim gives.
 local function anyModes()
@@ -40,9 +41,12 @@ describe("gameVars", function()
         gameVars.Start(bosses, kills, drops or ignore, refresh or ignore)
     end
 
+    -- Runs that many logic ticks, one Logic event each, as the client does.
     local function advance(ticks)
-        tick = tick + ticks
-        mock.Fire("Logic", { logicTick = tick })
+        for _ = 1, ticks do
+            tick = tick + 1
+            mock.Fire("Logic", { logicTick = tick })
+        end
     end
 
     -- Fires a VarTransmit for a base var going from old to new.
@@ -50,10 +54,15 @@ describe("gameVars", function()
         mock.Fire("VarTransmit", { var = { id = id }, oldValue = old, newValue = new })
     end
 
-    -- Sends a change, then lets a tick pass so it is reported.
+    -- Lets the quiet ticks pass, so what was sent is reported.
+    local function report()
+        advance(QUIET_TICKS)
+    end
+
+    -- Sends a change, then lets it be reported.
     local function change(id, old, new)
         send(id, old, new)
-        advance(1)
+        report()
     end
 
     before_each(function()
@@ -108,12 +117,31 @@ describe("gameVars", function()
         assert.are.same({ "drop 101 +1", "drop 102 +1" }, reports)
     end)
 
-    it("reports a tick's kills before its drops", function()
+    it("reports kills before the drops sent with them", function()
         send(LOG_VAR, 0x01, 0x02) -- the drop arrives first, as seen in game
         send(KC_VAR, 575, 576)
-        assert.are.same({}, reports) -- nothing until the next tick
+        assert.are.same({}, reports) -- nothing until it's quiet
+        report()
+        assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
+    end)
+
+    it("waits for quiet ticks, so an update split across logic ticks is reported whole", function()
+        send(LOG_VAR, 0x01, 0x02) -- the drop, then a logic tick
+        advance(1)
+        send(KC_VAR, 575, 576) -- then the kill
+        advance(1)
+        assert.are.same({}, reports) -- not quiet for long enough yet
         advance(1)
         assert.are.same({ "kill n +1", "drop 101 +1" }, reports)
+    end)
+
+    it("isn't held back by vars it doesn't watch", function()
+        send(KC_VAR, 1, 2)
+        for _ = 1, QUIET_TICKS do
+            send(99, 1, 2) -- one changing every tick
+            advance(1)
+        end
+        assert.are.same({ "kill n +1" }, reports)
     end)
 
     it("keeps reporting when one report fails", function()
@@ -125,7 +153,7 @@ describe("gameVars", function()
         end)
         send(KC_VAR, 1, 2)
         send(LOG_VAR, 0x01, 0x02)
-        advance(1)
+        report()
         assert.are.same({ "drop 101" }, reports)
         assert.is_true(printed[1]:find("broken kill report", 1, true) ~= nil)
         printed = {} -- the one error expected
@@ -194,14 +222,14 @@ describe("gameVars", function()
         mock.SetValue("LOG_SHARED", 7)
         send(LOG_VAR, 0, 0x070000) -- the score rises through the fight
         mock.SetValue("LOG_SHARED", 0)
-        send(LOG_VAR, 0x070000, 0) -- and resets in the kill's tick
+        send(LOG_VAR, 0x070000, 0) -- and resets with the kill
         change(KC_VAR, 1, 2)
         assert.are.same({ "Score 7" }, reports)
         change(KC_VAR, 2, 3) -- no score seen since: uncounted
         assert.are.same({ "Score 7" }, reports)
     end)
 
-    it("tells a kill event whether a varbit rose in its tick", function()
+    it("tells a kill event whether a varbit rose with it", function()
         gameVars.Stop()
         local evented = {
             killCounts = { { var = "KC_NORMAL" } },
@@ -222,55 +250,61 @@ describe("gameVars", function()
         end, function() end)
         advance(1)
         send(KC_VAR, 1, 2)
-        change(LOG_VAR, 0, 0x010000) -- in the kill's tick, after it
+        change(LOG_VAR, 0, 0x010000) -- with the kill, after it
         change(LOG_VAR, 0x010000, 0x020000) -- alone, as from another mode's kill
         change(KC_VAR, 2, 3)
         assert.are.same({ "Stone", "None" }, reports)
     end)
 
-    it(
-        "gives a kill event the piles the player owns that gained a watched item in its tick",
-        function()
-            gameVars.Stop()
-            local evented = {
-                killCounts = { { var = "KC_NORMAL" } },
-                modes = anyModes(),
-                items = {},
-                killEvents = {
-                    {
-                        var = "KC_NORMAL",
-                        pileItems = { 501, 502 },
-                        mode = function(values)
-                            return "Piles " .. values.piles
-                        end,
-                    },
+    it("gives a kill event the piles the player owns that gained a watched item with it", function()
+        gameVars.Stop()
+        local evented = {
+            killCounts = { { var = "KC_NORMAL" } },
+            modes = anyModes(),
+            items = {},
+            killEvents = {
+                {
+                    var = "KC_NORMAL",
+                    pileItems = { 501, 502 },
+                    mode = function(values)
+                        return "Piles " .. values.piles
+                    end,
                 },
-            }
-            start({ evented }, function(_, mode)
-                table.insert(reports, mode.key)
-            end, function() end)
-            advance(1)
-            local function stack(name, tile, itemID, owned, counts)
-                counts.objStackEntity, counts.objType, counts.isOwner =
-                    { coordGrid = tile }, { id = itemID }, owned
-                mock.Fire(name, counts)
-            end
-            stack("ObjStackEntityAdded", "a", 501, true, { count = 40 })
-            stack("ObjStackEntityChanged", "b", 502, true, { oldCount = 0, newCount = 50 })
-            -- The same pile
-            stack("ObjStackEntityChanged", "b", 501, true, { oldCount = 0, newCount = 5 })
-            -- Joins older loot
-            stack("ObjStackEntityChanged", "c", 501, true, { oldCount = 10, newCount = 60 })
-            stack("ObjStackEntityAdded", "d", 501, false, { count = 40 }) -- a teammate's
-            stack("ObjStackEntityAdded", "e", 999, true, { count = 1 }) -- not a watched item
-            -- Picked up
-            stack("ObjStackEntityChanged", "f", 501, true, { oldCount = 10, newCount = 0 })
-            change(KC_VAR, 1, 2)
-            assert.are.same({ "Piles 3" }, reports)
-            change(KC_VAR, 2, 3) -- none in this kill's tick: away at the kill
-            assert.are.same({ "Piles 3", "Piles 0" }, reports)
+            },
+        }
+        start({ evented }, function(_, mode)
+            table.insert(reports, mode.key)
+        end, function() end)
+        advance(1)
+        local function stack(name, tile, itemID, owned, counts)
+            counts.objStackEntity, counts.objType, counts.isOwner =
+                { coordGrid = tile }, { id = itemID }, owned
+            mock.Fire(name, counts)
         end
-    )
+        stack("ObjStackEntityAdded", "a", 501, true, { count = 40 })
+        stack("ObjStackEntityChanged", "b", 502, true, { oldCount = 0, newCount = 50 })
+        -- The same pile
+        stack("ObjStackEntityChanged", "b", 501, true, { oldCount = 0, newCount = 5 })
+        -- Joins older loot
+        stack("ObjStackEntityChanged", "c", 501, true, { oldCount = 10, newCount = 60 })
+        stack("ObjStackEntityAdded", "d", 501, false, { count = 40 }) -- a teammate's
+        stack("ObjStackEntityAdded", "e", 999, true, { count = 1 }) -- not a watched item
+        -- Picked up
+        stack("ObjStackEntityChanged", "f", 501, true, { oldCount = 10, newCount = 0 })
+        change(KC_VAR, 1, 2)
+        assert.are.same({ "Piles 3" }, reports)
+        change(KC_VAR, 2, 3) -- none with this kill: away at the kill
+        assert.are.same({ "Piles 3", "Piles 0" }, reports)
+        -- A logic tick before the kill count, then after it: still the kill's.
+        stack("ObjStackEntityAdded", "a", 501, true, { count = 40 })
+        advance(1)
+        change(KC_VAR, 3, 4)
+        send(KC_VAR, 4, 5)
+        advance(1)
+        stack("ObjStackEntityAdded", "a", 501, true, { count = 40 })
+        report()
+        assert.are.same({ "Piles 3", "Piles 0", "Piles 1", "Piles 1" }, reports)
+    end)
 
     it("passes a kill event's sums with its kill", function()
         gameVars.Stop()
@@ -385,7 +419,7 @@ describe("gameVars", function()
             if old ~= new then
                 send(LOOT_VAR, old, new)
             end
-            advance(1)
+            report()
         end
 
         it("counts every pile seen arriving at its claim, with its drops", function()
@@ -395,7 +429,7 @@ describe("gameVars", function()
             assert.are.same({}, reports)
             send(LOOT_VAR, 0x30000, 0) -- claimed: three piles
             send(LOG_VAR, 0, 1) -- and a drop
-            advance(1)
+            report()
             assert.are.same({ "kill n +3", "drop 101 +1" }, reports)
             kill(3, 0, 0x50010000)
             change(LOOT_VAR, 0x50010000, 0)
@@ -408,7 +442,7 @@ describe("gameVars", function()
             kill(2, 0x50000, 0x50000) -- the count didn't change: its piles are unknown
             send(LOOT_VAR, 0x50000, 0)
             send(LOG_VAR, 0, 1)
-            advance(1)
+            report()
             assert.are.same({}, reports)
             kill(3, 0, 0x30000) -- the next chest counts again
             change(LOOT_VAR, 0x30000, 0)
@@ -449,10 +483,10 @@ describe("gameVars", function()
             advance(1)
             send(KC_VAR, 0, 1) -- A's kill sets its bit
             send(LOOT_VAR, 0, 0x1)
-            advance(1)
+            report()
             send(KC_VAR, 1, 0x10001) -- B's kill sets its own
             send(LOOT_VAR, 0x1, 0x5)
-            advance(1)
+            report()
             assert.are.same({}, reports)
             change(LOOT_VAR, 0x5, 0x4)
             change(LOOT_VAR, 0x4, 0)
@@ -655,29 +689,29 @@ describe("gameVars", function()
             rewardWindow()
             backpack(2)
             send(LOG_VAR, 10, 16) -- six spikes
-            advance(1)
+            report()
             assert.are.same({ "refresh", "kill n +1", "drop 101 +1" }, reports)
         end)
 
         it("doesn't count a chest banked or claimed", function()
             backpack(2) -- banked
-            advance(1)
+            report()
             backpack(4) -- withdrawn and claimed
-            advance(1)
+            report()
             assert.are.same({}, reports)
         end)
 
         it("only counts its own reward window", function()
             rewardWindow("OTHER_REWARDINV")
             backpack(2)
-            advance(1)
+            report()
             assert.are.same({}, reports)
         end)
 
         it("counts chests opened one per reward window", function()
             rewardWindow()
             backpack(1) -- two left at once, one window
-            advance(1)
+            report()
             assert.are.same({ "kill n +1" }, reports)
         end)
     end)
