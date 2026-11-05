@@ -17,18 +17,22 @@ subscribes when the plugin starts and unsubscribes everything in `PluginShutdown
 | `SettingsLayerReady` | `ui` | The settings page opened: it draws. |
 | `Logic`, for one tick | `ui` (`bossrng_ui_redraw`) | A redraw asked for during a change happens on the next tick, once however many changes asked for it, then unsubscribes. |
 
-Changes are reported a tick late on purpose: a kill and its drop can arrive in
-either order within a tick, so waiting lets kills always be counted before the
-drops they brought.
+Each change is reported on the next logic tick, a fiftieth of a second later, rather
+than as it arrives. A kill count and the collection log count of the drop it brought
+can arrive in either order within one game tick (at Kree'arra, the drop came first),
+so waiting lets every kill be counted before its drop. It also lets a kill event
+read values that changed in the kill's tick, such as the players in an elite
+dungeon.
 
 ## From a kill to the screen
 
-1. **The kill.** The boss's kill count varbit rises (`VarTransmit`). `var_watch`
-   queues it, unless it's in the 5 seconds after login or rose by more than a
-   kill could.
-2. **Next tick.** The kill is reported with its mode: straight from the kill count,
-   or from a kill event, claim or container (see the table in
-   [Technical overview](overview.md#bosses-and-modes)), and with the game's date.
+1. **The kill.** The boss's kill count rises (`VarTransmit`), and `var_watch` queues
+   the rise, unless it's within 5 seconds of login or bigger than kills could be.
+   Bosses counted by a claim or a chest start there instead.
+2. **Reported.** On the next logic tick, the kill is reported with the game's date
+   and its mode, the kind of kill whose drop rates it uses. For most bosses the kill
+   count itself names the mode; for the rest it comes from a value read at the kill,
+   the claim or the chest (see [Technical overview](overview.md#bosses-and-modes)).
 3. **Tracked.** `tracker.AddKills` adds it to the character's tallies and saves.
 4. **Redraw asked.** Saving calls the UI's listener, which redraws on the next tick.
 5. **Drawn.** The panel and the details window redraw only if they're open and

@@ -64,7 +64,7 @@ past luck.
 | `src/core/piles.lua` | The player's own loot piles that land at a kill. |
 | `src/core/tracker.lua` | Each character's tallies: adding kills and drops, saving, resets. |
 | `src/core/tallies.lua` | The tallies' shape, dry streaks, and their saved form. |
-| `src/core/stats.lua` | Tallies to luck, dry streaks and expected drops. |
+| `src/core/stats.lua` | Works out luck, dry streaks and expected drops from the tallies. |
 | `src/core/luck.lua` | The probability math ([Luck math](luck-math.md)). |
 | `src/core/rates.lua`, `src/core/rates/` | Drop rates by game update and day. |
 | `src/ui.lua` | When the views draw ([UI](ui.md)). |
