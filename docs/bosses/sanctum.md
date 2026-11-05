@@ -56,7 +56,7 @@ and Shard rolls happen once per run, when Nakatra dies, which likely fills the
 two run rare fields; they add no rolls beyond the rates above.
 
 In game on 5 November 2026 by the developer, solo, logging each var change with its
-logic tick (50 a second).
+logic tick.
 
 | Test | Seen |
 |---|---|

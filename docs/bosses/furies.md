@@ -30,6 +30,16 @@ it's assumed to be the same.
 | `BSLAY_KILLS_TWINDEMONS_HARDMODE` | Hard mode kill count. |
 | `ITEMLOG_ITEM_GWD2_ZAMORAK_<ITEM>` | Collection log count each: `CREST`, `WEAPON` (Nymora), `WEAPON_OFFHAND` (Avaryss), `ESSENCE`. |
 
+## Tests
+
+In game on 5 November 2026 by the developer, solo, logging each var change with its
+logic tick.
+
+| Test | Seen |
+|---|---|
+| 13 normal mode kills | Each: the kill count rose in one logic tick with the kill's ground loot; the loot window updated a tick later. Boss RNG tracked all 13. |
+| A Blade of Nymora, on the 11th kill | In one logic tick: the blade landed, its collection log count (`WEAPON`) went 1 to 2, then the kill count rose. Boss RNG counted the kill, then the drop, so the blade's dry streak and the boss's restart after that kill. |
+
 ## Not counted
 
 - **Wings of the Twin Furies** (boss trophy, 1 in 500): not on the collection
