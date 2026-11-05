@@ -1,6 +1,6 @@
 {
     "name": "Boss RNG",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "contactEmailAddress": "gielinorplugins@gmail.com",
     "requiredDependencies": { "prettyui": 6398181 },
     "optionalDependencies": {},

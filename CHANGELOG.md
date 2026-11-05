@@ -4,7 +4,7 @@ Each released version and what changed since the one before, newest first.
 Versions follow [semantic versioning](https://semver.org/) and match `plugin.json`
 and the mod.io upload.
 
-## Unreleased
+## 1.0.0
 
 First release.
 
