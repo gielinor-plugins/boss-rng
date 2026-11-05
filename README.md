@@ -12,8 +12,8 @@ computer, and never acts in the game for you.
 ## Install
 
 Find **Boss RNG** in the Plugin Hub in game, or on its
-[mod.io page](https://mod.io/g/runescape). Then open it from the Plugins window's
-ribbon.
+[mod.io page](https://mod.io/g/runescape/m/boss-rng). Then open it from the Plugins
+window's ribbon.
 
 ## Documentation
 
