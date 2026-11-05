@@ -163,7 +163,9 @@ function tracker.AddDrops(boss, itemID, count)
     notify()
 end
 
--- Clears the character's tallies for a boss.
+-- Clears the character's tallies for a boss. The character's entry only names the boss
+-- killed last, so resetting that boss deletes the entry rather than leave one that
+-- holds just the display name.
 function tracker.Reset(boss)
     if not load() then
         return
@@ -175,7 +177,7 @@ function tracker.Reset(boss)
     changed(boss)
     if lastBoss == boss.key then
         lastBoss = nil
-        saveCharacter()
+        delete(characterEntry())
     end
     notify()
 end

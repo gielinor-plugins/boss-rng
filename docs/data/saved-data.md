@@ -21,8 +21,9 @@ A sample character's entries are in [`saved-data.example.json`](saved-data.examp
 ## `char:<name>`
 
 `lastBoss`, the boss killed last, gets any shared unique (one collection log count
-shared by two bosses). Resetting every boss deletes this entry too, and the next kill
-saves it again.
+shared by two bosses). Resetting that boss, or every boss, deletes this entry, and the
+next kill saves it again. Since it holds nothing else, it's deleted rather than saved
+empty. A field added here later must change that, or a reset would lose it.
 
 ## `char:<name>:<boss key>`
 

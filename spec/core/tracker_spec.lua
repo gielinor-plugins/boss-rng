@@ -95,13 +95,15 @@ describe("tracker", function()
         assert.are.equal("testboss", tracker.LastBossKey())
     end)
 
-    it("forgets the last boss killed when that boss is reset", function()
+    it("forgets the last boss killed, and its entry, when that boss is reset", function()
         local other = { key = "other", modes = { n = NORMAL }, items = {} }
         tracker.AddKills(BOSS, NORMAL, 1, DAY)
         tracker.Reset(other) -- another boss: still remembered
         assert.are.equal("testboss", tracker.LastBossKey())
+        assert.are.equal("testboss", mock.Saved("char:Tester").lastBoss)
         tracker.Reset(BOSS)
         assert.is_nil(tracker.LastBossKey())
+        assert.is_nil(mock.Saved("char:Tester")) -- nothing else to keep
         restart()
         assert.is_nil(tracker.LastBossKey())
     end)
