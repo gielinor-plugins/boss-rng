@@ -4,6 +4,13 @@ Each released version and what changed since the one before, newest first.
 Versions follow [semantic versioning](https://semver.org/) and match `plugin.json`
 and the mod.io upload.
 
+## 1.1.0
+
+- Amascut counts kills, like the other bosses, with your loot piles beside them: "8
+  kills (40 piles)". Its luck still counts every pile.
+- At Amascut and Sanctum of Rebirth, a unique from a claim Boss RNG couldn't count
+  (such as loot waiting from before you logged in) no longer counts toward luck.
+
 ## 1.0.0
 
 First release.
