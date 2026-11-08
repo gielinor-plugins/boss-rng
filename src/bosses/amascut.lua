@@ -1,8 +1,8 @@
 -- Amascut, the Devourer. Rates: Jagex's "Drop Rates Revealed" via the RuneScape Wiki
 -- (CC BY-NC-SA 3.0), checked 2026-10-27. Each player rolls for gear, the Nexus and, in
 -- enrage, the Shard, and each enrage tier has its own rates, so its own mode. A kill
--- makes five loot piles (spare piles go to the top damagers), which wait in the chest
--- until claimed. So Boss RNG counts piles claimed, not kills (tests:
+-- makes five loot piles, shared by the team, and each pile rolls. They wait in the
+-- chest until claimed, so each claim's kills and piles are counted together (tests:
 -- docs/bosses/amascut.md).
 
 local common = require("src/bosses/common")
@@ -32,15 +32,20 @@ local function gear(r)
     )
 end
 
--- Rolls by rate names for gear, the Nexus and the Shard (none in normal mode).
+-- A kill's rolls by rate names for gear, the Nexus and the Shard (none in normal
+-- mode): one pile's for each of the day's average piles per kill, the last scaled by
+-- any fraction. Expected drops stay exact; dry shares are within a hair.
 local function rolls(gearRate, nexus, shard)
-    return function(r)
-        local list = {
-            { chance = r[gearRate], items = gear(r) },
-            { chance = r[nexus], items = { [NEXUS] = 1 } },
-        }
-        if shard then
-            table.insert(list, { chance = r[shard], items = { [common.SHARD] = 1 } })
+    return function(r, _, means)
+        local piles = means and means.piles or 1 -- a day without piles saved: 1 per kill
+        local list, gearItems = {}, gear(r)
+        for i = 1, math.ceil(piles) do
+            local share = math.min(1, piles - i + 1)
+            table.insert(list, { chance = r[gearRate] * share, items = gearItems })
+            table.insert(list, { chance = r[nexus] * share, items = { [NEXUS] = 1 } })
+            if shard then
+                table.insert(list, { chance = r[shard] * share, items = { [common.SHARD] = 1 } })
+            end
         end
         return list
     end
@@ -75,7 +80,6 @@ return {
     key = "amascut",
     name = "Amascut, the Devourer",
     assumptions = {},
-    unit = "pile", -- luck counts loot piles claimed, not kills
     tip = "Open the chest after each kill: stacked loot can't always be counted",
 
     killCounts = { { var = VARS.kc }, { var = VARS.kcEnrage } }, -- counted through claims
@@ -87,6 +91,7 @@ return {
             kills = { VARS.kc, VARS.kcEnrage },
             reads = { enrage = VARS.enrage },
             mode = claimedMode,
+            piles = true,
         },
     },
 

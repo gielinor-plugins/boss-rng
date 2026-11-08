@@ -60,6 +60,9 @@ A collection log count rising is a drop only:
 
 - **after a kill of that boss this session.** The game can resend collection log
   counts long after login, so a rise with no kill isn't a drop.
+- **after a kill since the last skipped claim** of that boss, or of a boss sharing a
+  unique with it (Amascut and Sanctum of Rebirth share the Shard of Genesis Essence).
+  A claim's uniques come with or after it, so a skipped claim's unique isn't counted.
 - **within 10 seconds of a claim,** for bosses whose loot waits until you claim it
   (Arch-Glacor's hard mode streak).
 - **for the boss killed last,** for a unique whose collection log count two bosses

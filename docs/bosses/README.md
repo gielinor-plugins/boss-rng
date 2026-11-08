@@ -7,7 +7,7 @@ and what was tested in game.
 
 | Boss | How kills are counted | Kills told apart by |
 |---|---|---|
-| [Amascut, the Devourer](amascut.md) | Loot piles claimed from the chest | Normal mode or the enrage tier |
+| [Amascut, the Devourer](amascut.md) | Each claim from the chest, with its loot piles | Normal mode or the enrage tier |
 | [Araxxi](araxxi.md) | Each kill | Solo or duo |
 | [Arch-Glacor](archglacor.md) (hard mode) | Each kill | The fight's enrage and the kill's place in the streak |
 | [Barrows Brothers](barrows.md) | Each chest looted | The brothers killed, Linza and Akrisae included |

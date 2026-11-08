@@ -36,23 +36,37 @@ function stats.Rolls(boss, mode, readings, day, means)
     return rolls
 end
 
+-- A day's averages as text ("piles=2"), so days with the same ones share a version.
+local function meansKey(means)
+    local parts = {}
+    for name, mean in pairs(means) do
+        table.insert(parts, name .. "=" .. mean)
+    end
+    table.sort(parts)
+    return table.concat(parts, ",")
+end
+
 -- Kills of one mode in one rate version have the same chances (see "Rate versions" in
 -- docs/technical/luck-math.md), so a boss's kills are worked out in batches:
 -- batchesOf(byMode) adds byMode's kills up by mode and version, as a list of
 -- { mode, kills, rolls, chances }.
--- A mode with sums that day (Arch-Glacor) has its own chances that day, so the day is
--- its own version. Rolls and chances are worked out once per mode and version.
+-- A mode with sums also depends on each day's averages (Arch-Glacor's enrage, Amascut's
+-- piles per kill), so days share a version only with the same rates and averages.
+-- Rolls and chances are worked out once per mode and version.
 local function batcher(boss, readings, t)
-    local versions = {} -- [mode][version key] = { rolls, chances }
+    local versions = {} -- [mode][rates][averages as text] = { rolls, chances }
     local function versionOn(mode, day)
         local means = tallies.Means(t, mode.key, day)
-        local key = means and day or valuesOn(boss, day)
+        local values, key = valuesOn(boss, day), means and meansKey(means) or ""
         versions[mode] = versions[mode] or {}
-        if versions[mode][key] == nil then
+        versions[mode][values] = versions[mode][values] or {}
+        local version = versions[mode][values][key]
+        if version == nil then
             local rolls = stats.Rolls(boss, mode, readings, day, means)
-            versions[mode][key] = { rolls = rolls, chances = luck.ItemChances(rolls) }
+            version = { rolls = rolls, chances = luck.ItemChances(rolls) }
+            versions[mode][values][key] = version
         end
-        return versions[mode][key]
+        return version
     end
 
     local batches = {} -- [byMode] = its batches, worked out once
@@ -186,7 +200,7 @@ end
 --   kills, extraKills   tracked kills in the kill counts, and outside them (partial
 --                       Barrows chests, called extraLabel)
 --   piles               loot piles over tracked kills, for modes that count them
---                       (Kerapac), or nil
+--                       (Kerapac) or claims that save them (Amascut), or nil
 --   expected, received  uniques an average player would have, and uniques tracked
 --   luck, killsToLuck   share of players with fewer uniques (or nil, see luckOf),
 --                       and kills until it shows
@@ -219,6 +233,10 @@ function stats.ForBoss(entry)
                 countedExpected = countedExpected + kills * chance
             end
         end
+    end
+    local claimedPiles = t.sums and t.sums.piles
+    if claimedPiles then
+        result.piles = (result.piles or 0) + tallies.Total(claimedPiles)
     end
     if allTime then
         result.allTime = allTimeTotals(boss, allTime)

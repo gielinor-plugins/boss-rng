@@ -21,18 +21,24 @@ and, in enrage only, the Shard of Genesis Essence.
 
 ## How kills are counted
 
-- **Piles claimed** are counted, not kills ("piles" in the panel). Piles wait in
-  your chest across kills; no new instance starts until you claim.
-- When you claim, the number of piles the chest held is the number counted, at that
-  chest's rates, with any unique in it.
-- **Only fully seen claims count:** every kill since the count was last 0 must
-  have raised it, and the rises must add up to the claim. Otherwise the whole
-  claim is skipped, so it never skews luck. This catches loot from before Boss
-  RNG was on or before login, and stacked kills that stop raising the count.
-  Claiming after each kill avoids both, as the Info tab's tip says.
-- **Mode:** the chest says if it's normal mode; otherwise the instance's enrage
-  picks the highest tier at or below it (4,000% counts as 2,000%+). A chest's
-  piles always share one instance.
+- **Kills are counted when you claim,** with the loot piles they gave ("8 kills (40
+  piles)" in the panel). Piles wait in your chest across kills; no new instance
+  starts until you claim. Each kill raises the chest's piles once, so a claim's kills
+  are its rises, and its piles are what the chest held.
+- **Each pile rolls,** so a kill rolls once per pile, using the day's average piles
+  per kill. Expected drops, and thus luck, come out exactly as if each pile were
+  counted. A dry streak that starts partway through a day uses that day's average,
+  so its share is approximate if your piles per kill changed that day (another team
+  size or role).
+- **Only fully seen claims count:** every kill since the count was last 0 must have
+  raised it, and the rises must add up to the claim. Otherwise the whole claim is
+  skipped, any unique in it too, so it never skews luck. This catches loot from
+  before Boss RNG was on or before login, and stacked kills that stop raising the
+  count. Claiming after each kill avoids both, as the Info tab's tip says.
+- **Mode:** the chest's loot var (`AMASCUT_BOSS_LOOT_DIFFICULTY`, 0 in normal mode)
+  says if it's normal mode; otherwise the enrage var (`AMASCUT_BOSS_LAST_ENRAGE`),
+  read at the claim, picks the highest tier at or below it (4,000% counts as
+  2,000%+). A chest's piles always share one instance.
 - Waiting uniques are never read before the claim; the game only shows a green
   glow.
 - The Shard's collection log count is shared with Nakatra (Sanctum of Rebirth); a

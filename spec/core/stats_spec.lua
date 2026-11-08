@@ -64,6 +64,14 @@ describe("stats.ForBoss", function()
         assert.is_nil(forBoss(BOSS, tallies({ n = 5 })).piles) -- a boss without piles
     end)
 
+    it("adds up the loot piles saved with claims", function()
+        local t = tallies({ n = 2, h = 1 })
+        t.sums = { piles = { n = { [tostring(DAY)] = 7 }, h = { [tostring(DAY)] = 3 } } }
+        local result = forBoss(BOSS, t)
+        assert.are.equal(3, result.kills)
+        assert.are.equal(10, result.piles)
+    end)
+
     it("adds up expected drops per mode over tracked kills", function()
         local result = forBoss(BOSS, tallies({ n = 100, h = 20 }))
         assert.are.equal(120, result.kills)

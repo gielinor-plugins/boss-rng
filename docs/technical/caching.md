@@ -60,7 +60,7 @@ about a fifth between runs:
 |---|---|---|
 | Barrows (3 chest types) | about 2,400 ms | 7 ms |
 | Croesus (2 contribution levels) | about 200 ms | 3 ms |
-| Amascut (normal and 1,000%) | about 70 ms | 3 ms |
+| Amascut (normal and 1,000%) | about 70 ms | 6 ms |
 | Kree'arra (normal and hard) | about 50 ms | 3 ms |
 | Arch-Glacor | about 25 ms | 11 ms |
 | Vorkath (hard) | about 9 ms | 1 ms |

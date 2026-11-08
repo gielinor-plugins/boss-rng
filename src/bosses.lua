@@ -46,7 +46,10 @@
 --                   sums       keys of values to add up by day and pass to rolls as
 --                              averages (Arch-Glacor's enrage and streak)
 --   claims        kills counted by loot claimed from a chest (src/core/claims.lua): a
---                 list of { var, mask, kills, reads, mode(values, old) }
+--                 list of { var, mask, kills, reads, mode(values, old), piles }. Each
+--                 rise of var's mask bits is one kill, counted at the claim. piles is
+--                 true if the bits count loot piles: each claim's are saved as the
+--                 sum "piles", passed to rolls as the day's average per kill (Amascut)
 --   containers    kills counted by chests opened from the backpack
 --                 (src/core/containers.lua): { [item id] = { mode, window } }
 --   dropsAtClaim  { var, most }: uniques reach the collection log when waiting loot is

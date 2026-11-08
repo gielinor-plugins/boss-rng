@@ -462,7 +462,7 @@ describe("Barrows", function()
     end)
 end)
 
-it("counts Amascut's claimed loot piles by mode: normal, or the enrage's tier", function()
+it("counts Amascut's claims by mode: normal, or the enrage's tier", function()
     local boss = require("src/bosses/amascut")
     local claim = boss.claims[1]
     -- The loot var's old values seen in game: 2 piles at 1,000% enrage, 3 in normal mode.
@@ -471,6 +471,22 @@ it("counts Amascut's claimed loot piles by mode: normal, or the enrage's tier", 
     assert.are.equal("e100", claim.mode({ enrage = 100 }, 0x100107D0))
     assert.are.equal("e500", claim.mode({ enrage = 749 }, 0x200107D0))
     assert.are.equal("e2000", claim.mode({ enrage = 4000 }, 0x700107D0))
+end)
+
+it("rolls each Amascut kill for its day's average loot piles", function()
+    local boss = require("src/bosses/amascut")
+    local NEXUS = 59358
+    local function rolls(piles)
+        return stats.Rolls(boss, boss.modes.e1000, {}, BEFORE, piles and { piles = piles })
+    end
+    local onePile = luck.ItemChances(rolls(nil))[NEXUS] -- a day without piles saved
+    assert.are.near(1 / 140, onePile, 1e-12)
+    -- Expected drops: the piles times one pile's chance, whole or not.
+    assert.are.near(2 * onePile, luck.ItemChances(rolls(2))[NEXUS], 1e-12)
+    assert.are.near(2.5 * onePile, luck.ItemChances(rolls(2.5))[NEXUS], 1e-12)
+    -- No Nexus in a kill: exact for whole piles.
+    local nexus = { [NEXUS] = true }
+    assert.are.near(1 - (139 / 140) ^ 2, luck.ChanceOfAny(rolls(2), nexus), 1e-12)
 end)
 
 it("counts each Sanctum boss's claimed loot as one kill, by its difficulty", function()
