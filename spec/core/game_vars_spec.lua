@@ -441,6 +441,68 @@ describe("gameVars", function()
             )
         end)
 
+        it("doesn't count a skipped claim's drop, even after a counted claim", function()
+            startWith(0)
+            kill(1, 0, 0x10000)
+            send(LOOT_VAR, 0x10000, 0) -- counted
+            change(LOG_VAR, 0, 1) -- with its drop
+            kill(2, 0, 0x10000)
+            kill(3, 0x10000, 0x10000) -- stacked: the count didn't rise
+            send(LOOT_VAR, 0x10000, 0) -- skipped
+            change(LOG_VAR, 1, 2) -- its drop
+            assert.are.same({ "kill n +1 (1 piles)", "drop 101 +1" }, reports)
+        end)
+
+        it("doesn't give a skipped claim's shared unique to another boss", function()
+            local OTHER_VAR = 4
+            local mine = {
+                killCounts = claimed.killCounts,
+                modes = claimed.modes,
+                claims = claimed.claims,
+                items = { [101] = { log = "LOG_WEAPON" } },
+            }
+            local other = {
+                killCounts = { { var = "KC_HARD" } },
+                modes = anyModes(),
+                items = { [101] = { log = "LOG_WEAPON" } },
+                claims = {
+                    {
+                        var = "OTHER_BASE",
+                        mask = 0x1,
+                        kills = { "KC_HARD" },
+                        mode = function()
+                            return "n"
+                        end,
+                    },
+                },
+            }
+            -- They share 101, as loading would note.
+            mine.items[101].pooledBy = { mine, other }
+            other.items[101].pooledBy = mine.items[101].pooledBy
+            gameVars.Stop()
+            loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
+            loot.value = 0
+            mock.AddVar("OTHER_BASE", OTHER_VAR).value = 0
+            start({ mine, other }, function(boss, mode)
+                table.insert(
+                    reports,
+                    (boss == other and "other" or "claimed") .. " kill " .. mode.key
+                )
+            end, function(boss, itemID)
+                table.insert(
+                    reports,
+                    (boss == other and "other" or "claimed") .. " drop " .. itemID
+                )
+            end)
+            advance(1)
+            send(KC_VAR, 0, 65536) -- other's kill, raising its loot bit
+            change(OTHER_VAR, 0, 1)
+            change(OTHER_VAR, 1, 0) -- other's claim counts
+            change(LOOT_VAR, 0x10000, 0) -- claimed's loot arrived unseen, so it's skipped
+            change(LOG_VAR, 0, 1) -- the shared unique, from that claim
+            assert.are.same({ "other kill n" }, reports)
+        end)
+
         it("leaves a claim uncounted, drops and all, if a kill didn't raise it", function()
             startWith(0)
             kill(1, 0, 0x50000)

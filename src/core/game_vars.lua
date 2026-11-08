@@ -181,6 +181,17 @@ local function killed(boss, mode, count, sums)
     onKills(boss, mode, count, today(), sums)
 end
 
+-- A skipped claim's uniques come next, uncounted like its kills. So the boss, and any
+-- boss sharing a unique with it, counts drops only after its next kill.
+local function distrustDrops(boss)
+    killedThisSession[boss] = nil
+    for _, item in pairs(boss.items) do
+        for _, sharer in ipairs(item.pooledBy or {}) do
+            killedThisSession[sharer] = nil
+        end
+    end
+end
+
 -- Watches a boss's kill counts: when one with a mode rises, that's a kill of that mode.
 -- For a boss whose kills are counted when a chest is opened or loot is claimed, a rise
 -- still asks for a redraw, so its all-time kills update right away.
@@ -212,10 +223,12 @@ local function watchClaims(boss)
     for _, claim in ipairs(boss.claims or {}) do
         local base = var.VarPlayer[claim.var]
         if base then
-            local countKill = claims.Add(base, claim.mask, function(old, loot, kills)
-                local mode = killEvents.Mode(boss, claim, old)
+            local countKill = claims.Add(base, claim.mask, function(old, loot, kills, verified)
+                local mode = verified and killEvents.Mode(boss, claim, old) or nil
                 if mode then
                     killed(boss, mode, kills, claim.piles and { piles = loot } or nil)
+                else
+                    distrustDrops(boss)
                 end
             end)
             for _, kc in ipairs(claim.kills) do

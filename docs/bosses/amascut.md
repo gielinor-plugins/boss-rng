@@ -30,11 +30,11 @@ and, in enrage only, the Shard of Genesis Essence.
   counted. A dry streak that starts partway through a day uses that day's average,
   so its share is approximate if your piles per kill changed that day (another team
   size or role).
-- **Only fully seen claims count:** every kill since the count was last 0 must
-  have raised it, and the rises must add up to the claim. Otherwise the whole
-  claim is skipped, so it never skews luck. This catches loot from before Boss
-  RNG was on or before login, and stacked kills that stop raising the count.
-  Claiming after each kill avoids both, as the Info tab's tip says.
+- **Only fully seen claims count:** every kill since the count was last 0 must have
+  raised it, and the rises must add up to the claim. Otherwise the whole claim is
+  skipped, any unique in it too, so it never skews luck. This catches loot from
+  before Boss RNG was on or before login, and stacked kills that stop raising the
+  count. Claiming after each kill avoids both, as the Info tab's tip says.
 - **Mode:** the chest's loot var (`AMASCUT_BOSS_LOOT_DIFFICULTY`, 0 in normal mode)
   says if it's normal mode; otherwise the enrage var (`AMASCUT_BOSS_LAST_ENRAGE`),
   read at the claim, picks the highest tier at or below it (4,000% counts as

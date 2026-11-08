@@ -12,8 +12,9 @@ local claims = {}
 -- kill), and this batch's kill count rises and rises of its bits.
 local byVar, list = {}, {}
 
--- Watches mask bits of var base; report(old, loot, kills) gets each counted claim: the
--- var's value before the claim, how much was claimed, and the kills it came from.
+-- Watches mask bits of var base; report(old, loot, kills, verified) gets each claim: the
+-- var's value before it, how much was claimed, the kills it came from, and whether all
+-- of it was seen arriving.
 -- Returns a function to call with each kill count rise.
 function claims.Add(base, mask, report)
     local claim = {
@@ -40,7 +41,7 @@ function claims.Watches(id)
     return byVar[id] ~= nil
 end
 
--- Passes each counted claim's report, and how much was claimed, to queue.
+-- Passes each claim's report, and how much was claimed, to queue.
 function claims.OnVar(id, old, new, queue)
     for _, claim in ipairs(byVar[id] or {}) do
         local from, to = (old & claim.mask) >> claim.shift, (new & claim.mask) >> claim.shift
@@ -48,12 +49,10 @@ function claims.OnVar(id, old, new, queue)
             claim.loot, claim.kills = claim.loot + to - from, claim.kills + 1
             claim.batchRises = claim.batchRises + 1
         elseif from > 0 and to == 0 then
-            if claim.trusted and claim.loot == from then
-                local kills = claim.kills
-                queue(function(loot)
-                    claim.report(old, loot, kills)
-                end, from)
-            end
+            local kills, verified = claim.kills, claim.trusted and claim.loot == from
+            queue(function(loot)
+                claim.report(old, loot, kills, verified)
+            end, from)
             claim.loot, claim.kills, claim.trusted = 0, 0, true
         end
     end
