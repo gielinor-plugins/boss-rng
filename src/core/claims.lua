@@ -8,29 +8,30 @@ local bits = require("src/utils/bits")
 
 local claims = {}
 
--- Each claim keeps seen, the loot seen arriving since its bits were last 0, and this
--- batch's kills and rises of its bits.
+-- Each claim keeps the loot and kills seen since its bits were last 0 (each rise is a
+-- kill), and this batch's kill count rises and rises of its bits.
 local byVar, list = {}, {}
 
--- Watches mask bits of var base; report(old, count) gets each counted claim: the var's
--- value before the claim, and how much was claimed.
--- Returns a function to call with each kill's count.
+-- Watches mask bits of var base; report(old, loot, kills) gets each counted claim: the
+-- var's value before the claim, how much was claimed, and the kills it came from.
+-- Returns a function to call with each kill count rise.
 function claims.Add(base, mask, report)
     local claim = {
         base = base,
         mask = mask,
         shift = bits.LowestBit(mask),
         report = report,
-        seen = 0,
-        trusted = false,
+        loot = 0,
         kills = 0,
-        rises = 0,
+        trusted = false,
+        batchKills = 0,
+        batchRises = 0,
     }
     byVar[base.id] = byVar[base.id] or {}
     table.insert(byVar[base.id], claim)
     table.insert(list, claim)
     return function(count)
-        claim.kills = claim.kills + count
+        claim.batchKills = claim.batchKills + count
     end
 end
 
@@ -44,14 +45,16 @@ function claims.OnVar(id, old, new, queue)
     for _, claim in ipairs(byVar[id] or {}) do
         local from, to = (old & claim.mask) >> claim.shift, (new & claim.mask) >> claim.shift
         if to > from then
-            claim.seen, claim.rises = claim.seen + to - from, claim.rises + 1
+            claim.loot, claim.kills = claim.loot + to - from, claim.kills + 1
+            claim.batchRises = claim.batchRises + 1
         elseif from > 0 and to == 0 then
-            if claim.trusted and claim.seen == from then
-                queue(function(count)
-                    claim.report(old, count)
+            if claim.trusted and claim.loot == from then
+                local kills = claim.kills
+                queue(function(loot)
+                    claim.report(old, loot, kills)
                 end, from)
             end
-            claim.seen, claim.trusted = 0, true
+            claim.loot, claim.kills, claim.trusted = 0, 0, true
         end
     end
 end
@@ -60,10 +63,10 @@ end
 -- isn't trusted until the chest is empty again.
 function claims.EndBatch()
     for _, claim in ipairs(list) do
-        if claim.kills > claim.rises then
+        if claim.batchKills > claim.batchRises then
             claim.trusted = false
         end
-        claim.kills, claim.rises = 0, 0
+        claim.batchKills, claim.batchRises = 0, 0
     end
 end
 
@@ -71,7 +74,8 @@ end
 function claims.Ready()
     for _, claim in ipairs(list) do
         local held = claim.base.value
-        claim.trusted, claim.seen = held ~= nil and (held & claim.mask) == 0, 0
+        claim.trusted = held ~= nil and (held & claim.mask) == 0
+        claim.loot, claim.kills = 0, 0
     end
 end
 

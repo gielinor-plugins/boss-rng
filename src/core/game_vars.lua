@@ -212,10 +212,10 @@ local function watchClaims(boss)
     for _, claim in ipairs(boss.claims or {}) do
         local base = var.VarPlayer[claim.var]
         if base then
-            local countKill = claims.Add(base, claim.mask, function(old, count)
+            local countKill = claims.Add(base, claim.mask, function(old, loot, kills)
                 local mode = killEvents.Mode(boss, claim, old)
                 if mode then
-                    killed(boss, mode, count)
+                    killed(boss, mode, kills, claim.piles and { piles = loot } or nil)
                 end
             end)
             for _, kc in ipairs(claim.kills) do

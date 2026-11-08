@@ -4,9 +4,9 @@ How Boss RNG turns tracked kills into the numbers it shows. The code is
 `src/core/luck.lua` (the formulas) and `src/core/stats.lua` (applying them to a
 boss's kills).
 
-Most bosses' luck counts kills. Three count something else, and on this page a
-"kill" means that instead: loot piles claimed at Amascut, chests looted at Barrows,
-and chests opened at Zemouregal & Vorkath (`unit` in `src/bosses.lua`).
+Most bosses' luck counts kills. Two count something else, and on this page a "kill"
+means that instead: chests looted at Barrows, and chests opened at Zemouregal &
+Vorkath (`unit` in `src/bosses.lua`).
 
 ## Rolls
 

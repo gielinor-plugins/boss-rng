@@ -396,6 +396,7 @@ describe("gameVars", function()
                     mode = function(_, old)
                         return old & 0xF0000000 == 0 and "n" or "e"
                     end,
+                    piles = true, -- the bits count loot piles
                 },
             },
         }
@@ -405,8 +406,9 @@ describe("gameVars", function()
             gameVars.Stop()
             loot = mock.AddVar("LOOT_BASE", LOOT_VAR)
             loot.value = value
-            start({ claimed }, function(_, mode, count)
-                table.insert(reports, "kill " .. mode.key .. " +" .. count)
+            start({ claimed }, function(_, mode, count, _, sums)
+                local text = "kill " .. mode.key .. " +" .. count
+                table.insert(reports, sums and text .. " (" .. sums.piles .. " piles)" or text)
             end, function(_, itemID, count)
                 table.insert(reports, "drop " .. itemID .. " +" .. count)
             end)
@@ -430,10 +432,13 @@ describe("gameVars", function()
             send(LOOT_VAR, 0x30000, 0) -- claimed: three piles
             send(LOG_VAR, 0, 1) -- and a drop
             report()
-            assert.are.same({ "kill n +3", "drop 101 +1" }, reports)
+            assert.are.same({ "kill n +2 (3 piles)", "drop 101 +1" }, reports)
             kill(3, 0, 0x50010000)
             change(LOOT_VAR, 0x50010000, 0)
-            assert.are.same({ "kill n +3", "drop 101 +1", "kill e +1" }, reports)
+            assert.are.same(
+                { "kill n +2 (3 piles)", "drop 101 +1", "kill e +1 (1 piles)" },
+                reports
+            )
         end)
 
         it("leaves a claim uncounted, drops and all, if a kill didn't raise it", function()
@@ -446,7 +451,7 @@ describe("gameVars", function()
             assert.are.same({}, reports)
             kill(3, 0, 0x30000) -- the next chest counts again
             change(LOOT_VAR, 0x30000, 0)
-            assert.are.same({ "kill n +3" }, reports)
+            assert.are.same({ "kill n +1 (3 piles)" }, reports)
         end)
 
         it("counts claims sharing one var by their own bits, like Sanctum's bosses", function()
@@ -502,7 +507,7 @@ describe("gameVars", function()
             assert.are.same({}, reports)
             kill(3, 0, 0x10000) -- the next chest counts again
             change(LOOT_VAR, 0x10000, 0)
-            assert.are.same({ "kill n +1" }, reports)
+            assert.are.same({ "kill n +1 (1 piles)" }, reports)
         end)
 
         it("leaves loot waiting from before it was watched uncounted", function()

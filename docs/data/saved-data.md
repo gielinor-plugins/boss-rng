@@ -47,7 +47,8 @@ confirmation. The fields:
 - **Sums:** values read at each kill that set its rate, added up by mode and day
   (`sums` in `src/bosses.lua`). Arch-Glacor saves `enrage` and `streak`; a day's
   kills use their averages. Saving the values, not the rate, lets rate changes
-  re-rate them.
+  re-rate them. Amascut saves `piles`, each day's loot piles claimed; a day's kills
+  use their average per kill.
 - **Streak keys:** `any` (since any unique) and each unique's item id. A drop resets
   its item's streak and `any`.
 
